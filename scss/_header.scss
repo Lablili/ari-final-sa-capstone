@@ -1,0 +1,56 @@
+.brand {
+    padding: 28px 22px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+
+    h1 {
+        margin: 0;
+        font-size: 2.05rem;
+        line-height: 1;
+        color: #ffffff;
+    }
+
+    p {
+        margin: 8px 0 0;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.76);
+    }
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+    padding: 18px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+
+    h2 {
+        margin: 0;
+        font-size: 1.85rem;
+        font-weight: 700;
+        color: #ffffff;
+    }
+}
+
+.topbar-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-date {
+    font-size: 0.96rem;
+    color: rgba(255, 255, 255, 0.76);
+}
+
+.logout-button {
+    min-height: 42px;
+    padding: 0 18px;
+    border-color: transparent;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ff995e, #ff8242);
+}

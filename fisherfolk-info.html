@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Fisherfolk Info | Bantay Dagat</title>
+</head>
+<body>
+    <section class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <p class="login-eyebrow">Secure Access</p>
+            <h1>Bantay Dagat</h1>
+            <p class="login-copy">Enter the password to access the coastal monitoring dashboard.</p>
+
+            <form class="login-form" id="loginForm">
+                <label class="form-label" for="password">Password</label>
+                <input class="form-input" id="password" name="password" type="password" placeholder="Enter password" required>
+                <p class="form-error" id="loginError" aria-live="polite"></p>
+                <button class="login-button" type="submit">Log In</button>
+            </form>
+        </div>
+    </section>
+
+    <div class="dashboard-shell hidden" id="dashboardShell">
+        <aside class="sidebar">
+            <div class="brand">
+                <h1>Bantay Dagat</h1>
+                <p>Coastal Monitoring System</p>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-label">MAIN</p>
+                <nav class="nav-menu">
+                    <a class="nav-item" href="index.html">
+                        <span class="nav-icon overview-icon" aria-hidden="true"></span>
+                        <span>Overview</span>
+                    </a>
+                    <a class="nav-item" href="incident-report.html">
+                        <span class="nav-icon report-icon" aria-hidden="true"></span>
+                        <span>Incident Reports</span>
+                    </a>
+                    <a class="nav-item active" href="fisherfolk-info.html">
+                        <span class="nav-icon fisherfolk-icon" aria-hidden="true"></span>
+                        <span>Fisherfolk Info</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-label">COMMUNICATION</p>
+                <nav class="nav-menu">
+                    <a class="nav-item" href="announcement.html">
+                        <span class="nav-icon announcement-icon" aria-hidden="true"></span>
+                        <span>Announcements</span>
+                    </a>
+                    <a class="nav-item" href="#">
+                        <span class="nav-icon weather-icon" aria-hidden="true"></span>
+                        <span>SMS Operations</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Fisherfolk Info</h2>
+                <div class="topbar-meta">
+                    <button class="logout-button" id="logoutButton" type="button">Log Out</button>
+                </div>
+            </header>
+
+            <section class="panel fisherfolk-panel">
+                <div class="panel-header">
+                    <div>
+                        <h3>Fisherfolk Information</h3>
+                        <p class="section-copy">Staff can update and save core fisherfolk registration details for Bantayan records.</p>
+                    </div>
+                    <span class="panel-pill neutral" id="fisherfolkStatus">Ready to edit</span>
+                </div>
+
+                <form class="fisherfolk-form" id="fisherfolkForm">
+                    <label class="field-group field-span-2">
+                        <span class="field-label">Complete Name</span>
+                        <input class="field-input" type="text" name="completeName" placeholder="Enter full name" value="Juan Dela Cruz" required>
+                    </label>
+
+                    <label class="field-group field-span-2">
+                        <span class="field-label">Address</span>
+                        <input class="field-input" type="text" name="address" placeholder="House no., street, purok" value="Purok 2, Sitio Proper" required>
+                    </label>
+
+                    <label class="field-group">
+                        <span class="field-label">Barangay</span>
+                        <select class="field-input" name="barangay" required>
+                            <option value="Patao" selected>Patao</option>
+                            <option value="Kabac">Kabac</option>
+                            <option value="Sulangan">Sulangan</option>
+                        </select>
+                    </label>
+
+                    <label class="field-group">
+                        <span class="field-label">Birthdate</span>
+                        <input class="field-input" type="date" name="birthdate" id="birthdateField" value="1987-06-14" required>
+                    </label>
+
+                    <label class="field-group">
+                        <span class="field-label">Age</span>
+                        <input class="field-input" type="number" name="age" id="ageField" placeholder="Auto-calculated" readonly>
+                    </label>
+
+                    <label class="field-group">
+                        <span class="field-label">Gender</span>
+                        <select class="field-input" name="gender" required>
+                            <option value="Male" selected>Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </label>
+
+                    <label class="field-group">
+                        <span class="field-label">Type of Fishing Vessel</span>
+                        <select class="field-input" name="vesselType" required>
+                            <option value="Small Scale" selected>Small Scale</option>
+                            <option value="Medium Scale">Medium Scale</option>
+                            <option value="Large Scale">Large Scale</option>
+                        </select>
+                    </label>
+
+                    <label class="field-group">
+                        <span class="field-label">Boat Number</span>
+                        <input class="field-input" type="text" name="boatNumber" placeholder="Enter boat number" value="BTY-PAT-014" required>
+                    </label>
+
+                    <label class="field-group">
+                        <span class="field-label">Fishing License / Permit No.</span>
+                        <input class="field-input" type="text" name="permitNumber" placeholder="Permit or license number" value="BFAR-2026-1184">
+                    </label>
+
+                    <label class="field-group field-span-2">
+                        <span class="field-label">Ways of Capturing Fishes</span>
+                        <select class="field-input" name="captureMethod" required>
+                            <option value="">Select fishing method</option>
+                            <option value="Pamasol / Panagat" selected>Pamasol / Panagat</option>
+                            <option value="Pukot / Pamanti">Pukot / Pamanti</option>
+                            <option value="Bubo">Bubo</option>
+                            <option value="Salambaw">Salambaw</option>
+                            <option value="Spearfishing (Pana)">Spearfishing (Pana)</option>
+                            <option value="Palangre">Palangre</option>
+                            <option value="Motorized Net Fishing">Motorized Net Fishing</option>
+                        </select>
+                    </label>
+
+                    <label class="field-group">
+                        <span class="field-label">Contact Number</span>
+                        <input class="field-input" type="tel" name="contactNumber" placeholder="09xx xxx xxxx" value="0917 456 2381">
+                    </label>
+
+                    <label class="field-group">
+                        <span class="field-label">Registration Status</span>
+                        <select class="field-input" name="registrationStatus" required>
+                            <option value="Active" selected>Active</option>
+                            <option value="For Renewal">For Renewal</option>
+                            <option value="Pending Verification">Pending Verification</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </label>
+
+               
+                    <div class="form-actions field-span-2">
+                        <button class="form-button" type="submit">Save Fisherfolk Info</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        (function () {
+            var PASSWORD = "bantay";
+            var STORAGE_KEY = "bantay-dagat-authenticated";
+            var FISHERFOLK_STORAGE_KEY = "bantay-dagat-fisherfolk-record";
+            var loginScreen = document.getElementById("loginScreen");
+            var dashboardShell = document.getElementById("dashboardShell");
+            var loginForm = document.getElementById("loginForm");
+            var passwordInput = document.getElementById("password");
+            var loginError = document.getElementById("loginError");
+            var logoutButton = document.getElementById("logoutButton");
+            var fisherfolkForm = document.getElementById("fisherfolkForm");
+            var fisherfolkStatus = document.getElementById("fisherfolkStatus");
+            var birthdateField = document.getElementById("birthdateField");
+            var ageField = document.getElementById("ageField");
+
+            function calculateAge(value) {
+                if (!value) {
+                    return "";
+                }
+
+                var today = new Date();
+                var birthDate = new Date(value);
+                var age = today.getFullYear() - birthDate.getFullYear();
+                var monthDiff = today.getMonth() - birthDate.getMonth();
+
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age -= 1;
+                }
+
+                return age >= 0 ? age : "";
+            }
+
+            function syncAge() {
+                ageField.value = calculateAge(birthdateField.value);
+            }
+
+            function saveFisherfolkInfo() {
+                var formData = new FormData(fisherfolkForm);
+                var data = {};
+
+                formData.forEach(function (value, key) {
+                    data[key] = value;
+                });
+
+                localStorage.setItem(FISHERFOLK_STORAGE_KEY, JSON.stringify(data));
+                fisherfolkStatus.textContent = "Saved locally";
+            }
+
+            function loadFisherfolkInfo() {
+                var stored = localStorage.getItem(FISHERFOLK_STORAGE_KEY);
+
+                if (!stored) {
+                    syncAge();
+                    return;
+                }
+
+                try {
+                    var data = JSON.parse(stored);
+                    Object.keys(data).forEach(function (key) {
+                        var field = fisherfolkForm.elements[key];
+                        if (field) {
+                            field.value = data[key];
+                        }
+                    });
+                    fisherfolkStatus.textContent = "Saved locally";
+                } catch (error) {
+                    fisherfolkStatus.textContent = "Ready to edit";
+                }
+
+                syncAge();
+            }
+
+            function showDashboard() {
+                loginScreen.classList.add("hidden");
+                dashboardShell.classList.remove("hidden");
+                loginError.textContent = "";
+            }
+
+            function showLogin() {
+                dashboardShell.classList.add("hidden");
+                loginScreen.classList.remove("hidden");
+                passwordInput.value = "";
+                loginError.textContent = "";
+                passwordInput.focus();
+            }
+
+            if (localStorage.getItem(STORAGE_KEY) === "true") {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+
+            loginForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                if (passwordInput.value === PASSWORD) {
+                    localStorage.setItem(STORAGE_KEY, "true");
+                    showDashboard();
+                    return;
+                }
+
+                loginError.textContent = "Incorrect password. Please try again.";
+                passwordInput.select();
+            });
+
+            logoutButton.addEventListener("click", function () {
+                localStorage.removeItem(STORAGE_KEY);
+                showLogin();
+            });
+
+            birthdateField.addEventListener("change", function () {
+                syncAge();
+                fisherfolkStatus.textContent = "Unsaved changes";
+            });
+
+            fisherfolkForm.addEventListener("input", function () {
+                fisherfolkStatus.textContent = "Unsaved changes";
+            });
+
+            fisherfolkForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                syncAge();
+                saveFisherfolkInfo();
+            });
+
+            loadFisherfolkInfo();
+        }());
+    </script>
+</body>
+</html>

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Announcements | Bantay Dagat</title>
+</head>
+<body>
+    <section class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <p class="login-eyebrow">Secure Access</p>
+            <h1>Bantay Dagat</h1>
+            <p class="login-copy">Enter the password to access the coastal monitoring dashboard.</p>
+
+            <form class="login-form" id="loginForm">
+                <label class="form-label" for="password">Password</label>
+                <input class="form-input" id="password" name="password" type="password" placeholder="Enter password" required>
+                <p class="form-error" id="loginError" aria-live="polite"></p>
+                <button class="login-button" type="submit">Log In</button>
+            </form>
+        </div>
+    </section>
+
+    <div class="dashboard-shell hidden" id="dashboardShell">
+        <aside class="sidebar">
+            <div class="brand">
+                <h1>Bantay Dagat</h1>
+                <p>Coastal Monitoring System</p>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-label">MAIN</p>
+                <nav class="nav-menu">
+                    <a class="nav-item" href="index.html">
+                        <span class="nav-icon overview-icon" aria-hidden="true"></span>
+                        <span>Overview</span>
+                    </a>
+                    <a class="nav-item" href="incident-report.html">
+                        <span class="nav-icon report-icon" aria-hidden="true"></span>
+                        <span>Incident Reports</span>
+                    </a>
+                    <a class="nav-item" href="fisherfolk-info.html">
+                        <span class="nav-icon fisherfolk-icon" aria-hidden="true"></span>
+                        <span>Fisherfolk Info</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-label">COMMUNICATION</p>
+                <nav class="nav-menu">
+                    <a class="nav-item active" href="announcement.html">
+                        <span class="nav-icon announcement-icon" aria-hidden="true"></span>
+                        <span>Announcements</span>
+                    </a>
+                    <a class="nav-item" href="#">
+                        <span class="nav-icon weather-icon" aria-hidden="true"></span>
+                        <span>SMS Operations</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Announcements</h2>
+                <div class="topbar-meta">
+                    <span class="report-pill" id="announcementCount">0 Sent Today</span>
+                    <span class="topbar-date">May 4, 2026</span>
+                    <button class="logout-button" id="logoutButton" type="button">Log Out</button>
+                </div>
+            </header>
+
+            <section class="panel announcement-panel">
+                <div class="panel-header">
+                    <div>
+                        <h3>Information Dissemination</h3>
+                        <p class="section-copy announcement-copy">One-way GSM announcements are sent directly to registered fisherfolk in Bantayan municipality. This dissemination flow covers municipal waters and the 15 km coastal operating premises.</p>
+                    </div>
+                    <span class="panel-pill neutral" id="announcementStatus">Ready to compose</span>
+                </div>
+
+                <div class="announcement-grid">
+                    <div>
+                        <div class="announcement-scope">
+                            <h4 class="announcement-scope-title">System Scope</h4>
+                            <p class="announcement-scope-copy">Information dissemination sends one-way announcements to fisherfolk.</p>
+                            <p class="announcement-scope-copy">Feedbacking allows fisherfolk to send incident reports and rescue help requests to Bantay Dagat staff.</p>
+                            <p class="announcement-scope-copy">Coverage is limited to Bantayan municipality and the 15 km coastal premises from shore.</p>
+                        </div>
+
+                        <form class="announcement-form" id="announcementForm">
+                            <div class="announcement-field">
+                                <label class="announcement-label" for="announcementTemplate">Fixed Message Template</label>
+                                <select class="announcement-select" id="announcementTemplate" name="template">
+                                    <option value="ordinance">Ordinance reminder</option>
+                                    <option value="no-fishing">No-fishing zone notice</option>
+                                    <option value="patrol">Patrol advisory</option>
+                                    <option value="custom">Custom announcement</option>
+                                </select>
+                                <p class="announcement-hint">Using a fixed template is better for consistency, but staff can still add optional details and a location when needed.</p>
+                            </div>
+
+                            <div class="announcement-field">
+                                <label class="announcement-label" for="recipientGroup">Recipients</label>
+                                <select class="announcement-select" id="recipientGroup" name="recipientGroup">
+                                    <option value="all">All registered fisherfolk</option>
+                                    <option value="north">Barangay Kabac</option>
+                                    <option value="south">Barangay Patao</option>
+                                    <option value="licensed">Barangay Guiwanon</option>
+                                </select>
+                                <p class="announcement-hint">Announcements are broadcast through GSM to registered numbers only.</p>
+                            </div>
+
+                            <div class="announcement-field">
+                                <label class="announcement-label" for="announcementLocation">Area or Location</label>
+                                <input class="announcement-select" id="announcementLocation" name="location" type="text" placeholder="Example: Barangay Patao or municipal waters within 15 km shoreline">
+                                <p class="announcement-hint">Optional. Add the affected barangay, coastal zone, or operating area.</p>
+                            </div>
+
+                            <div class="announcement-field">
+                                <label class="announcement-label" for="announcementDetails">Optional Additional Details</label>
+                                <textarea class="announcement-textarea" id="announcementDetails" name="details" placeholder="Add clarifications, schedule, restriction details, or operational notes if needed."></textarea>
+                            </div>
+
+                            <div class="announcement-field">
+                                <label class="announcement-label" for="announcementMessage">Manual SMS Override</label>
+                                <textarea class="announcement-textarea" id="announcementMessage" name="message" placeholder="Optional. Leave blank to use the fixed message with the added location and details above."></textarea>
+                                <p class="announcement-hint">Use this only when staff needs a fully custom one-way announcement.</p>
+                            </div>
+
+                            <div class="announcement-preview">
+                                <p class="announcement-preview-title">Final SMS Preview</p>
+                                <p class="announcement-preview-text" id="announcementPreview">Bantay Dagat Notice: Please follow municipal fishing ordinances within Bantayan waters and the 15 km coastal operating area.</p>
+                            </div>
+
+                            <div class="announcement-actions">
+                                <button class="announcement-submit" type="submit">Send Announcement</button>
+                                <p class="announcement-status-note">This flow is one-way only. No reply is required from fisherfolk for announcements.</p>
+                            </div>
+                        </form>
+
+                        <div class="announcement-log" id="announcementLog"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        (function () {
+            var PASSWORD = "bantay";
+            var STORAGE_KEY = "bantay-dagat-authenticated";
+            var ANNOUNCEMENT_STORAGE_KEY = "bantay-dagat-announcements";
+            var loginScreen = document.getElementById("loginScreen");
+            var dashboardShell = document.getElementById("dashboardShell");
+            var loginForm = document.getElementById("loginForm");
+            var passwordInput = document.getElementById("password");
+            var loginError = document.getElementById("loginError");
+            var logoutButton = document.getElementById("logoutButton");
+            var announcementForm = document.getElementById("announcementForm");
+            var announcementTemplate = document.getElementById("announcementTemplate");
+            var recipientGroup = document.getElementById("recipientGroup");
+            var announcementLocation = document.getElementById("announcementLocation");
+            var announcementDetails = document.getElementById("announcementDetails");
+            var announcementMessage = document.getElementById("announcementMessage");
+            var announcementPreview = document.getElementById("announcementPreview");
+            var announcementLog = document.getElementById("announcementLog");
+            var announcementStatus = document.getElementById("announcementStatus");
+            var announcementCount = document.getElementById("announcementCount");
+            var templates = {
+                "ordinance": "Bantay Dagat Notice: Please follow municipal fishing ordinances within Bantayan waters and the 15 km coastal operating area.",
+                "no-fishing": "Bantay Dagat Notice: Entry into the identified no-fishing zone is prohibited until further notice from Bantay Dagat staff.",
+                "patrol": "Bantay Dagat Notice: Coastal patrol operations are active. Please keep fishing permits and boat identification ready for verification.",
+                "custom": ""
+            };
+            var recipientLabels = {
+                "all": "All registered fisherfolk",
+                "north": "North coastal barangays",
+                "south": "South coastal barangays",
+                "licensed": "Licensed fishers only"
+            };
+            var seedAnnouncements = [
+                {
+                    id: "ann-001",
+                    template: "ordinance",
+                    recipientGroup: "all",
+                    location: "Bantayan municipal waters",
+                    details: "Observe only legal fishing methods and avoid restricted areas.",
+                    message: "Bantay Dagat Notice: Please follow municipal fishing ordinances within Bantayan waters and the 15 km coastal operating area. Area: Bantayan municipal waters. Observe only legal fishing methods and avoid restricted areas.",
+                    status: "Delivered",
+                    createdAt: "2026-05-04T09:10:00+08:00",
+                    deliveredCount: 1248
+                },
+                {
+                    id: "ann-002",
+                    template: "no-fishing",
+                    recipientGroup: "north",
+                    location: "Barangay Patao",
+                    details: "Restricted zone remains active near the protected coastal section.",
+                    message: "Bantay Dagat Notice: Entry into the identified no-fishing zone is prohibited until further notice from Bantay Dagat staff. Area: Barangay Patao. Restricted zone remains active near the protected coastal section.",
+                    status: "Sent",
+                    createdAt: "2026-05-04T07:40:00+08:00",
+                    deliveredCount: 312
+                }
+            ];
+
+            function showDashboard() {
+                loginScreen.classList.add("hidden");
+                dashboardShell.classList.remove("hidden");
+                loginError.textContent = "";
+                renderAnnouncements();
+            }
+
+            function showLogin() {
+                dashboardShell.classList.add("hidden");
+                loginScreen.classList.remove("hidden");
+                passwordInput.value = "";
+                loginError.textContent = "";
+                passwordInput.focus();
+            }
+
+            function readAnnouncements() {
+                var stored = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
+
+                if (!stored) {
+                    localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(seedAnnouncements));
+                    return seedAnnouncements.slice();
+                }
+
+                try {
+                    return JSON.parse(stored) || [];
+                } catch (error) {
+                    localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(seedAnnouncements));
+                    return seedAnnouncements.slice();
+                }
+            }
+
+            function saveAnnouncements(items) {
+                localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(items));
+            }
+
+            function escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+            function getRelativeTime(dateString) {
+                var seconds = Math.max(0, Math.floor((Date.now() - new Date(dateString).getTime()) / 1000));
+
+                if (seconds >= 86400) {
+                    return Math.floor(seconds / 86400) + "d ago";
+                }
+
+                if (seconds >= 3600) {
+                    return Math.floor(seconds / 3600) + "h ago";
+                }
+
+                if (seconds >= 60) {
+                    return Math.floor(seconds / 60) + "m ago";
+                }
+
+                return "Just now";
+            }
+
+            function getStatusClass(status) {
+                if (status === "Delivered") {
+                    return "delivered";
+                }
+
+                if (status === "Processing") {
+                    return "processing";
+                }
+
+                return "sent";
+            }
+
+            function buildMessage() {
+                var baseTemplate = templates[announcementTemplate.value] || "";
+                var locationText = announcementLocation.value.trim();
+                var detailsText = announcementDetails.value.trim();
+                var manualOverride = announcementMessage.value.trim();
+                var finalMessage = manualOverride || baseTemplate;
+
+                if (!manualOverride) {
+                    if (locationText) {
+                        finalMessage += " Area: " + locationText + ".";
+                    }
+
+                    if (detailsText) {
+                        finalMessage += " " + detailsText;
+                    }
+                }
+
+                return finalMessage.trim() || "Compose an announcement to preview the outgoing SMS.";
+            }
+
+            function updatePreview() {
+                announcementPreview.textContent = buildMessage();
+            }
+
+            function applyTemplate() {
+                if (announcementTemplate.value === "custom") {
+                    announcementMessage.value = "";
+                } else {
+                    announcementMessage.value = "";
+                }
+
+                updatePreview();
+            }
+
+            function renderAnnouncements() {
+                var items = readAnnouncements().sort(function (left, right) {
+                    return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+                });
+                var sentToday = 0;
+
+                announcementLog.innerHTML = items.map(function (item) {
+                    var itemDate = new Date(item.createdAt);
+                    var today = new Date();
+
+                    if (
+                        itemDate.getFullYear() === today.getFullYear() &&
+                        itemDate.getMonth() === today.getMonth() &&
+                        itemDate.getDate() === today.getDate()
+                    ) {
+                        sentToday += 1;
+                    }
+
+                    return [
+                        '<article class="announcement-log-item">',
+                        '  <div class="announcement-log-top">',
+                        '    <p class="announcement-log-title">' + escapeHtml(recipientLabels[item.recipientGroup] || item.recipientGroup) + "</p>",
+                        '    <span class="announcement-pill ' + getStatusClass(item.status) + '">' + escapeHtml(item.status) + "</span>",
+                        "  </div>",
+                        '  <p class="announcement-log-meta"><strong>Message:</strong> ' + escapeHtml(item.message) + "</p>",
+                        '  <p class="announcement-log-meta"><strong>GSM Delivery:</strong> ' + escapeHtml(String(item.deliveredCount)) + ' recipients processed &middot; ' + escapeHtml(getRelativeTime(item.createdAt)) + "</p>",
+                        "</article>"
+                    ].join("");
+                }).join("");
+
+                announcementCount.textContent = sentToday + " Sent Today";
+            }
+
+            announcementTemplate.addEventListener("change", applyTemplate);
+            announcementLocation.addEventListener("input", updatePreview);
+            announcementDetails.addEventListener("input", updatePreview);
+            announcementMessage.addEventListener("input", updatePreview);
+
+            announcementForm.addEventListener("submit", function (event) {
+                var items;
+                var nextItem;
+                var finalMessage;
+
+                event.preventDefault();
+
+                finalMessage = buildMessage();
+                items = readAnnouncements();
+                nextItem = {
+                    id: "ann-" + Date.now(),
+                    template: announcementTemplate.value,
+                    recipientGroup: recipientGroup.value,
+                    location: announcementLocation.value.trim(),
+                    details: announcementDetails.value.trim(),
+                    message: finalMessage,
+                    status: "Processing",
+                    createdAt: new Date().toISOString(),
+                    deliveredCount: recipientGroup.value === "all" ? 1248 : recipientGroup.value === "north" ? 312 : recipientGroup.value === "south" ? 284 : 652
+                };
+
+                items.push(nextItem);
+                saveAnnouncements(items);
+                renderAnnouncements();
+                announcementStatus.textContent = "Broadcast sent to GSM gateway";
+
+                window.setTimeout(function () {
+                    var refreshedItems = readAnnouncements().map(function (item) {
+                        if (item.id === nextItem.id) {
+                            item.status = "Delivered";
+                        }
+
+                        return item;
+                    });
+
+                    saveAnnouncements(refreshedItems);
+                    renderAnnouncements();
+                    announcementStatus.textContent = "Delivery status logged";
+                }, 1400);
+
+                announcementLocation.value = "";
+                announcementDetails.value = "";
+                announcementMessage.value = "";
+                updatePreview();
+            });
+
+            if (localStorage.getItem(STORAGE_KEY) === "true") {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+
+            loginForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                if (passwordInput.value === PASSWORD) {
+                    localStorage.setItem(STORAGE_KEY, "true");
+                    showDashboard();
+                    return;
+                }
+
+                loginError.textContent = "Incorrect password. Please try again.";
+                passwordInput.select();
+            });
+
+            logoutButton.addEventListener("click", function () {
+                localStorage.removeItem(STORAGE_KEY);
+                showLogin();
+            });
+
+            applyTemplate();
+        }());
+    </script>
+</body>
+</html>

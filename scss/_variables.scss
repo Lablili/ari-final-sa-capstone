@@ -1,0 +1,40 @@
+$bg: #3c8ef4;
+$sidebar-bg: rgba(255, 255, 255, 0.16);
+$panel: #ffffff;
+$panel-soft: #eef5ff;
+$border: #d9e4f2;
+$border-soft: #e7eef8;
+$text: #22324a;
+$muted: #6e7f97;
+$accent: #3c8ef4;
+$success: #16a34a;
+$danger: #e0564a;
+$warning: #ff8a4c;
+$info: #5ba5ff;
+$green: #22c55e;
+$shadow: 0 16px 34px rgba(25, 76, 148, 0.18);
+$login-shadow: 0 24px 54px rgba(18, 78, 166, 0.22);
+$button-dark: #ff8a4c;
+$button-dark-soft: #ff8a4c;
+$surface-white: #ffffff;
+$text-soft: #5f7087;
+$focus-ring: rgba(60, 142, 244, 0.18);
+$focus-border: #3c8ef4;
+
+:root {
+    --bg: #{$bg};
+    --sidebar-bg: #{$sidebar-bg};
+    --panel: #{$panel};
+    --panel-soft: #{$panel-soft};
+    --border: #{$border};
+    --border-soft: #{$border-soft};
+    --text: #{$text};
+    --muted: #{$muted};
+    --accent: #{$accent};
+    --success: #{$success};
+    --danger: #{$danger};
+    --warning: #{$warning};
+    --info: #{$info};
+    --green: #{$green};
+    --shadow: #{$shadow};
+}

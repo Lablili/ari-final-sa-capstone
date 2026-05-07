@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Incident Reports | Bantay Dagat</title>
+</head>
+<body>
+    <div class="dashboard-shell" id="dashboardShell">
+        <aside class="sidebar">
+            <div class="brand">
+                <h1>Bantay Dagat</h1>
+                <p>Coastal Monitoring System</p>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-label">MAIN</p>
+                <nav class="nav-menu">
+                    <a class="nav-item" href="index.html">
+                        <span class="nav-icon overview-icon" aria-hidden="true"></span>
+                        <span>Overview</span>
+                    </a>
+                    <a class="nav-item active" href="incident-report.html">
+                        <span class="nav-icon report-icon" aria-hidden="true"></span>
+                        <span>Incident Reports</span>
+                    </a>
+                    <a class="nav-item" href="fisherfolk-info.html">
+                        <span class="nav-icon fisherfolk-icon" aria-hidden="true"></span>
+                        <span>Fisherfolk Info</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="nav-group">
+                <p class="nav-label">COMMUNICATION</p>
+                <nav class="nav-menu">
+                    <a class="nav-item" href="announcement.html">
+                        <span class="nav-icon announcement-icon" aria-hidden="true"></span>
+                        <span>Announcements</span>
+                    </a>
+                    <a class="nav-item" href="#">
+                        <span class="nav-icon weather-icon" aria-hidden="true"></span>
+                        <span>SMS Operations</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Incident Reports</h2>
+            </header>
+
+            <section class="panel incident-board">
+                <div class="incident-grid">
+                    <div class="incident-list-panel">
+                        <div class="incident-feed" id="incidentFeed"></div>
+                    </div>
+
+                    <aside class="incident-detail-panel hidden" id="incidentDetailPanel">
+                        <div class="detail-panel-header">
+                            <div>
+                                <p class="detail-panel-label">Generate Report</p>
+                                <h3 class="detail-panel-title">Incident details</h3>
+                            </div>
+                            <button class="detail-panel-action" id="detailGenerate">Generate Report</button>
+                        </div>
+                        <div class="detail-panel-body">
+                            <p class="detail-panel-copy">The message data is automatically loaded into this form. Add documentation or notes after Bantay Dagat intervention.</p>
+                            <form class="detail-form" id="incidentDetailForm">
+                                <div class="detail-field-group">
+                                    <label class="detail-field-label" for="detailReportId">Report ID</label>
+                                    <input class="detail-field-input" id="detailReportId" name="detailReportId" type="text" readonly>
+                                </div>
+                                <div class="detail-field-group">
+                                    <label class="detail-field-label" for="detailStatus">Status</label>
+                                    <input class="detail-field-input" id="detailStatus" name="detailStatus" type="text" readonly>
+                                </div>
+                                <div class="detail-field-group">
+                                    <label class="detail-field-label" for="detailPhone">Sender</label>
+                                    <input class="detail-field-input" id="detailPhone" name="detailPhone" type="text" readonly>
+                                </div>
+                                <div class="detail-field-group">
+                                    <label class="detail-field-label" for="detailLocation">Location</label>
+                                    <input class="detail-field-input" id="detailLocation" name="detailLocation" type="text" readonly>
+                                </div>
+                                <div class="detail-field-group">
+                                    <label class="detail-field-label" for="detailReceived">Received</label>
+                                    <input class="detail-field-input" id="detailReceived" name="detailReceived" type="text" readonly>
+                                </div>
+                                <div class="detail-field-group detail-field-full">
+                                    <label class="detail-field-label" for="detailMessage">Message</label>
+                                    <textarea class="detail-field-textarea" id="detailMessage" name="detailMessage" rows="4" readonly></textarea>
+                                </div>
+                                <div class="detail-field-group detail-field-full">
+                                    <label class="detail-field-label" for="detailIntervention">Intervention summary</label>
+                                    <textarea class="detail-field-textarea" id="detailIntervention" name="detailIntervention" rows="4" readonly></textarea>
+                                </div>
+                                <div class="detail-field-group detail-field-full">
+                                    <label class="detail-field-label" for="detailDocumentation">Documentation / Notes</label>
+                                    <textarea class="detail-field-textarea" id="detailDocumentation" name="detailDocumentation" rows="5" placeholder="Add documentation or other follow-up information after intervention..."></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <button class="detail-panel-back" id="detailBack">← Back to message list</button>
+                    </aside>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+    <script>
+        (function () {
+            var REPORTS_STORAGE_KEY = "bantay-dagat-incident-reports-v2";
+            var dashboardShell = document.getElementById("dashboardShell");
+            var incidentFeed = document.getElementById("incidentFeed");
+            var toastStack = document.getElementById("toastStack");
+            var incidentDetailPanel = document.getElementById("incidentDetailPanel");
+            var detailGenerate = document.getElementById("detailGenerate");
+            var detailBack = document.getElementById("detailBack");
+            var detailReportId = document.getElementById("detailReportId");
+            var detailStatus = document.getElementById("detailStatus");
+            var detailPhone = document.getElementById("detailPhone");
+            var detailLocation = document.getElementById("detailLocation");
+            var detailReceived = document.getElementById("detailReceived");
+            var detailMessage = document.getElementById("detailMessage");
+            var detailIntervention = document.getElementById("detailIntervention");
+            var detailDocumentation = document.getElementById("detailDocumentation");
+            var knownReportIds = {};
+            var currentSelectedReport = null;
+            var seedReports = [
+                {
+                    id: "report-001",
+                    message: "Naa mi nadunggan nga kusog nga buto sa dagat duol sa Barangay Patao, basin naay naggamit og dinamita.",
+                    phone: "0917 842 3156",
+                    location: "Barangay Patao",
+                    status: "Pending/Urgent",
+                    tone: "red",
+                    createdAt: "2026-05-03T10:00:00+08:00",
+                    intervention: "Immediately dispatched coastal patrol team to the reported location. Officers conducted surveillance and coordinated with BFAR. Area secured and marked as high-alert zone.",
+                    documentation: ""
+                },
+                {
+                    id: "report-002",
+                    message: "Nakita namo nga pino kaayo og mata ang pukot nga gigamit duol sa Barangay Kabac.",
+                    phone: "0928 554 1073",
+                    location: "Barangay Kabac",
+                    status: "Pending/Urgent",
+                    tone: "amber",
+                    createdAt: "2026-05-03T07:00:00+08:00",
+                    intervention: "Notified local barangay officials to inspect the coastal area for illegal fine-mesh nets.",
+                    documentation: ""
+                },
+                {
+                    id: "report-003",
+                    message: "Naay dakong sakayan nga nisulod sa municipal waters duol sa Barangay Sulangan bisan murag dili rehistrado diri.",
+                    phone: "0951 663 2480",
+                    location: "Barangay Sulangan",
+                    status: "Pending/Urgent",
+                    tone: "red",
+                    createdAt: "2026-05-03T04:00:00+08:00",
+                    intervention: "Alerted maritime police to intercept the unregistered commercial vessel in municipal waters.",
+                    documentation: ""
+                },
+                {
+                    id: "report-004",
+                    message: "Naa pay nangisda sulod sa protected area sa Barangay Patao gabii.",
+                    phone: "0936 214 7895",
+                    location: "Barangay Patao",
+                    status: "In Progress",
+                    tone: "blue",
+                    createdAt: "2026-05-02T10:00:00+08:00",
+                    intervention: "Logged for monitoring. Night patrol schedule adjusted to cover the protected area.",
+                    documentation: ""
+                }
+            ];
+            var seedReportMap = seedReports.reduce(function (map, report) {
+                map[report.id] = report;
+                return map;
+            }, {});
+
+            function escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+            function getAlertClass(tone) {
+                if (tone === "red") {
+                    return "alert-red";
+                }
+
+                if (tone === "amber") {
+                    return "alert-amber";
+                }
+
+                if (tone === "green") {
+                    return "alert-green";
+                }
+
+                return "alert-blue";
+            }
+
+            function getStatusClass(tone) {
+                if (tone === "red") {
+                    return "red";
+                }
+
+                if (tone === "amber") {
+                    return "amber";
+                }
+
+                if (tone === "green") {
+                    return "green";
+                }
+
+                return "blue";
+            }
+
+            function getTimeAgo(dateString) {
+                var seconds = Math.max(0, Math.floor((Date.now() - new Date(dateString).getTime()) / 1000));
+                var units = [
+                    { label: "d", value: 86400 },
+                    { label: "h", value: 3600 },
+                    { label: "m", value: 60 }
+                ];
+
+                for (var index = 0; index < units.length; index += 1) {
+                    if (seconds >= units[index].value) {
+                        return Math.floor(seconds / units[index].value) + units[index].label + " ago";
+                    }
+                }
+
+                return "Just now";
+            }
+
+            function readReports() {
+                var stored = localStorage.getItem(REPORTS_STORAGE_KEY);
+
+                if (!stored) {
+                    localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(seedReports));
+                    return seedReports.slice();
+                }
+
+                try {
+                    var parsedReports = JSON.parse(stored) || [];
+                    var normalizedReports = normalizeReports(parsedReports);
+                    if (JSON.stringify(parsedReports) !== JSON.stringify(normalizedReports)) {
+                        localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(normalizedReports));
+                    }
+                    return normalizedReports;
+                } catch (error) {
+                    localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(seedReports));
+                    return seedReports.slice();
+                }
+            }
+
+            function saveReports(reports) {
+                localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(reports));
+            }
+
+            function normalizeReports(reports) {
+                var reportMap = {};
+                var customReports = [];
+                var normalizedReports = [];
+
+                reports.forEach(function (report) {
+                    if (report && report.id) {
+                        reportMap[report.id] = report;
+                    }
+                });
+
+                seedReports.forEach(function (seedReport) {
+                    var savedReport = reportMap[seedReport.id] || {};
+                    normalizedReports.push({
+                        id: seedReport.id,
+                        message: seedReport.message,
+                        phone: seedReport.phone,
+                        location: seedReport.location,
+                        status: seedReport.status,
+                        tone: seedReport.tone,
+                        createdAt: seedReport.createdAt,
+                        intervention: seedReport.intervention,
+                        documentation: savedReport.documentation || seedReport.documentation || ""
+                    });
+                });
+
+                reports.forEach(function (report) {
+                    if (report && report.id && !seedReportMap[report.id]) {
+                        customReports.push({
+                            id: report.id,
+                            message: report.message || "",
+                            phone: report.phone || "Unknown",
+                            location: report.location || "Unknown location",
+                            status: report.status || "Pending/Urgent",
+                            tone: report.tone || "amber",
+                            createdAt: report.createdAt || new Date().toISOString(),
+                            intervention: report.intervention || "",
+                            documentation: report.documentation || ""
+                        });
+                    }
+                });
+
+                return normalizedReports.concat(customReports);
+            }
+
+            function sortReports(reports) {
+                return reports.slice().sort(function (left, right) {
+                    return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+                });
+            }
+
+            function showIncidentDetail(report) {
+                currentSelectedReport = report;
+                var reportDate = new Date(report.createdAt);
+                var dateString = reportDate.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+
+                detailReportId.value = report.id;
+                detailStatus.value = report.status;
+                detailPhone.value = report.phone;
+                detailLocation.value = report.location;
+                detailReceived.value = dateString;
+                detailMessage.value = report.message;
+                detailIntervention.value = report.intervention || "";
+                detailDocumentation.value = report.documentation || "";
+
+                incidentDetailPanel.classList.remove("hidden");
+                document.querySelector(".incident-list-panel").classList.add("hidden");
+            }
+
+            function closeIncidentDetail() {
+                incidentDetailPanel.classList.add("hidden");
+                document.querySelector(".incident-list-panel").classList.remove("hidden");
+                currentSelectedReport = null;
+            }
+
+            function saveCurrentDocumentation() {
+                if (!currentSelectedReport) {
+                    return;
+                }
+
+                currentSelectedReport.documentation = detailDocumentation.value;
+                var reports = readReports();
+                var index = reports.findIndex(function (r) {
+                    return r.id === currentSelectedReport.id;
+                });
+
+                if (index !== -1) {
+                    reports[index].documentation = currentSelectedReport.documentation;
+                    saveReports(reports);
+                }
+            }
+
+            function generateReport() {
+                if (!currentSelectedReport) {
+                    return;
+                }
+
+                saveCurrentDocumentation();
+                if (!currentSelectedReport) {
+                    return;
+                }
+
+                var report = currentSelectedReport;
+                var reportDate = new Date(report.createdAt);
+                var generatedDate = new Date();
+                var incidentTypeMap = {
+                    "dinamita": "Illegal Explosive Fishing",
+                    "pukot": "Illegal Fishing Gear",
+                    "sakayan": "Unregistered Vessel",
+                    "protected area": "Protected Area Violation",
+                    "suga": "Illegal Light Fishing",
+                    "numero": "Unregistered/Unmarked Vessel",
+                    "kemikal": "Water Pollution/Chemical Hazard"
+                };
+
+                var incidentType = "General Coastal Violation";
+                for (var key in incidentTypeMap) {
+                    if (report.message.toLowerCase().includes(key)) {
+                        incidentType = incidentTypeMap[key];
+                        break;
+                    }
+                }
+
+                var htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Report - ${escapeHtml(report.id)}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #172033;
+            background: #f8fafc;
+            padding: 20px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+        }
+
+        .report-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            color: white;
+            padding: 40px 40px 30px;
+            text-align: center;
+        }
+
+        .report-header-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .report-header-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .report-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 30px 40px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .report-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .report-meta-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+        }
+
+        .report-meta-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #172033;
+        }
+
+        .report-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .report-status.red {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .report-status.amber {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .report-status.green {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .report-status.blue {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .report-section {
+            padding: 30px 40px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .report-section:last-child {
+            border-bottom: none;
+        }
+
+        .report-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #172033;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1e40af;
+            display: inline-block;
+        }
+
+        .report-section-content {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #475569;
+            margin-top: 15px;
+        }
+
+        .incident-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            color: #172033;
+            font-weight: 500;
+        }
+
+        .incident-message {
+            background: #f0fdf4;
+            border-left: 4px solid #15803d;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 15px;
+            font-style: italic;
+            color: #1b5e20;
+            line-height: 1.7;
+        }
+
+        .intervention-box {
+            background: #e0e7ff;
+            border-left: 4px solid #4f46e5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #312e81;
+            line-height: 1.8;
+        }
+
+        .report-footer {
+            padding: 30px 40px;
+            background: #f8fafc;
+            border-top: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .print-button {
+            background: #1e40af;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .print-button:hover {
+            background: #1e3a8a;
+        }
+
+        .print-info {
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        @media (max-width: 640px) {
+            .report-meta {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .incident-details-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .report-header {
+                padding: 30px 20px 20px;
+            }
+
+            .report-section {
+                padding: 20px;
+            }
+
+            .report-footer {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 20px;">
+        <button class="print-button" onclick="window.print()">🖨️ Print Report</button>
+    </div>
+    <p class="no-print print-info">Use your browser's print function (Ctrl+P or Cmd+P) to save as PDF or print to paper</p>
+
+    <div class="report-container">
+        <div class="report-header">
+            <div class="report-header-title">BANTAY DAGAT</div>
+            <div class="report-header-subtitle">Coastal Monitoring & Fisheries Enforcement System</div>
+        </div>
+
+        <div class="report-meta">
+            <div class="report-meta-item">
+                <span class="report-meta-label">Report ID</span>
+                <span class="report-meta-value">${escapeHtml(report.id)}</span>
+            </div>
+            <div class="report-meta-item">
+                <span class="report-meta-label">Status</span>
+                <span class="report-status ${getStatusClass(report.tone)}">${escapeHtml(report.status)}</span>
+            </div>
+            <div class="report-meta-item">
+                <span class="report-meta-label">Reported On</span>
+                <span class="report-meta-value">${reportDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
+            <div class="report-meta-item">
+                <span class="report-meta-label">Generated</span>
+                <span class="report-meta-value">${generatedDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2 class="report-section-title">Incident Summary</h2>
+            <div class="incident-details-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Incident Type</span>
+                    <span class="detail-value">${escapeHtml(incidentType)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Location</span>
+                    <span class="detail-value">${escapeHtml(report.location)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Reported By (Contact)</span>
+                    <span class="detail-value">${escapeHtml(report.phone)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Severity Level</span>
+                    <span class="detail-value">${report.tone === "red" ? "HIGH / URGENT" : report.tone === "amber" ? "MEDIUM" : report.tone === "green" ? "LOW / RESOLVED" : "INFORMATIONAL"}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2 class="report-section-title">Incident Description</h2>
+            <div class="report-section-content">
+                <p>The following report was received from a community member regarding coastal activities:</p>
+                <div class="incident-message">
+                    ${escapeHtml(report.message)}
+                </div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2 class="report-section-title">Response & Intervention</h2>
+            <div class="report-section-content">
+                <p>Upon receiving this report, Bantay Dagat enforcement team took the following action:</p>
+                <div class="intervention-box">
+                    ${escapeHtml(report.intervention || "Investigation and response protocols initiated. Case under review by enforcement team.")}
+                </div>
+            </div>
+        </div>
+
+        <div class="report-footer">
+            <div>
+                <strong>Bantay Dagat System</strong><br>
+                Coastal Monitoring & Enforcement
+            </div>
+            <div>
+                Report Generated: ${generatedDate.toLocaleString("en-US")}<br>
+                System: Bantay Dagat v1.0
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Allow PDF generation via print
+        window.addEventListener("beforeprint", function() {
+            console.log("Report ready to print or save as PDF");
+        });
+    </script>
+</body>
+</html>`;
+
+                var blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+                var link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "incident-report-" + report.id + ".html";
+                link.click();
+                URL.revokeObjectURL(link.href);
+
+                showToast({
+                    message: "Narrative report generated successfully",
+                    phone: "",
+                    location: "",
+                    status: "Generated",
+                    tone: "green",
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            function renderReports(reports) {
+                var sortedReports = sortReports(reports);
+
+                incidentFeed.innerHTML = sortedReports.map(function (report) {
+                    var statusClass = getStatusClass(report.tone);
+                    var alertClass = getAlertClass(report.tone);
+                    var isActive = report.status === "Pending/Urgent" || report.status === "In Progress";
+
+                    return `
+                        <article class="incident-entry ${isActive ? "new-report " : ""}${alertClass}" data-report-id="${escapeHtml(report.id)}">
+                            <div class="incident-entry-top">
+                                <span class="incident-status ${statusClass}">${escapeHtml(report.status)}</span>
+                                <p class="incident-time">${escapeHtml(getTimeAgo(report.createdAt))}</p>
+                            </div>
+                            <p class="incident-text">${escapeHtml(report.message)}</p>
+                            <div class="incident-meta-grid">
+                                <p class="incident-meta"><span class="incident-meta-label">Sender</span><span class="incident-meta-value">${escapeHtml(report.phone)}</span></p>
+                                <p class="incident-meta"><span class="incident-meta-label">Location</span><span class="incident-meta-value">${escapeHtml(report.location)}</span></p>
+                            </div>
+                            <div class="incident-entry-footer">
+                                <span class="incident-entry-hint">Open the full incident details and notes</span>
+                                <button class="incident-view-button" type="button" data-report-view="${escapeHtml(report.id)}">View</button>
+                            </div>
+                        </article>
+                    `;
+                }).join("");
+
+                var viewButtons = incidentFeed.querySelectorAll("[data-report-view]");
+                viewButtons.forEach(function (button) {
+                    button.addEventListener("click", function () {
+                        var reportId = button.getAttribute("data-report-view");
+                        var allReports = readReports();
+                        var selectedReport = allReports.find(function (r) {
+                            return r.id === reportId;
+                        });
+                        if (selectedReport) {
+                            showIncidentDetail(selectedReport);
+                        }
+                    });
+                });
+            }
+
+            function showToast(report) {
+                var toast = document.createElement("div");
+                var statusClass = getStatusClass(report.tone);
+                var alertClass = getAlertClass(report.tone);
+
+                toast.className = "report-toast " + alertClass;
+                toast.innerHTML = `
+                    <div class="report-toast-body">
+                        <span class="report-toast-icon ${statusClass}" aria-hidden="true">${statusClass === "blue" ? "i" : "!"}</span>
+                        <div class="report-toast-copy">
+                            <p class="report-toast-title">New incident report received</p>
+                            <p class="report-toast-text">${escapeHtml(report.message)}</p>
+                        </div>
+                        <button class="report-toast-close" type="button" aria-label="Close notification">x</button>
+                    </div>
+                `;
+
+                toastStack.appendChild(toast);
+
+                var closeButton = toast.querySelector(".report-toast-close");
+                var removeToast = function () {
+                    if (toast.parentNode) {
+                        toast.classList.add("is-leaving");
+                        window.setTimeout(function () {
+                            if (toast.parentNode) {
+                                toast.parentNode.removeChild(toast);
+                            }
+                        }, 220);
+                    }
+                };
+
+                closeButton.addEventListener("click", removeToast);
+                window.setTimeout(removeToast, 5000);
+            }
+
+            function syncReports(showNewToasts) {
+                var reports = readReports();
+                var sortedReports = sortReports(reports);
+
+                if (showNewToasts) {
+                    sortedReports.forEach(function (report) {
+                        if (!knownReportIds[report.id]) {
+                            knownReportIds[report.id] = true;
+                            showToast(report);
+                        }
+                    });
+                } else {
+                    sortedReports.forEach(function (report) {
+                        knownReportIds[report.id] = true;
+                    });
+                }
+
+                renderReports(sortedReports);
+            }
+
+            window.addIncidentReport = function (report) {
+                var reports = readReports();
+                var nextReport = {
+                    id: report.id || "report-" + Date.now(),
+                    message: report.message || "",
+                    phone: report.phone || "Unknown",
+                    location: report.location || "Unknown location",
+                    status: report.status || "Pending/Urgent",
+                    tone: report.tone || "amber",
+                    createdAt: report.createdAt || new Date().toISOString(),
+                    intervention: report.intervention || "",
+                    documentation: report.documentation || ""
+                };
+
+                reports.push(nextReport);
+                saveReports(reports);
+                syncReports(true);
+            };
+
+            function showDashboard() {
+                dashboardShell.classList.remove("hidden");
+                syncReports(false);
+            }
+
+            showDashboard();
+
+            detailGenerate.addEventListener("click", generateReport);
+            detailBack.addEventListener("click", closeIncidentDetail);
+
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape" && !incidentDetailPanel.classList.contains("hidden")) {
+                    closeIncidentDetail();
+                }
+            });
+
+            window.addEventListener("storage", function (event) {
+                if (event.key === REPORTS_STORAGE_KEY) {
+                    syncReports(true);
+                }
+            });
+
+            window.setInterval(function () {
+                if (!dashboardShell.classList.contains("hidden")) {
+                    syncReports(true);
+                }
+            }, 3000);
+        }());
+    </script>
+</body>
+</html>
