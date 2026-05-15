@@ -1,0 +1,32 @@
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\bin\Debug\net10.0\ari final sa capstone.staticwebassets.runtime.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\bin\Debug\net10.0\ari final sa capstone.staticwebassets.endpoints.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\bin\Debug\net10.0\ari final sa capstone.exe
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\bin\Debug\net10.0\ari final sa capstone.deps.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\bin\Debug\net10.0\ari final sa capstone.runtimeconfig.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\bin\Debug\net10.0\ari final sa capstone.dll
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\bin\Debug\net10.0\ari final sa capstone.pdb
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\rpswa.dswa.cache.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.AssemblyInfoInputs.cache
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.AssemblyInfo.cs
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.csproj.CoreCompileInputs.cache
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.RazorAssemblyInfo.cache
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.RazorAssemblyInfo.cs
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.sourcelink.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\rjimswa.dswa.cache.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\scopedcss\bundle\ari final sa capstone.styles.css
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\compressed\h4euaooh8e-{0}-97wfqmbdep-97wfqmbdep.gz
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\compressed\tfea5trdgy-{0}-yebsywr1w6-yebsywr1w6.gz
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\staticwebassets.build.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\staticwebassets.build.json.cache
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\staticwebassets.development.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\staticwebassets.build.endpoints.json
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\swae.build.ex.cache
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.dll
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\refint\ari final sa capstone.dll
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.pdb
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ari final sa capstone.genruntimeconfig.cache
+C:\Users\Acer\OneDrive\Desktop\ari final sa capstone\obj\Debug\net10.0\ref\ari final sa capstone.dll

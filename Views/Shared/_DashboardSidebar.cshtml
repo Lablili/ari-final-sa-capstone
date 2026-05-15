@@ -1,0 +1,43 @@
+@{
+    var activePage = (ViewData["ActivePage"] as string) ?? string.Empty;
+    Func<string, string> navClass = page => activePage == page ? "nav-item active" : "nav-item";
+}
+
+<aside class="sidebar">
+    <div class="brand">
+        <h1>Bantay Dagat</h1>
+        <p>Coastal Monitoring System</p>
+    </div>
+
+    <div class="nav-group">
+        <p class="nav-label">MAIN</p>
+        <nav class="nav-menu">
+            <a class="@navClass("Overview")" asp-controller="Home" asp-action="Index">
+                <span class="nav-icon overview-icon" aria-hidden="true"></span>
+                <span>Overview</span>
+            </a>
+            <a class="@navClass("IncidentReport")" asp-controller="Home" asp-action="IncidentReport">
+                <span class="nav-icon report-icon" aria-hidden="true"></span>
+                <span>Incident Reports</span>
+            </a>
+            <a class="@navClass("FisherfolkInfo")" asp-controller="Home" asp-action="FisherfolkInfo">
+                <span class="nav-icon fisherfolk-icon" aria-hidden="true"></span>
+                <span>Fisherfolk Info</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="nav-group">
+        <p class="nav-label">COMMUNICATION</p>
+        <nav class="nav-menu">
+            <a class="@navClass("Announcement")" asp-controller="Home" asp-action="Announcement">
+                <span class="nav-icon announcement-icon" aria-hidden="true"></span>
+                <span>Announcements</span>
+            </a>
+            <a class="nav-item" href="#">
+                <span class="nav-icon weather-icon" aria-hidden="true"></span>
+                <span>SMS Operations</span>
+            </a>
+        </nav>
+    </div>
+</aside>

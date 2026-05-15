@@ -1,0 +1,295 @@
+@{
+    ViewData["Title"] = "Incident Reports";
+    ViewData["ActivePage"] = "IncidentReport";
+}
+
+@await Html.PartialAsync("_DashboardLogin")
+
+<div class="dashboard-shell hidden" id="dashboardShell">
+    @await Html.PartialAsync("_DashboardSidebar")
+
+    <main class="main-content">
+        <header class="topbar">
+            <h2>Incident Reports</h2>
+            <div class="topbar-meta">
+                <span class="topbar-date">May 7, 2026</span>
+                <button class="logout-button" id="logoutButton" type="button">Log Out</button>
+            </div>
+        </header>
+
+        <div class="card">
+            <div class="view active" id="listView">
+                <div class="list-header">
+                    <h2>All Reports</h2>
+                    <span>4 messages &middot; newest first</span>
+                </div>
+
+                <ul class="msg-list">
+                    <li class="msg-item">
+                        <div class="msg-bar red"></div>
+                        <div class="msg-body">
+                            <div class="msg-top">
+                                <span class="status-pill red">Pending / Urgent</span>
+                                <span class="msg-time">6h ago</span>
+                            </div>
+                            <p class="msg-text">Naa mi nadunggan nga kusog nga buto sa dagat duol sa Barangay Patao, basin naay naggamit og dinamita.</p>
+                            <div class="msg-meta">
+                                <div class="meta-field">
+                                    <span class="meta-label">Sender</span>
+                                    <span class="meta-value">0917 842 3156</span>
+                                </div>
+                                <div class="meta-field">
+                                    <span class="meta-label">Location</span>
+                                    <span class="meta-value">Barangay Patao</span>
+                                </div>
+                            </div>
+                            <div class="msg-footer">
+                                <button class="btn-view" type="button" onclick="openDetail(0)">View</button>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="msg-item">
+                        <div class="msg-body">
+                            <div class="msg-top">
+                                <span class="status-pill amber">Pending / Urgent</span>
+                                <span class="msg-time">9h ago</span>
+                            </div>
+                            <p class="msg-text">Nakita namo nga pino kaayo og mata ang pukot nga gigamit duol sa Barangay Kabac.</p>
+                            <div class="msg-meta">
+                                <div class="meta-field">
+                                    <span class="meta-label">Sender</span>
+                                    <span class="meta-value">0928 554 1073</span>
+                                </div>
+                                <div class="meta-field">
+                                    <span class="meta-label">Location</span>
+                                    <span class="meta-value">Barangay Kabac</span>
+                                </div>
+                            </div>
+                            <div class="msg-footer">
+                                <button class="btn-view" type="button" onclick="openDetail(1)">View</button>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="msg-item">
+                        <div class="msg-bar red"></div>
+                        <div class="msg-body">
+                            <div class="msg-top">
+                                <span class="status-pill red">Pending / Urgent</span>
+                                <span class="msg-time">12h ago</span>
+                            </div>
+                            <p class="msg-text">Naay dakong sakayan nga nisulod sa municipal waters duol sa Barangay Sulangan bisan murag dili rehistrado diri.</p>
+                            <div class="msg-meta">
+                                <div class="meta-field">
+                                    <span class="meta-label">Sender</span>
+                                    <span class="meta-value">0951 663 2480</span>
+                                </div>
+                                <div class="meta-field">
+                                    <span class="meta-label">Location</span>
+                                    <span class="meta-value">Barangay Sulangan</span>
+                                </div>
+                            </div>
+                            <div class="msg-footer">
+                                <button class="btn-view" type="button" onclick="openDetail(2)">View</button>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="msg-item">
+                        <div class="msg-bar slate"></div>
+                        <div class="msg-body">
+                            <div class="msg-top">
+                                <span class="status-pill slate">In Progress</span>
+                                <span class="msg-time">1d ago</span>
+                            </div>
+                            <p class="msg-text">Naa pay nangisda sulod sa protected area sa Barangay Patao gabii.</p>
+                            <div class="msg-meta">
+                                <div class="meta-field">
+                                    <span class="meta-label">Sender</span>
+                                    <span class="meta-value">0936 214 7895</span>
+                                </div>
+                                <div class="meta-field">
+                                    <span class="meta-label">Location</span>
+                                    <span class="meta-value">Barangay Patao</span>
+                                </div>
+                            </div>
+                            <div class="msg-footer">
+                                <button class="btn-view" type="button" onclick="openDetail(3)">View</button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="view" id="detailView">
+                <div class="detail-header">
+                    <div class="detail-header-left">
+                        <button class="btn-back" type="button" onclick="closeDetail()">&#8592; Back</button>
+                        <span class="detail-title" id="detailTitle">Incident Details</span>
+                    </div>
+                    <span class="status-pill" id="detailStatusPill"></span>
+                </div>
+
+                <div class="detail-body">
+                    <div class="detail-banner" id="detailBanner">
+                        <div class="banner-icon" id="detailBannerIcon">!</div>
+                        <div class="banner-text">
+                            <p id="detailBannerLabel">Incident type</p>
+                            <p id="detailBannerType"></p>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="meta-label">Report ID</div>
+                            <div class="meta-value" id="detailId"></div>
+                        </div>
+                        <div class="info-card">
+                            <div class="meta-label">Date &amp; Time Received</div>
+                            <div class="meta-value" id="detailDate"></div>
+                        </div>
+                        <div class="info-card">
+                            <div class="meta-label">Sender (Contact No.)</div>
+                            <div class="meta-value" id="detailPhone"></div>
+                        </div>
+                        <div class="info-card">
+                            <div class="meta-label">Location</div>
+                            <div class="meta-value" id="detailLocation"></div>
+                        </div>
+                    </div>
+
+                    <div class="msg-block-label">SMS Message Received</div>
+                    <div class="msg-block" id="detailMessage"></div>
+
+                    <div class="intervention-block" id="detailIntervention"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var PASSWORD = "bantay";
+            var STORAGE_KEY = "bantay-dagat-authenticated";
+            var loginScreen = document.getElementById("loginScreen");
+            var dashboardShell = document.getElementById("dashboardShell");
+            var loginForm = document.getElementById("loginForm");
+            var passwordInput = document.getElementById("password");
+            var loginError = document.getElementById("loginError");
+            var logoutButton = document.getElementById("logoutButton");
+
+            function showDashboard() {
+                loginScreen.classList.add("hidden");
+                dashboardShell.classList.remove("hidden");
+                loginError.textContent = "";
+            }
+
+            function showLogin() {
+                dashboardShell.classList.add("hidden");
+                loginScreen.classList.remove("hidden");
+                passwordInput.value = "";
+                loginError.textContent = "";
+                passwordInput.focus();
+            }
+
+            if (localStorage.getItem(STORAGE_KEY) === "true") {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+
+            loginForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                if (passwordInput.value === PASSWORD) {
+                    localStorage.setItem(STORAGE_KEY, "true");
+                    showDashboard();
+                    return;
+                }
+
+                loginError.textContent = "Incorrect password. Please try again.";
+                passwordInput.select();
+            });
+
+            logoutButton.addEventListener("click", function () {
+                localStorage.removeItem(STORAGE_KEY);
+                showLogin();
+            });
+        }());
+
+        var reports = [
+            {
+                id: "RPT-001",
+                tone: "red",
+                status: "Pending / Urgent",
+                type: "Illegal Explosive Fishing",
+                date: "May 3, 2026 · 4:00 AM",
+                phone: "0917 842 3156",
+                location: "Barangay Patao",
+                message: "Naa mi nadunggan nga kusog nga buto sa dagat duol sa Barangay Patao, basin naay naggamit og dinamita.",
+                intervention: ""
+            },
+            {
+                id: "RPT-002",
+                tone: "amber",
+                status: "Pending / Urgent",
+                type: "Illegal Fishing Gear",
+                date: "May 3, 2026 · 1:00 AM",
+                phone: "0928 554 1073",
+                location: "Barangay Kabac",
+                message: "Nakita namo nga pino kaayo og mata ang pukot nga gigamit duol sa Barangay Kabac.",
+                intervention: ""
+            },
+            {
+                id: "RPT-003",
+                tone: "red",
+                status: "Pending / Urgent",
+                type: "Unregistered Vessel",
+                date: "May 2, 2026 · 10:00 PM",
+                phone: "0951 663 2480",
+                location: "Barangay Sulangan",
+                message: "Naay dakong sakayan nga nisulod sa municipal waters duol sa Barangay Sulangan bisan murag dili rehistrado diri.",
+                intervention: ""
+            },
+            {
+                id: "RPT-004",
+                tone: "slate",
+                status: "In Progress",
+                type: "Protected Area Violation",
+                date: "May 2, 2026 · 10:00 AM",
+                phone: "0936 214 7895",
+                location: "Barangay Patao",
+                message: "Naa pay nangisda sulod sa protected area sa Barangay Patao gabii.",
+                intervention: ""
+            }
+        ];
+
+        function openDetail(index) {
+            var report = reports[index];
+
+            document.getElementById("detailTitle").textContent = "Report " + report.id;
+            document.getElementById("detailStatusPill").textContent = report.status;
+            document.getElementById("detailStatusPill").className = "status-pill " + report.tone;
+            document.getElementById("detailBanner").className = "detail-banner " + report.tone;
+            document.getElementById("detailBannerIcon").className = "banner-icon " + report.tone;
+            document.getElementById("detailBannerIcon").textContent = report.tone === "slate" ? "i" : "!";
+            document.getElementById("detailBannerLabel").textContent = "Incident type";
+            document.getElementById("detailBannerType").textContent = report.type;
+            document.getElementById("detailId").textContent = report.id;
+            document.getElementById("detailDate").textContent = report.date;
+            document.getElementById("detailPhone").textContent = report.phone;
+            document.getElementById("detailLocation").textContent = report.location;
+            document.getElementById("detailMessage").textContent = report.message;
+            document.getElementById("detailIntervention").textContent = report.intervention;
+
+            document.getElementById("listView").classList.remove("active");
+            document.getElementById("detailView").classList.add("active");
+            document.querySelector(".card").scrollTop = 0;
+        }
+
+        function closeDetail() {
+            document.getElementById("detailView").classList.remove("active");
+            document.getElementById("listView").classList.add("active");
+        }
+    </script>
+}
