@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ari final sa capstone")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f129c55f6ae1c20fb87b062b73fd05823edbe6bd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+884926e66d19cf3c93a6d5b95fa07780bbce45e5")]
 [assembly: System.Reflection.AssemblyProductAttribute("ari final sa capstone")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ari final sa capstone")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
