@@ -29,7 +29,7 @@
                         <div class="msg-bar red"></div>
                         <div class="msg-body">
                             <div class="msg-top">
-                                <span class="status-pill red">Pending / Urgent</span>
+                                <span class="status-pill red">SOS / Rescue</span>
                                 <span class="msg-time">6h ago</span>
                             </div>
                             <p class="msg-text">Naa mi nadunggan nga kusog nga buto sa dagat duol sa Barangay Patao, basin naay naggamit og dinamita.</p>
@@ -51,7 +51,7 @@
                     <li class="msg-item">
                         <div class="msg-body">
                             <div class="msg-top">
-                                <span class="status-pill amber">Pending / Urgent</span>
+                                <span class="status-pill amber">Incident Report</span>
                                 <span class="msg-time">9h ago</span>
                             </div>
                             <p class="msg-text">Nakita namo nga pino kaayo og mata ang pukot nga gigamit duol sa Barangay Kabac.</p>
@@ -74,7 +74,7 @@
                         <div class="msg-bar red"></div>
                         <div class="msg-body">
                             <div class="msg-top">
-                                <span class="status-pill red">Pending / Urgent</span>
+                                <span class="status-pill red">SOS / Rescue</span>
                                 <span class="msg-time">12h ago</span>
                             </div>
                             <p class="msg-text">Naay dakong sakayan nga nisulod sa municipal waters duol sa Barangay Sulangan bisan murag dili rehistrado diri.</p>
@@ -151,8 +151,16 @@
                             <div class="meta-value" id="detailPhone"></div>
                         </div>
                         <div class="info-card">
+                            <div class="meta-label">Sender Name</div>
+                            <div class="meta-value" id="detailSender"></div>
+                        </div>
+                        <div class="info-card">
                             <div class="meta-label">Location</div>
                             <div class="meta-value" id="detailLocation"></div>
+                        </div>
+                        <div class="info-card">
+                            <div class="meta-label">Boat Name</div>
+                            <div class="meta-value" id="detailBoat"></div>
                         </div>
                     </div>
 
@@ -160,6 +168,10 @@
                     <div class="msg-block" id="detailMessage"></div>
 
                     <div class="intervention-block" id="detailIntervention"></div>
+
+                    <div class="detail-actions">
+                        <button class="btn-blotter" type="button" onclick="generateBlotter()">Generate Blotter</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -221,35 +233,41 @@
             {
                 id: "RPT-001",
                 tone: "red",
-                status: "Pending / Urgent",
-                type: "Illegal Explosive Fishing",
+                status: "SOS / Rescue",
+                type: "Maritime Distress",
                 date: "May 3, 2026 · 4:00 AM",
                 phone: "0917 842 3156",
                 location: "Barangay Patao",
                 message: "Naa mi nadunggan nga kusog nga buto sa dagat duol sa Barangay Patao, basin naay naggamit og dinamita.",
-                intervention: ""
+                intervention: "",
+                sender: "Juan Dela Cruz",
+                boat: "FB Captain Jack"
             },
             {
                 id: "RPT-002",
                 tone: "amber",
-                status: "Pending / Urgent",
+                status: "Incident Report",
                 type: "Illegal Fishing Gear",
                 date: "May 3, 2026 · 1:00 AM",
                 phone: "0928 554 1073",
                 location: "Barangay Kabac",
                 message: "Nakita namo nga pino kaayo og mata ang pukot nga gigamit duol sa Barangay Kabac.",
-                intervention: ""
+                intervention: "",
+                sender: "Pedro Santos",
+                boat: "FB Maria Clara"
             },
             {
                 id: "RPT-003",
                 tone: "red",
-                status: "Pending / Urgent",
-                type: "Unregistered Vessel",
+                status: "SOS / Rescue",
+                type: "Vessel in Distress",
                 date: "May 2, 2026 · 10:00 PM",
                 phone: "0951 663 2480",
                 location: "Barangay Sulangan",
                 message: "Naay dakong sakayan nga nisulod sa municipal waters duol sa Barangay Sulangan bisan murag dili rehistrado diri.",
-                intervention: ""
+                intervention: "",
+                sender: "Maria Lacson",
+                boat: "FB Big Boat"
             },
             {
                 id: "RPT-004",
@@ -260,11 +278,14 @@
                 phone: "0936 214 7895",
                 location: "Barangay Patao",
                 message: "Naa pay nangisda sulod sa protected area sa Barangay Patao gabii.",
-                intervention: ""
+                intervention: "",
+                sender: "Jose Rizal",
+                boat: "FB Lapu-lapu"
             }
         ];
 
         function openDetail(index) {
+            currentReportIndex = index;
             var report = reports[index];
 
             document.getElementById("detailTitle").textContent = "Report " + report.id;
@@ -273,13 +294,15 @@
             document.getElementById("detailBanner").className = "detail-banner " + report.tone;
             document.getElementById("detailBannerIcon").className = "banner-icon " + report.tone;
             document.getElementById("detailBannerIcon").textContent = report.tone === "slate" ? "i" : "!";
-            document.getElementById("detailBannerLabel").textContent = "Incident type";
+            document.getElementById("detailBannerLabel").textContent = "Category";
             document.getElementById("detailBannerType").textContent = report.type;
             document.getElementById("detailId").textContent = report.id;
             document.getElementById("detailDate").textContent = report.date;
             document.getElementById("detailPhone").textContent = report.phone;
             document.getElementById("detailLocation").textContent = report.location;
             document.getElementById("detailMessage").textContent = report.message;
+            document.getElementById("detailSender").textContent = report.sender || "N/A";
+            document.getElementById("detailBoat").textContent = report.boat || "N/A";
             document.getElementById("detailIntervention").textContent = report.intervention;
 
             document.getElementById("listView").classList.remove("active");
@@ -291,5 +314,72 @@
             document.getElementById("detailView").classList.remove("active");
             document.getElementById("listView").classList.add("active");
         }
+
+        function generateBlotter() {
+            var report = reports[currentReportIndex];
+            var printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Blotter Form - ${report.id}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', sans-serif; padding: 40px; background: #fff; }
+                        .blotter-container { max-width: 800px; margin: 0 auto; border: 2px solid #000; padding: 30px; }
+                        .blotter-header { text-align: center; margin-bottom: 30px; }
+                        .blotter-title { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+                        .blotter-subtitle { font-size: 16px; color: #555; }
+                        .blotter-section { margin-bottom: 20px; }
+                        .section-title { font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
+                        .info-row { display: flex; margin-bottom: 8px; }
+                        .info-label { font-weight: 600; width: 200px; }
+                        .info-value { flex: 1; border-bottom: 1px dotted #000; padding-bottom: 2px; }
+                        .message-box { border: 1px solid #000; padding: 15px; min-height: 100px; margin-top: 10px; }
+                        .signature-line { margin-top: 50px; border-top: 1px solid #000; width: 250px; text-align: center; padding-top: 5px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="blotter-container">
+                        <div class="blotter-header">
+                            <div class="blotter-title">BANTAY DAGAT BLOTTER FORM</div>
+                            <div class="blotter-subtitle">Official Incident/Rescue Report</div>
+                        </div>
+                        <div class="blotter-section">
+                            <div class="section-title">Report Information</div>
+                            <div class="info-row"><span class="info-label">Report ID:</span><span class="info-value">${report.id}</span></div>
+                            <div class="info-row"><span class="info-label">Date & Time:</span><span class="info-value">${report.date}</span></div>
+                            <div class="info-row"><span class="info-label">Category:</span><span class="info-value">${report.status}</span></div>
+                            <div class="info-row"><span class="info-label">Incident Type:</span><span class="info-value">${report.type}</span></div>
+                        </div>
+                        <div class="blotter-section">
+                            <div class="section-title">Sender Information</div>
+                            <div class="info-row"><span class="info-label">Name:</span><span class="info-value">${report.sender || "N/A"}</span></div>
+                            <div class="info-row"><span class="info-label">Contact:</span><span class="info-value">${report.phone}</span></div>
+                            <div class="info-row"><span class="info-label">Boat Name:</span><span class="info-value">${report.boat || "N/A"}</span></div>
+                        </div>
+                        <div class="blotter-section">
+                            <div class="section-title">Location</div>
+                            <div class="info-row"><span class="info-label">Reported Location:</span><span class="info-value">${report.location}</span></div>
+                        </div>
+                        <div class="blotter-section">
+                            <div class="section-title">SMS Message Received</div>
+                            <div class="message-box">${report.message}</div>
+                        </div>
+                        <div class="blotter-section">
+                            <div class="section-title">Action Taken / Intervention</div>
+                            <div class="message-box" style="min-height: 150px;"></div>
+                        </div>
+                        <div class="info-row" style="justify-content: flex-end; margin-top: 40px;">
+                            <div class="signature-line">Authorized Officer Signature</div>
+                        </div>
+                    </div>
+                    <script>window.onload = function() { window.print(); }<\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        var currentReportIndex = 0;
     </script>
 }

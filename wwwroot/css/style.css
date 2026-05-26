@@ -732,6 +732,16 @@ body {
   color: #334155;
 }
 
+.status-pill.green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-pill.blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
 .msg-time {
   font-size: 0.8rem;
   color: var(--text-hint);
@@ -870,6 +880,68 @@ body {
   gap: 12px;
 }
 
+.banner-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.banner-icon.red {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.banner-icon.amber {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.banner-icon.slate {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.banner-icon.green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.banner-icon.blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.detail-banner.red {
+  background: #fff7ed;
+  border-color: #ea580c;
+}
+
+.detail-banner.amber {
+  background: #fffbeb;
+  border-color: #d97706;
+}
+
+.detail-banner.slate {
+  background: #f8fafc;
+  border-color: #64748b;
+}
+
+.detail-banner.green {
+  background: #f0fdf4;
+  border-color: #16a34a;
+}
+
+.detail-banner.blue {
+  background: #eff6ff;
+  border-color: #2563eb;
+}
+
 .banner-text p:first-child {
   font-size: 0.72rem;
   font-weight: 700;
@@ -931,6 +1003,37 @@ body {
   color: #1b5e20;
   line-height: 1.7;
   margin-bottom: 20px;
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-blotter {
+  border: none;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 10px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-blotter:hover {
+  background: linear-gradient(135deg, #1d8a5a, #166534);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 138, 62, 0.3);
+}
+
+.btn-blotter:active {
+  transform: translateY(0);
 }
 
 /* ── Responsive ── */
