@@ -527,27 +527,19 @@ td {
 }
 
 .cat-sos {
-  color: var(--sos-text);
   background: var(--sos-bg);
-  border-color: var(--sos-border);
 }
 
 .cat-inc {
-  color: var(--inc-text);
   background: var(--inc-bg);
-  border-color: var(--inc-border);
 }
 
 .cat-cmp {
-  color: var(--cmp-text);
   background: var(--cmp-bg);
-  border-color: var(--cmp-border);
 }
 
 .cat-inf {
-  color: var(--inf-text);
   background: var(--inf-bg);
-  border-color: var(--inf-border);
 }
 
 .status-dot {
@@ -749,22 +741,18 @@ td {
 
 .cat-banner.sos {
   background: var(--sos-bg);
-  border-color: var(--sos-border);
 }
 
 .cat-banner.inc {
   background: var(--inc-bg);
-  border-color: var(--inc-border);
 }
 
 .cat-banner.cmp {
   background: var(--cmp-bg);
-  border-color: var(--cmp-border);
 }
 
 .cat-banner.inf {
   background: var(--inf-bg);
-  border-color: var(--inf-border);
 }
 
 .banner-icon-wrap {
@@ -775,37 +763,6 @@ td {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.sos .banner-icon-wrap {
-  background: var(--sos-border);
-}
-
-.inc .banner-icon-wrap {
-  background: #fde68a;
-}
-
-.cmp .banner-icon-wrap {
-  background: #bfdbfe;
-}
-
-.inf .banner-icon-wrap {
-  background: #d1d5db;
-}
-
-.banner-label {
-  font-size: 0.66rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-  margin-bottom: 2px;
-}
-
-.banner-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
 }
 
 /* Info grid */

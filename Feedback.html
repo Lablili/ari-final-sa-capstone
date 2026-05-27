@@ -53,10 +53,17 @@
   <main class="main">
     <header class="topbar">
       <h2>Feedback &amp; Message Log</h2>
-      <div class="topbar-right">
-        <span class="topbar-date">25 May 2026</span>
-        <span class="topbar-badge" id="newBadge">0 New</span>
-      </div>
+         <div class="topbar-meta">
+                    <span class="stat-badge">0 SENT TODAY</span>
+                    <span class="date-indicator">
+                        <svg class="date-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 2v4M8 2v4M3 10h18" />
+                        </svg>
+                        <span id="currentDateDisplay">Wednesday, May 27, 2026</span>
+                    </span>
+                    <button class="logout-button" id="logoutButton" type="button">Log Out</button>
+                </div>
     </header>
 
     <!-- LIST VIEW -->
@@ -67,27 +74,19 @@
         <div class="stat-row">
           <div class="stat">
             <div><div class="stat-n" id="s-total">0</div><div class="stat-l">Total</div></div>
-            <div class="stat-icon si-teal">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            </div>
+            
           </div>
           <div class="stat">
             <div><div class="stat-n" id="s-sos" style="color:#000000">0</div><div class="stat-l">SOS / Rescue</div></div>
-            <div class="stat-icon si-red">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            </div>
+            
           </div>
           <div class="stat">
             <div><div class="stat-n" id="s-inc" style="color:#000000">0</div><div class="stat-l">Incidents</div></div>
-            <div class="stat-icon si-amber">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            </div>
+           
           </div>
           <div class="stat">
             <div><div class="stat-n" id="s-new" style="color:#000000">0</div><div class="stat-l">Unread</div></div>
-            <div class="stat-icon si-blue">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            </div>
+            
           </div>
         </div>
 

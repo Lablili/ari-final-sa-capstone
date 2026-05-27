@@ -190,10 +190,10 @@ td { padding: 10px 14px; font-size: .82rem; color: var(--text); vertical-align: 
   font-size: .66rem; font-weight: 700; letter-spacing: .04em;
   text-transform: uppercase; white-space: nowrap; border: 1px solid;
 }
-.cat-sos { color: var(--sos-text); background: var(--sos-bg); border-color: var(--sos-border); }
-.cat-inc { color: var(--inc-text); background: var(--inc-bg); border-color: var(--inc-border); }
-.cat-cmp { color: var(--cmp-text); background: var(--cmp-bg); border-color: var(--cmp-border); }
-.cat-inf { color: var(--inf-text); background: var(--inf-bg); border-color: var(--inf-border); }
+.cat-sos { background: var(--sos-bg) }
+.cat-inc { background: var(--inc-bg) }
+.cat-cmp { background: var(--cmp-bg) }
+.cat-inf { background: var(--inf-bg) }
 
 .status-dot {
   display: inline-flex; align-items: center; gap: 5px;
@@ -265,20 +265,14 @@ td { padding: 10px 14px; font-size: .82rem; color: var(--text); vertical-align: 
   display: flex; align-items: center; gap: 12px;
   margin-bottom: 20px; border: 1px solid;
 }
-.cat-banner.sos { background: var(--sos-bg); border-color: var(--sos-border); }
-.cat-banner.inc { background: var(--inc-bg); border-color: var(--inc-border); }
-.cat-banner.cmp { background: var(--cmp-bg); border-color: var(--cmp-border); }
-.cat-banner.inf { background: var(--inf-bg); border-color: var(--inf-border); }
+.cat-banner.sos { background: var(--sos-bg)}
+.cat-banner.inc { background: var(--inc-bg) }
+.cat-banner.cmp { background: var(--cmp-bg) }
+.cat-banner.inf { background: var(--inf-bg) }
 .banner-icon-wrap {
   width: 38px; height: 38px; border-radius: var(--radius);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.sos .banner-icon-wrap { background: var(--sos-border); }
-.inc .banner-icon-wrap { background: #fde68a; }
-.cmp .banner-icon-wrap { background: #bfdbfe; }
-.inf .banner-icon-wrap { background: #d1d5db; }
-.banner-label { font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 2px; }
-.banner-title { font-size: .95rem; font-weight: 700; color: var(--text); }
 
 /* Info grid */
 .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px; }
