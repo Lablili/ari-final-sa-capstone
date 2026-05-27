@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">S
     <title>Announcements | Bantay Dagat</title>
 </head>
 <body>
-    <div class="dashboard-shell">
+    <!-- Dashboard Shell -->
+    <div class="dashboard-shell" id="dashboardShell">
+        <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="brand">
                 <h1>Bantay Dagat</h1>
                 <p>Coastal Monitoring System</p>
             </div>
-
             <div class="nav-group">
                 <p class="nav-label">MAIN</p>
                 <nav class="nav-menu">
@@ -23,7 +24,7 @@
                     </a>
                     <a class="nav-item" href="Feedback.html">
                         <span class="nav-icon report-icon" aria-hidden="true"></span>
-                        <span>Feedback & Message Log</span>
+                        <span>Feedback & Log</span>
                     </a>
                     <a class="nav-item" href="fisherfolk-info.html">
                         <span class="nav-icon fisherfolk-icon" aria-hidden="true"></span>
@@ -31,7 +32,6 @@
                     </a>
                 </nav>
             </div>
-
             <div class="nav-group">
                 <p class="nav-label">COMMUNICATION</p>
                 <nav class="nav-menu">
@@ -46,369 +46,228 @@
                 </nav>
             </div>
         </aside>
-
+        <!-- Main Content Area -->
         <main class="main-content">
+            <!-- Topbar (No auth, matches fisherfolk-info.html) -->
             <header class="topbar">
-                <h2>Announcements</h2>
+                <div class="topbar-title-area">
+                    <h2>Announcements</h2>
+                    <p>Information dissemination & alert broadcasting hub</p>
+                </div>
                 <div class="topbar-meta">
-                    <span class="report-pill" id="announcementCount">0 Sent Today</span>
-                    <span class="topbar-date">May 4, 2026</span>
-                    <button class="logout-button" id="logoutButton" type="button">Log Out</button>
+                    <span class="stat-badge" id="announcementCount">0 SENT TODAY</span>
+                    <span class="date-indicator">
+                        <svg class="date-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 2v4M8 2v4M3 10h18" />
+                        </svg>
+                        <span id="currentDateDisplay">Wednesday, May 27, 2026</span>
+                    </span>
                 </div>
             </header>
-
-            <section class="panel announcement-panel">
-                <div class="panel-header">
-                    <div>
-                        <h3>Information Dissemination</h3>
-                        <p class="section-copy announcement-copy">One-way GSM announcements are sent directly to registered fisherfolk in Bantayan municipality. This dissemination flow covers municipal waters and the 15 km coastal operating premises.</p>
+            <!-- Container Grid: Scope on Left, Form on Right -->
+            <div class="announcement-container-grid">
+                <!-- Left Sidebar: System Scope -->
+                <aside class="system-scope-sidebar">
+                    <div class="scope-title-header">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <span>System Scope</span>
                     </div>
-                    <span class="panel-pill neutral" id="announcementStatus">Ready to compose</span>
-                </div>
-
-                <div class="announcement-grid">
-                    <div>
-                        <div class="announcement-scope">
-                            <h4 class="announcement-scope-title">System Scope</h4>
-                            <p class="announcement-scope-copy">Information dissemination sends one-way announcements to fisherfolk.</p>
-                            <p class="announcement-scope-copy">Feedbacking allows fisherfolk to send incident reports and rescue help requests to Bantay Dagat staff.</p>
-                            <p class="announcement-scope-copy">Coverage is limited to Bantayan municipality and the 15 km coastal premises from shore.</p>
+                    <div class="scope-item-group">
+                        <div class="scope-card">
+                            <h4 class="scope-card-title">Dissemination Flow</h4>
+                            <p class="scope-card-copy">Sends automated, direct one-way announcements to designated recipient grids.</p>
                         </div>
-
-                        <form class="announcement-form" id="announcementForm">
-                            <div class="announcement-field">
-                                <label class="announcement-label" for="announcementTemplate">Fixed Message Template</label>
-                                <select class="announcement-select" id="announcementTemplate" name="template">
+                        <div class="scope-card">
+                            <h4 class="scope-card-title">Interactive Dialogs</h4>
+                            <p class="scope-card-copy">Allows fisherfolk to report coastal hazards, buffer violations, and rescue tasks instantly.</p>
+                        </div>
+                        <div class="scope-card">
+                            <h4 class="scope-card-title">Territorial Waters</h4>
+                            <p class="scope-card-copy">Operations coverage spans from Bantayan shorelines up to the 15 km deep safety premises.</p>
+                        </div>
+                    </div>
+                </aside>
+                <!-- Right Side: Compose Form -->
+                <section class="compose-form-panel">
+                    <div class="compose-header">
+                        <!-- Orange sparkle icon -->
+                        <svg class="compose-sparkle-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+                            <path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8L12 2z"/>
+                        </svg>
+                        <span>Compose Announcement</span>
+                    </div>
+                    <form class="announcement-form-grid" id="announcementForm">
+                        <div class="form-grid-2col">
+                            <!-- Category Select -->
+                            <div class="form-field-wrapper">
+                                <label class="form-label-with-icon" for="announcementTemplate">Category</label>
+                                <select class="form-input-styled" id="announcementTemplate" name="template">
                                     <option value="ordinance">Ordinance reminder</option>
                                     <option value="no-fishing">No-fishing zone notice</option>
                                     <option value="patrol">Patrol advisory</option>
                                     <option value="custom">Custom announcement</option>
                                 </select>
-                                <p class="announcement-hint">Using a fixed template is better for consistency, but staff can still add optional details and a location when needed.</p>
                             </div>
-
-                            <div class="announcement-field">
-                                <label class="announcement-label" for="recipientGroup">Recipients</label>
-                                <select class="announcement-select" id="recipientGroup" name="recipientGroup">
-                                    <option value="all">All registered fisherfolk</option>
-                                    <option value="north">Barangay Kabac</option>
-                                    <option value="south">Barangay Patao</option>
-                                    <option value="licensed">Barangay Guiwanon</option>
+                            <!-- Recipient Group Select -->
+                            <div class="form-field-wrapper">
+                                <label class="form-label-with-icon" for="recipientGroup">Recipient Group</label>
+                                <select class="form-input-styled" id="recipientGroup" name="recipientGroup">
+                                    <option value="all">All registered fisherfolk (1,248)</option>
+                                    <option value="north">Barangay Kabac (312)</option>
+                                    <option value="south">Barangay Patao (284)</option>
+                                    <option value="licensed">Barangay Guiwanon (652)</option>
                                 </select>
-                                <p class="announcement-hint">Announcements are broadcast through GSM to registered numbers only.</p>
                             </div>
-
-                            <div class="announcement-field">
-                                <label class="announcement-label" for="announcementLocation">Area or Location</label>
-                                <input class="announcement-select" id="announcementLocation" name="location" type="text" placeholder="Example: Barangay Patao or municipal waters within 15 km shoreline">
-                                <p class="announcement-hint">Optional. Add the affected barangay, coastal zone, or operating area.</p>
+                            <!-- Area / Location -->
+                            <div class="form-field-wrapper">
+                                <label class="form-label-with-icon" for="announcementLocation">
+                                    <!-- Map-pin icon -->
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span>Area / Location</span>
+                                </label>
+                                <input class="form-input-styled" id="announcementLocation" name="location" type="text" placeholder="e.g. Barangay Patao shoreline">
                             </div>
-
-                            <div class="announcement-field">
-                                <label class="announcement-label" for="announcementDetails">Optional Additional Details</label>
-                                <textarea class="announcement-textarea" id="announcementDetails" name="details" placeholder="Add clarifications, schedule, restriction details, or operational notes if needed."></textarea>
+                            <!-- Effective Date -->
+                            <div class="form-field-wrapper">
+                                <label class="form-label-with-icon" for="announcementEffectiveDate">
+                                    <!-- Calendar icon -->
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span>Effective Date</span>
+                                </label>
+                                <input class="form-input-styled" id="announcementEffectiveDate" name="effectiveDate" type="text" placeholder="e.g. May 18, 2026">
                             </div>
-
-                            <div class="announcement-field">
-                                <label class="announcement-label" for="announcementMessage">Manual SMS Override</label>
-                                <textarea class="announcement-textarea" id="announcementMessage" name="message" placeholder="Optional. Leave blank to use the fixed message with the added location and details above."></textarea>
-                                <p class="announcement-hint">Use this only when staff needs a fully custom one-way announcement.</p>
+                            <!-- Issued By (Officer) -->
+                            <div class="form-field-wrapper">
+                                <label class="form-label-with-icon" for="announcementOfficer">
+                                    <!-- User icon -->
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    <span>Issued By (Officer)</span>
+                                </label>
+                                <input class="form-input-styled" id="announcementOfficer" name="officer" type="text" placeholder="e.g. Officer Juan Dela Cruz">
                             </div>
-
-                            <div class="announcement-preview">
-                                <p class="announcement-preview-title">Final SMS Preview</p>
-                                <p class="announcement-preview-text" id="announcementPreview">Bantay Dagat Notice: Please follow municipal fishing ordinances within Bantayan waters and the 15 km coastal operating area.</p>
+                            <!-- Penalty / Consequence -->
+                            <div class="form-field-wrapper">
+                                <label class="form-label-with-icon" for="announcementPenalty">
+                                    <!-- Shield icon -->
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    <span>Penalty / Consequence (If Applicable)</span>
+                                </label>
+                                <input class="form-input-styled" id="announcementPenalty" name="penalty" type="text" placeholder="e.g. Confiscation of fishing gear">
                             </div>
-
-                            <div class="announcement-actions">
-                                <button class="announcement-submit" type="submit">Send Announcement</button>
-                                <p class="announcement-status-note">This flow is one-way only. No reply is required from fisherfolk for announcements.</p>
+                            <!-- Reference Ordinance / Resolution No. -->
+                            <div class="form-field-wrapper form-span-full">
+                                <label class="form-label-with-icon" for="announcementReference">
+                                    <!-- Document icon -->
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <span>Reference Ordinance / Resolution No.</span>
+                                </label>
+                                <input class="form-input-styled" id="announcementReference" name="referenceNo" type="text" placeholder="e.g. Ordinance No. 2024-07">
                             </div>
-                        </form>
-
-                        <div class="announcement-log" id="announcementLog"></div>
-                    </div>
+                            <!-- Additional Details -->
+                            <div class="form-field-wrapper form-span-full">
+                                <label class="form-label-with-icon" for="announcementDetails">Additional Details</label>
+                                <textarea class="form-textarea-styled" id="announcementDetails" name="details" placeholder="Add restrictions, schedule, or operational notes..."></textarea>
+                            </div>
+                        </div>
+                        <!-- Collapsible Manual SMS Override block -->
+                        <div class="override-collapsible" id="overrideSection">
+                            <div class="form-field-wrapper">
+                                <label class="form-label-with-icon" for="announcementMessage">Manual SMS Override</label>
+                                <textarea class="form-textarea-styled" id="announcementMessage" name="message" placeholder="Type a completely custom announcement text. Leave blank to generate automatically from fields above."></textarea>
+                            </div>
+                        </div>
+                        <!-- SMS Preview Card -->
+                        <div class="preview-card">
+                            <p class="preview-title">Final SMS Preview</p>
+                            <div class="preview-body" id="announcementPreview">Bantay Dagat Notice: Please follow municipal fishing ordinances within Bantayan waters and the 15 km coastal operating area.</div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="compose-actions">
+                            <div class="action-left-group">
+                                <!-- Chevron toggle button -->
+                                <button class="btn-circle" id="toggleOverrideBtn" type="button" title="Toggle Manual SMS Override" aria-label="Toggle Manual SMS Override">
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <button class="btn-outline" id="clearFormBtn" type="button">
+                                <!-- Cross icon -->
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                <span>Clear</span>
+                            </button>
+                            <button class="btn-submit-orange" type="submit">
+                                <!-- Paper plane icon -->
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                </svg>
+                                <span>Send announcement</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+            <!-- Directory Log Section -->
+            <div class="log-header-section">
+                <div class="log-title-area">
+                    <h3>
+                        <!-- Clock icon -->
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="22" height="22" style="color: var(--primary);">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Announcement log</span>
+                    </h3>
+                    <p class="log-subtitle">Filter, search, or review active broadcasts delivered over the GSM Network.</p>
                 </div>
-            </section>
+                <div class="log-actions">
+                    <button class="btn-outline" id="printLogBtn" type="button">
+                        <!-- Printer icon -->
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span>Print</span>
+                    </button>
+                    <button class="btn-outline" id="exportLogBtn" type="button">
+                        <!-- Download/Export icon -->
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span>Export CSV</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Filters tab panel -->
+            <div class="log-tabs-panel" id="logFilterTabs">
+                <button class="tab-button active" data-filter="all" type="button">All <span class="tab-count" id="count-all">0</span></button>
+                <button class="tab-button" data-filter="ordinance" type="button">Ordinance <span class="tab-count" id="count-ordinance">0</span></button>
+                <button class="tab-button" data-filter="no-fishing" type="button">No-fishing <span class="tab-count" id="count-no-fishing">0</span></button>
+                <button class="tab-button" data-filter="patrol" type="button">Patrol <span class="tab-count" id="count-patrol">0</span></button>
+                <button class="tab-button" data-filter="other" type="button">Other <span class="tab-count" id="count-other">0</span></button>
+                <button class="tab-button" data-filter="archived" type="button">Archived <span class="tab-count" id="count-archived">0</span></button>
+            </div>
+            <!-- Logs list -->
+            <div class="log-list" id="announcementLog">
+                <!-- Log Cards rendered by JavaScript -->
+            </div>
         </main>
     </div>
-
-    <script>
-        (function () {
-            var PASSWORD = "bantay";
-            var STORAGE_KEY = "bantay-dagat-authenticated";
-            var ANNOUNCEMENT_STORAGE_KEY = "bantay-dagat-announcements";
-            var loginScreen = document.getElementById("loginScreen");
-            var dashboardShell = document.getElementById("dashboardShell");
-            var loginForm = document.getElementById("loginForm");
-            var passwordInput = document.getElementById("password");
-            var loginError = document.getElementById("loginError");
-            var logoutButton = document.getElementById("logoutButton");
-            var announcementForm = document.getElementById("announcementForm");
-            var announcementTemplate = document.getElementById("announcementTemplate");
-            var recipientGroup = document.getElementById("recipientGroup");
-            var announcementLocation = document.getElementById("announcementLocation");
-            var announcementDetails = document.getElementById("announcementDetails");
-            var announcementMessage = document.getElementById("announcementMessage");
-            var announcementPreview = document.getElementById("announcementPreview");
-            var announcementLog = document.getElementById("announcementLog");
-            var announcementStatus = document.getElementById("announcementStatus");
-            var announcementCount = document.getElementById("announcementCount");
-            var templates = {
-                "ordinance": "Bantay Dagat Notice: Please follow municipal fishing ordinances within Bantayan waters and the 15 km coastal operating area.",
-                "no-fishing": "Bantay Dagat Notice: Entry into the identified no-fishing zone is prohibited until further notice from Bantay Dagat staff.",
-                "patrol": "Bantay Dagat Notice: Coastal patrol operations are active. Please keep fishing permits and boat identification ready for verification.",
-                "custom": ""
-            };
-            var recipientLabels = {
-                "all": "All registered fisherfolk",
-                "north": "North coastal barangays",
-                "south": "South coastal barangays",
-                "licensed": "Licensed fishers only"
-            };
-            var seedAnnouncements = [
-                {
-                    id: "ann-001",
-                    template: "ordinance",
-                    recipientGroup: "all",
-                    location: "Bantayan municipal waters",
-                    details: "Observe only legal fishing methods and avoid restricted areas.",
-                    message: "Bantay Dagat Notice: Please follow municipal fishing ordinances within Bantayan waters and the 15 km coastal operating area. Area: Bantayan municipal waters. Observe only legal fishing methods and avoid restricted areas.",
-                    status: "Delivered",
-                    createdAt: "2026-05-04T09:10:00+08:00",
-                    deliveredCount: 1248
-                },
-                {
-                    id: "ann-002",
-                    template: "no-fishing",
-                    recipientGroup: "north",
-                    location: "Barangay Patao",
-                    details: "Restricted zone remains active near the protected coastal section.",
-                    message: "Bantay Dagat Notice: Entry into the identified no-fishing zone is prohibited until further notice from Bantay Dagat staff. Area: Barangay Patao. Restricted zone remains active near the protected coastal section.",
-                    status: "Sent",
-                    createdAt: "2026-05-04T07:40:00+08:00",
-                    deliveredCount: 312
-                }
-            ];
-
-            function showDashboard() {
-                loginScreen.classList.add("hidden");
-                dashboardShell.classList.remove("hidden");
-                loginError.textContent = "";
-                renderAnnouncements();
-            }
-
-            function showLogin() {
-                dashboardShell.classList.add("hidden");
-                loginScreen.classList.remove("hidden");
-                passwordInput.value = "";
-                loginError.textContent = "";
-                passwordInput.focus();
-            }
-
-            function readAnnouncements() {
-                var stored = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
-
-                if (!stored) {
-                    localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(seedAnnouncements));
-                    return seedAnnouncements.slice();
-                }
-
-                try {
-                    return JSON.parse(stored) || [];
-                } catch (error) {
-                    localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(seedAnnouncements));
-                    return seedAnnouncements.slice();
-                }
-            }
-
-            function saveAnnouncements(items) {
-                localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(items));
-            }
-
-            function escapeHtml(value) {
-                return String(value)
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#39;");
-            }
-
-            function getRelativeTime(dateString) {
-                var seconds = Math.max(0, Math.floor((Date.now() - new Date(dateString).getTime()) / 1000));
-
-                if (seconds >= 86400) {
-                    return Math.floor(seconds / 86400) + "d ago";
-                }
-
-                if (seconds >= 3600) {
-                    return Math.floor(seconds / 3600) + "h ago";
-                }
-
-                if (seconds >= 60) {
-                    return Math.floor(seconds / 60) + "m ago";
-                }
-
-                return "Just now";
-            }
-
-            function getStatusClass(status) {
-                if (status === "Delivered") {
-                    return "delivered";
-                }
-
-                if (status === "Processing") {
-                    return "processing";
-                }
-
-                return "sent";
-            }
-
-            function buildMessage() {
-                var baseTemplate = templates[announcementTemplate.value] || "";
-                var locationText = announcementLocation.value.trim();
-                var detailsText = announcementDetails.value.trim();
-                var manualOverride = announcementMessage.value.trim();
-                var finalMessage = manualOverride || baseTemplate;
-
-                if (!manualOverride) {
-                    if (locationText) {
-                        finalMessage += " Area: " + locationText + ".";
-                    }
-
-                    if (detailsText) {
-                        finalMessage += " " + detailsText;
-                    }
-                }
-
-                return finalMessage.trim() || "Compose an announcement to preview the outgoing SMS.";
-            }
-
-            function updatePreview() {
-                announcementPreview.textContent = buildMessage();
-            }
-
-            function applyTemplate() {
-                if (announcementTemplate.value === "custom") {
-                    announcementMessage.value = "";
-                } else {
-                    announcementMessage.value = "";
-                }
-
-                updatePreview();
-            }
-
-            function renderAnnouncements() {
-                var items = readAnnouncements().sort(function (left, right) {
-                    return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
-                });
-                var sentToday = 0;
-
-                announcementLog.innerHTML = items.map(function (item) {
-                    var itemDate = new Date(item.createdAt);
-                    var today = new Date();
-
-                    if (
-                        itemDate.getFullYear() === today.getFullYear() &&
-                        itemDate.getMonth() === today.getMonth() &&
-                        itemDate.getDate() === today.getDate()
-                    ) {
-                        sentToday += 1;
-                    }
-
-                    return [
-                        '<article class="announcement-log-item">',
-                        '  <div class="announcement-log-top">',
-                        '    <p class="announcement-log-title">' + escapeHtml(recipientLabels[item.recipientGroup] || item.recipientGroup) + "</p>",
-                        '    <span class="announcement-pill ' + getStatusClass(item.status) + '">' + escapeHtml(item.status) + "</span>",
-                        "  </div>",
-                        '  <p class="announcement-log-meta"><strong>Message:</strong> ' + escapeHtml(item.message) + "</p>",
-                        '  <p class="announcement-log-meta"><strong>GSM Delivery:</strong> ' + escapeHtml(String(item.deliveredCount)) + ' recipients processed &middot; ' + escapeHtml(getRelativeTime(item.createdAt)) + "</p>",
-                        "</article>"
-                    ].join("");
-                }).join("");
-
-                announcementCount.textContent = sentToday + " Sent Today";
-            }
-
-            announcementTemplate.addEventListener("change", applyTemplate);
-            announcementLocation.addEventListener("input", updatePreview);
-            announcementDetails.addEventListener("input", updatePreview);
-            announcementMessage.addEventListener("input", updatePreview);
-
-            announcementForm.addEventListener("submit", function (event) {
-                var items;
-                var nextItem;
-                var finalMessage;
-
-                event.preventDefault();
-
-                finalMessage = buildMessage();
-                items = readAnnouncements();
-                nextItem = {
-                    id: "ann-" + Date.now(),
-                    template: announcementTemplate.value,
-                    recipientGroup: recipientGroup.value,
-                    location: announcementLocation.value.trim(),
-                    details: announcementDetails.value.trim(),
-                    message: finalMessage,
-                    status: "Processing",
-                    createdAt: new Date().toISOString(),
-                    deliveredCount: recipientGroup.value === "all" ? 1248 : recipientGroup.value === "north" ? 312 : recipientGroup.value === "south" ? 284 : 652
-                };
-
-                items.push(nextItem);
-                saveAnnouncements(items);
-                renderAnnouncements();
-                announcementStatus.textContent = "Broadcast sent to GSM gateway";
-
-                window.setTimeout(function () {
-                    var refreshedItems = readAnnouncements().map(function (item) {
-                        if (item.id === nextItem.id) {
-                            item.status = "Delivered";
-                        }
-
-                        return item;
-                    });
-
-                    saveAnnouncements(refreshedItems);
-                    renderAnnouncements();
-                    announcementStatus.textContent = "Delivery status logged";
-                }, 1400);
-
-                announcementLocation.value = "";
-                announcementDetails.value = "";
-                announcementMessage.value = "";
-                updatePreview();
-            });
-
-            if (localStorage.getItem(STORAGE_KEY) === "true") {
-                showDashboard();
-            } else {
-                showLogin();
-            }
-
-            loginForm.addEventListener("submit", function (event) {
-                event.preventDefault();
-
-                if (passwordInput.value === PASSWORD) {
-                    localStorage.setItem(STORAGE_KEY, "true");
-                    showDashboard();
-                    return;
-                }
-
-                loginError.textContent = "Incorrect password. Please try again.";
-                passwordInput.select();
-            });
-
-            logoutButton.addEventListener("click", function () {
-                localStorage.removeItem(STORAGE_KEY);
-                showLogin();
-            });
-
-            applyTemplate();
-        }());
-    </script>
+    <!-- External JavaScript -->
+    <script src="announcement.js"></script>
 </body>
 </html>
