@@ -1,5 +1,18 @@
 (function () {
     var ANNOUNCEMENT_STORAGE_KEY = "bantay-dagat-announcements";
+    var PASSWORD = "bantay";
+    var STORAGE_KEY = "bantay-dagat-authenticated";
+
+    // Containers
+    var loginScreen = document.getElementById("loginScreen");
+    var dashboardShell = document.getElementById("dashboardShell");
+
+    // Forms & Authentication
+    var loginForm = document.getElementById("loginForm");
+    var passwordInput = document.getElementById("password");
+    var loginError = document.getElementById("loginError");
+    var logoutButton = document.getElementById("logoutButton");
+
     // DOM Elements
     var announcementForm = document.getElementById("announcementForm");
     var announcementTemplate = document.getElementById("announcementTemplate");
@@ -468,12 +481,46 @@
         link.click();
         document.body.removeChild(link);
     });
-    // Init page
-    setHeaderDate();
-    renderAnnouncements();
-    updatePreview();
+    // Authentication View routing
+    function showDashboard() {
+        loginScreen.classList.add("hidden");
+        dashboardShell.classList.remove("hidden");
+        loginError.textContent = "";
+        setHeaderDate();
+        renderAnnouncements();
+        updatePreview();
+    }
+    function showLogin() {
+        dashboardShell.classList.add("hidden");
+        loginScreen.classList.remove("hidden");
+        passwordInput.value = "";
+        loginError.textContent = "";
+        passwordInput.focus();
+    }
+    // Event Listeners setup
+    if (localStorage.getItem(STORAGE_KEY) === "true") {
+        showDashboard();
+    } else {
+        showLogin();
+    }
+    loginForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (passwordInput.value === PASSWORD) {
+            localStorage.setItem(STORAGE_KEY, "true");
+            showDashboard();
+            return;
+        }
+        loginError.textContent = "Incorrect password. Please try again.";
+        passwordInput.select();
+    });
+    logoutButton.addEventListener("click", function () {
+        localStorage.removeItem(STORAGE_KEY);
+        showLogin();
+    });
     // Auto-update relative timestamps every 30 seconds
     setInterval(function () {
-        renderAnnouncements();
+        if (localStorage.getItem(STORAGE_KEY) === "true") {
+            renderAnnouncements();
+        }
     }, 30000);
 })();

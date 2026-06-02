@@ -7,12 +7,31 @@
     <title>Announcements | Bantay Dagat</title>
 </head>
 <body>
+    <!-- Authentication Login Screen -->
+    <div class="login-screen hidden" id="loginScreen">
+        <div class="login-card">
+            <div class="brand">
+                <h1>Bantay Dagat</h1>
+            </div>
+            <h2>Announcements Node</h2>
+            <p class="login-subtitle">Please enter your node password to authenticate</p>
+            <form id="loginForm">
+                <div class="field-group">
+                    <label class="field-label" for="password">Password</label>
+                    <input class="field-input" type="password" id="password" placeholder="Enter node password" required>
+                </div>
+                <div class="login-error" id="loginError"></div>
+                <button class="btn-primary login-btn" type="submit">Authenticate Node</button>
+            </form>
+        </div>
+    </div>
     <!-- Dashboard Shell -->
-    <div class="dashboard-shell" id="dashboardShell">
+    <div class="dashboard-shell hidden" id="dashboardShell">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="brand">
                 <h1>Bantay Dagat</h1>
+                
             </div>
             <div class="nav-group">
                 <p class="nav-label">MAIN</p>
@@ -51,7 +70,6 @@
             <header class="topbar">
                 <div class="topbar-title-area">
                     <h2>Announcements</h2>
-                    <p>Information dissemination & alert broadcasting hub</p>
                 </div>
                 <div class="topbar-meta">
                     <span class="stat-badge" id="announcementCount">0 SENT TODAY</span>
@@ -62,40 +80,12 @@
                         </svg>
                         <span id="currentDateDisplay">Wednesday, May 27, 2026</span>
                     </span>
+                    <button class="logout-button" id="logoutButton" type="button">Log Out</button>
                 </div>
             </header>
-            <!-- Container Grid: Scope on Left, Form on Right -->
-            <div class="announcement-container-grid">
-                <!-- Left Sidebar: System Scope -->
-                <aside class="system-scope-sidebar">
-                    <div class="scope-title-header">
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                        <span>System Scope</span>
-                    </div>
-                    <div class="scope-item-group">
-                        <div class="scope-card">
-                            <h4 class="scope-card-title">Dissemination Flow</h4>
-                            <p class="scope-card-copy">Sends automated, direct one-way announcements to designated recipient grids.</p>
-                        </div>
-                        <div class="scope-card">
-                            <h4 class="scope-card-title">Interactive Dialogs</h4>
-                            <p class="scope-card-copy">Allows fisherfolk to report coastal hazards, buffer violations, and rescue tasks instantly.</p>
-                        </div>
-                        <div class="scope-card">
-                            <h4 class="scope-card-title">Territorial Waters</h4>
-                            <p class="scope-card-copy">Operations coverage spans from Bantayan shorelines up to the 15 km deep safety premises.</p>
-                        </div>
-                    </div>
-                </aside>
-                <!-- Right Side: Compose Form -->
                 <section class="compose-form-panel">
                     <div class="compose-header">
-                        <!-- Orange sparkle icon -->
-                        <svg class="compose-sparkle-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
-                            <path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8L12 2z"/>
-                        </svg>
+            
                         <span>Compose Announcement</span>
                     </div>
                     <form class="announcement-form-grid" id="announcementForm">
@@ -130,7 +120,7 @@
                                     </svg>
                                     <span>Area / Location</span>
                                 </label>
-                                <input class="form-input-styled" id="announcementLocation" name="location" type="text" placeholder="e.g. Barangay Patao shoreline">
+                                <input class="form-input-styled" id="announcementLocation" name="location" type="text">
                             </div>
                             <!-- Effective Date -->
                             <div class="form-field-wrapper">
@@ -141,7 +131,7 @@
                                     </svg>
                                     <span>Effective Date</span>
                                 </label>
-                                <input class="form-input-styled" id="announcementEffectiveDate" name="effectiveDate" type="text" placeholder="e.g. May 18, 2026">
+                                <input class="form-input-styled" id="announcementEffectiveDate" name="effectiveDate" type="text" >
                             </div>
                             <!-- Issued By (Officer) -->
                             <div class="form-field-wrapper">
@@ -152,7 +142,7 @@
                                     </svg>
                                     <span>Issued By (Officer)</span>
                                 </label>
-                                <input class="form-input-styled" id="announcementOfficer" name="officer" type="text" placeholder="e.g. Officer Juan Dela Cruz">
+                                <input class="form-input-styled" id="announcementOfficer" name="officer" type="text">
                             </div>
                             <!-- Penalty / Consequence -->
                             <div class="form-field-wrapper">
@@ -163,7 +153,7 @@
                                     </svg>
                                     <span>Penalty / Consequence (If Applicable)</span>
                                 </label>
-                                <input class="form-input-styled" id="announcementPenalty" name="penalty" type="text" placeholder="e.g. Confiscation of fishing gear">
+                                <input class="form-input-styled" id="announcementPenalty" name="penalty" type="texT">
                             </div>
                             <!-- Reference Ordinance / Resolution No. -->
                             <div class="form-field-wrapper form-span-full">
@@ -174,19 +164,19 @@
                                     </svg>
                                     <span>Reference Ordinance / Resolution No.</span>
                                 </label>
-                                <input class="form-input-styled" id="announcementReference" name="referenceNo" type="text" placeholder="e.g. Ordinance No. 2024-07">
+                                <input class="form-input-styled" id="announcementReference" name="referenceNo" type="text" >
                             </div>
                             <!-- Additional Details -->
                             <div class="form-field-wrapper form-span-full">
                                 <label class="form-label-with-icon" for="announcementDetails">Additional Details</label>
-                                <textarea class="form-textarea-styled" id="announcementDetails" name="details" placeholder="Add restrictions, schedule, or operational notes..."></textarea>
+                                <textarea class="form-textarea-styled" id="announcementDetails" name="details"></textarea>
                             </div>
                         </div>
                         <!-- Collapsible Manual SMS Override block -->
                         <div class="override-collapsible" id="overrideSection">
                             <div class="form-field-wrapper">
                                 <label class="form-label-with-icon" for="announcementMessage">Manual SMS Override</label>
-                                <textarea class="form-textarea-styled" id="announcementMessage" name="message" placeholder="Type a completely custom announcement text. Leave blank to generate automatically from fields above."></textarea>
+                                <textarea class="form-textarea-styled" id="announcementMessage" name="message" ></textarea>
                             </div>
                         </div>
                         <!-- SMS Preview Card -->
@@ -221,7 +211,7 @@
                         </div>
                     </form>
                 </section>
-            </div>
+          
             <!-- Directory Log Section -->
             <div class="log-header-section">
                 <div class="log-title-area">
@@ -266,6 +256,7 @@
             </div>
         </main>
     </div>
+      </div>
     <!-- External JavaScript -->
     <script src="announcement.js"></script>
 </body>

@@ -275,27 +275,7 @@ body {
     gap: 16px;
 }
 
-/* Dynamic Stats Badge in topbar */
-.stat-badge {
-    background-color: $accent-orange-light;
-    color: $accent-orange;
-    font-size: 0.85rem;
-    font-weight: 700;
-    padding: 8px 16px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
 
-    &::before {
-        content: "";
-        display: inline-block;
-        width: 6px;
-        height: 6px;
-        background-color: $accent-orange;
-        border-radius: 50%;
-    }
-}
 
 /* Date Indicator */
 .date-indicator {
