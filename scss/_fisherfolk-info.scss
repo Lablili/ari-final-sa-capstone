@@ -743,6 +743,48 @@ body {
     padding: 32px;
 }
 
+/* Registration Modal Card - centered, compact form matching requested design */
+#registerFormModal .modal-content {
+    
+    width: 96%;
+    border-radius: 12px;
+}
+
+#registerFormModal .modal-header {
+    padding: 18px 22px;
+}
+
+#registerFormModal .modal-body {
+    padding: 20px 22px;
+}
+
+#registerFormModal .fisherfolk-form {
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+#registerFormModal .field-span-2 {
+    grid-column: span 1; /* ensure no double spanning in card layout */
+}
+
+#registerFormModal .form-actions {
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+#registerFormModal .form-btn-submit {
+    flex: 1 1 auto;
+}
+
+#registerFormModal .form-btn-reset {
+    flex: 1 1 auto;
+}
+
+#registerFormModal .panel-pill {
+    margin-bottom: 6px;
+}
+
 /* Forms style inside Modal */
 .fisherfolk-form {
     display: grid;

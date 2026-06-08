@@ -1,3 +1,11 @@
+function displayCurrentDate() {
+  const today = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const el = document.getElementById("currentDateDisplay");
+  if (el) {
+    el.textContent = today.toLocaleDateString('en-US', options);
+  }
+}
 (function(){
   function escapeHtml(s){return String(s||"").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 

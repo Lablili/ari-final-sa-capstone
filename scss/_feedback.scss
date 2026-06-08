@@ -420,47 +420,6 @@ td {
     border-color: $primary;
 }
 
-/* Modal detail view styles */
-.cat-banner {
-    border-radius: $radius-md;
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    border: 1px solid;
-}
-
-.cat-banner.sos { background: #fef2f2; border-color: #fca5a5; }
-.cat-banner.inc { background: #fffbeb; border-color: #fcd34d; }
-.cat-banner.cmp { background: #eff6ff; border-color: #93c5fd; }
-.cat-banner.inf { background: #f3f4f6; border-color: #d1d5db; }
-
-.banner-icon-wrap {
-    width: 38px;
-    height: 38px;
-    border-radius: $radius-sm;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.banner-label {
-    font-size: 0.66rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: $text-muted;
-    margin-bottom: 2px;
-}
-
-.banner-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: $text-main;
-}
-
 /* Info grid */
 .info-grid {
     display: grid;

@@ -704,27 +704,6 @@ body {
   gap: 16px;
 }
 
-/* Dynamic Stats Badge in topbar */
-.stat-badge {
-  background-color: #ffedd5;
-  color: #ea580c;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 8px 16px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.stat-badge::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background-color: #ea580c;
-  border-radius: 50%;
-}
-
 /* Date Indicator */
 .date-indicator {
   background-color: #ffffff;
@@ -1158,6 +1137,47 @@ body {
 
 .modal-body {
   padding: 32px;
+}
+
+/* Registration Modal Card - centered, compact form matching requested design */
+#registerFormModal .modal-content {
+  width: 96%;
+  border-radius: 12px;
+}
+
+#registerFormModal .modal-header {
+  padding: 18px 22px;
+}
+
+#registerFormModal .modal-body {
+  padding: 20px 22px;
+}
+
+#registerFormModal .fisherfolk-form {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+#registerFormModal .field-span-2 {
+  grid-column: span 1; /* ensure no double spanning in card layout */
+}
+
+#registerFormModal .form-actions {
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+#registerFormModal .form-btn-submit {
+  flex: 1 1 auto;
+}
+
+#registerFormModal .form-btn-reset {
+  flex: 1 1 auto;
+}
+
+#registerFormModal .panel-pill {
+  margin-bottom: 6px;
 }
 
 /* Forms style inside Modal */
@@ -1806,62 +1826,6 @@ td {
   background: #007a78;
   color: #fff;
   border-color: #007a78;
-}
-
-/* Modal detail view styles */
-.cat-banner {
-  border-radius: 12px;
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  border: 1px solid;
-}
-
-.cat-banner.sos {
-  background: #fef2f2;
-  border-color: #fca5a5;
-}
-
-.cat-banner.inc {
-  background: #fffbeb;
-  border-color: #fcd34d;
-}
-
-.cat-banner.cmp {
-  background: #eff6ff;
-  border-color: #93c5fd;
-}
-
-.cat-banner.inf {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.banner-icon-wrap {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.banner-label {
-  font-size: 0.66rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #64748b;
-  margin-bottom: 2px;
-}
-
-.banner-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #1e293b;
 }
 
 /* Info grid */
