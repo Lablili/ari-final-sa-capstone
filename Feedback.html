@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>Feedback ug Talaan sa Mensahe | Bantay Dagat</title>
+    <title>Feedback | Bantay Dagat</title>
 </head>
 <body>
     <!-- Authentication Login Screen -->
@@ -14,11 +14,11 @@
                 <h1>Bantay Dagat</h1>
             </div>
             <h2>Feedback Node</h2>
-            <p class="login-subtitle">Palihug isulod ang password sa node aron maka-login</p>
+            <p class="login-subtitle">Please Enter password to log in</p>
             <form id="loginForm">
                 <div class="field-group">
                     <label class="field-label" for="password">Password</label>
-                    <input class="field-input" type="password" id="password" placeholder="Isulod ang password" required>
+                    <input class="field-input" type="password" id="password" placeholder="Enter password" required>
                 </div>
                 <div class="login-error" id="loginError"></div>
                 <button class="btn-primary login-btn" type="submit">I-authenticate ang node</button>
@@ -42,7 +42,7 @@
                     </a>
                     <a class="nav-item active" href="Feedback.html">
                         <span class="nav-icon report-icon" aria-hidden="true"></span>
-                        <span>Feedback ug Talaan sa Mensahe</span>
+                        <span>Feedback & Message Log</span>
                     </a>
                     <a class="nav-item" href="fisherfolk-info.html">
                         <span class="nav-icon fisherfolk-icon" aria-hidden="true"></span>
@@ -71,7 +71,7 @@
             <!-- Topbar -->
             <header class="topbar">
                 <div class="topbar-title-area">
-                    <h2>Feedback ug Talaan sa Mensahe</h2>
+                    <h2>Feedback</h2>
                 </div>
                 <div class="topbar-meta">
                     <span class="stat-badge" id="newBadge">0 Bag-o</span>
@@ -82,7 +82,7 @@
                         </svg>
                         <span id="currentDateDisplay">Wednesday, May 27, 2026</span>
                     </span>
-                    <button class="logout-button" id="logoutButton" type="button">Pagawas</button>
+                    <button class="logout-button" id="logoutButton" type="button">Log out</button>
                 </div>
             </header>
 
@@ -128,14 +128,14 @@
                         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
                     <input class="search-input" id="searchInput" type="text" placeholder="Search Message">
-                    <button class="btn-outline" id="btnClear" style="display:none; margin-left: 8px;" onclick="clearFilters()">Limpyohi</button>
+                    <button class="btn-outline" id="btnClear" style="display:none; margin-left: 8px;" onclick="clearFilters()">Clear</button>
                 </div>
             </div>
 
             <!-- Table -->
             <div class="database-container">
                 <div class="table-header-meta" style="padding: 14px 20px; border-bottom: 1px solid var(--border-light); font-size: 13px; font-weight: 600; color: var(--text-muted); display: flex; justify-content: space-between;">
-                    <span id="recCount">0 ka rekord</span>
+                    <span id="recCount">0 record</span>
                 </div>
                 <table class="fisherfolk-table">
                     <thead>
