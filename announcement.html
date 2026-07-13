@@ -172,38 +172,12 @@
                                 <textarea class="form-textarea-styled" id="announcementDetails" name="details"></textarea>
                             </div>
                         </div>
-                        <!-- Collapsible Manual SMS Override block -->
-                        <div class="override-collapsible" id="overrideSection">
-                            <div class="form-field-wrapper">
-                                <label class="form-label-with-icon" for="announcementMessage">Manual SMS Override</label>
-                                <textarea class="form-textarea-styled" id="announcementMessage" name="message" ></textarea>
-                            </div>
-                        </div>
                        </div>
                         <!-- Actions -->
                         <div class="compose-actions">
-                            <div class="action-left-group">
-                                <!-- Chevron toggle button -->
-                                <button class="btn-circle" id="toggleOverrideBtn" type="button" title="Toggle Manual SMS Override" aria-label="Toggle Manual SMS Override">
-                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <button class="btn-outline" id="clearFormBtn" type="button">
-                                <!-- Cross icon -->
-                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                <span>Clear</span>
-                            </button>
-                            <button class="btn-submit-orange" type="submit">
-                                <!-- Paper plane icon -->
-                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                                </svg>
-                                <span>Send announcement</span>
-                            </button>
+                            <div class="action-left-group"></div>
+                            <button class="btn-outline" id="clearFormBtn" type="button">Clear</button>
+                            <button class="btn-submit-orange" type="submit">Send announcement</button>
                         </div>
                     </form>
                 </section>
@@ -211,45 +185,41 @@
             <!-- Directory Log Section -->
             <div class="log-header-section">
                 <div class="log-title-area">
-                    <h3>
-                        <!-- Clock icon -->
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="22" height="22" style="color: var(--primary);">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>Announcement log</span>
-                    </h3>
+                    <h3>Announcement log</h3>   
                     <p class="log-subtitle">Filter, search, or review active broadcasts delivered over the GSM Network.</p>
                 </div>
                 <div class="log-actions">
-                    <button class="btn-outline" id="printLogBtn" type="button">
-                        <!-- Printer icon -->
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                        </svg>
-                        <span>Print</span>
-                    </button>
-                    <button class="btn-outline" id="exportLogBtn" type="button">
-                        <!-- Download/Export icon -->
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        <span>Export CSV</span>
-                    </button>
+                    <button class="btn-outline" id="printLogBtn" type="button">Print</button>
+                    <button class="btn-outline" id="exportLogBtn" type="button">Export CSV</button>
                 </div>
             </div>
             <!-- Filters tab panel -->
             <div class="log-tabs-panel" id="logFilterTabs">
-                <button class="tab-button active" data-filter="all" type="button">All <span class="tab-count" id="count-all">0</span></button>
-                <button class="tab-button" data-filter="ordinance" type="button">Ordinance <span class="tab-count" id="count-ordinance">0</span></button>
-                <button class="tab-button" data-filter="no-fishing" type="button">No-fishing <span class="tab-count" id="count-no-fishing">0</span></button>
-                <button class="tab-button" data-filter="patrol" type="button">Patrol <span class="tab-count" id="count-patrol">0</span></button>
-                <button class="tab-button" data-filter="other" type="button">Other <span class="tab-count" id="count-other">0</span></button>
-                <button class="tab-button" data-filter="archived" type="button">Archived <span class="tab-count" id="count-archived">0</span></button>
+                <div class="tabs-main">
+                    <button class="tab-button active" data-filter="all" type="button">All <span class="tab-count" id="count-all">0</span></button>
+                    <button class="tab-button" data-filter="ordinance" type="button">Ordinance <span class="tab-count" id="count-ordinance">0</span></button>
+                    <button class="tab-button" data-filter="no-fishing" type="button">No-fishing <span class="tab-count" id="count-no-fishing">0</span></button>
+                    <button class="tab-button" data-filter="patrol" type="button">Patrol <span class="tab-count" id="count-patrol">0</span></button>
+                    <button class="tab-button" data-filter="other" type="button">Other <span class="tab-count" id="count-other">0</span></button>
+                </div>
+                <div class="tabs-archive">
+                    <button class="tab-button" data-filter="archived" type="button">Archived <span class="tab-count" id="count-archived">0</span></button>
+                </div>
             </div>
-            <!-- Logs list -->
-            <div class="log-list" id="announcementLog">
-                <!-- Log Cards rendered by JavaScript -->
+            <!-- Board grid (fixed columns: Ordinance, No-fishing, Other) -->
+            <div class="board-grid" id="announcementBoard">
+                <div class="board-column" data-col="ordinance">
+   <div class="column-body" id="col-ordinance"></div>
+                </div>
+                <div class="board-column" data-col="no-fishing">
+                   <div class="column-body" id="col-no-fishing"></div>
+                </div>
+                <div class="board-column" data-col="other">
+                <div class="column-body" id="col-other"></div>
+                </div>
             </div>
+            <div style="display:none;" id="announcementLog"><!-- legacy container for queries --></div>
+            <!-- Announcement Detail Modal removed -->
         </main>
     </div>
       </div>

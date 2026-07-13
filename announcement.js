@@ -23,13 +23,11 @@
     var announcementPenalty = document.getElementById("announcementPenalty");
     var announcementReference = document.getElementById("announcementReference");
     var announcementDetails = document.getElementById("announcementDetails");
-    var announcementMessage = document.getElementById("announcementMessage");
     var announcementPreview = document.getElementById("announcementPreview");
     var announcementLog = document.getElementById("announcementLog");
     var announcementCount = document.getElementById("announcementCount");
     var currentDateDisplay = document.getElementById("currentDateDisplay");
-    var toggleOverrideBtn = document.getElementById("toggleOverrideBtn");
-    var overrideSection = document.getElementById("overrideSection");
+    
     var clearFormBtn = document.getElementById("clearFormBtn");
     var logFilterTabs = document.getElementById("logFilterTabs");
     // Template Messages
@@ -142,10 +140,6 @@
     }
     // Build the dynamic preview SMS
     function buildMessage() {
-        var manualOverride = announcementMessage.value.trim();
-        if (manualOverride) {
-            return manualOverride;
-        }
         var baseTemplate = templates[announcementTemplate.value] || "";
         var finalMessage = baseTemplate;
         var referenceNo = announcementReference.value.trim();
@@ -175,7 +169,9 @@
         return finalMessage.trim() || "Compose an announcement to preview the outgoing SMS.";
     }
     function updatePreview() {
-        announcementPreview.textContent = buildMessage();
+        if (announcementPreview) {
+            announcementPreview.textContent = buildMessage();
+        }
     }
     // Reset categories inputs
     function applyTemplate() {
@@ -249,26 +245,35 @@
         }).length;
         announcementCount.textContent = sentToday + (sentToday === 1 ? " SENT TODAY" : " SENT TODAY");
         if (filteredItems.length === 0) {
-            announcementLog.innerHTML = '<div class="empty-log-state"><p>No announcements found for this filter.</p></div>';
+            var colOrdinance = document.getElementById('col-ordinance');
+            var colNoFishing = document.getElementById('col-no-fishing');
+            var colOther = document.getElementById('col-other');
+            var empty = '<div class="empty-log-state"><p>No announcements found for this filter.</p></div>';
+            if (colOrdinance) colOrdinance.innerHTML = empty;
+            if (colNoFishing) colNoFishing.innerHTML = '';
+            if (colOther) colOther.innerHTML = '';
             return;
         }
-        announcementLog.innerHTML = filteredItems.map(function (item) {
+        // Build columns
+        var colOrdinance = document.getElementById('col-ordinance');
+        var colNoFishing = document.getElementById('col-no-fishing');
+        var colOther = document.getElementById('col-other');
+        function renderCard(item) {
             var templateName = templateLabels[item.template] || "Custom Announcement";
+            var rawTitle = String(item.message || item.details || templateName).split('.').filter(Boolean)[0] || String(item.message || item.details || templateName);
+            var titleText = rawTitle.trim();
+            if (titleText.length > 60) titleText = titleText.slice(0, 57) + '...';
             var recipientText = recipientLabels[item.recipientGroup] || item.recipientGroup;
             var relativeTime = getRelativeTime(item.createdAt);
             var isProcessing = item.status === "Processing";
             var statusClass = isProcessing ? "processing" : "delivered";
             var statusText = isProcessing ? "Processing" : "Delivered";
             var archiveBtnText = item.archived ? "Restore" : "Archive";
-            var archiveIcon = item.archived ? 
-                '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>' :
-                '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>';
             return [
                 '<article class="log-card" data-id="' + item.id + '">',
                 '  <div class="log-card-header">',
                 '    <div class="log-card-title-group">',
-                '      <h4 class="log-card-title">' + escapeHtml(templateName) + '</h4>',
-                '      <span class="log-card-badge">' + escapeHtml(templateName) + '</span>',
+                '      <h4 class="log-card-title">' + escapeHtml(titleText) + '</h4>',
                 '    </div>',
                 '    <span class="log-card-status ' + statusClass + '">' + statusText + '</span>',
                 '  </div>',
@@ -280,10 +285,7 @@
                 '    <div class="log-message-box-wrapper">',
                 '      <div class="log-message-box-header">',
                 '        <span class="log-detail-label">SMS Message:</span>',
-                '        <button class="btn-copy-small js-copy-btn" data-text="' + escapeHtml(item.message) + '">',
-                '          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="12" height="12"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m-6 4h6m-3-3v6" /></svg>',
-                '          <span>Copy message</span>',
-                '        </button>',
+                '        <button class="btn-copy-small js-copy-btn" data-text="' + escapeHtml(item.message) + '">Copy message</button>',
                 '      </div>',
                 '      <div class="log-message-box">' + escapeHtml(item.message) + '</div>',
                 '    </div>',
@@ -293,79 +295,160 @@
                 '      GSM Delivery: ' + escapeHtml(String(item.deliveredCount)) + ' recipients processed &bull; ' + relativeTime,
                 '    </div>',
                 '    <div class="log-card-actions">',
-                '      <button class="btn-text-action js-archive-btn">' + archiveIcon + '<span>' + archiveBtnText + '</span></button>',
-                '      <button class="btn-text-action delete-action js-delete-btn">',
-                '        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>',
-                '        <span>Delete</span>',
-                '      </button>',
+                '      <button class="btn-text-action js-archive-btn"><span>' + archiveBtnText + '</span></button>',
+                '      <button class="btn-text-action delete-action js-delete-btn"><span>Delete</span></button>',
                 '    </div>',
                 '  </div>',
                 '</article>'
             ].join("\n");
-        }).join("\n");
-        // Wire event listeners on rendered buttons
-        var copyButtons = announcementLog.querySelectorAll(".js-copy-btn");
+        }
+
+        // Fill columns
+        colOrdinance.innerHTML = filteredItems.filter(function (it) { return it.template === 'ordinance'; }).map(renderCard).join('\n');
+        colNoFishing.innerHTML = filteredItems.filter(function (it) { return it.template === 'no-fishing'; }).map(renderCard).join('\n');
+        colOther.innerHTML = filteredItems.filter(function (it) { return !(['ordinance','no-fishing'].includes(it.template)); }).map(renderCard).join('\n');
+
+        // Update column counts
+        var elCountOrd = document.getElementById('col-count-ordinance'); if (elCountOrd) elCountOrd.textContent = colOrdinance.querySelectorAll('.log-card').length;
+        var elCountNo = document.getElementById('col-count-no-fishing'); if (elCountNo) elCountNo.textContent = colNoFishing.querySelectorAll('.log-card').length;
+        var elCountOther = document.getElementById('col-count-other'); if (elCountOther) elCountOther.textContent = colOther.querySelectorAll('.log-card').length;
+
+        // Wire event listeners on rendered buttons (global)
+        var copyButtons = document.querySelectorAll(".js-copy-btn");
         copyButtons.forEach(function (btn) {
-            btn.addEventListener("click", function () {
+            btn.removeEventListener('click', btn._copHandler);
+            var handler = function () {
                 var text = this.getAttribute("data-text");
                 navigator.clipboard.writeText(text).then(function () {
-                    var span = btn.querySelector("span");
-                    var originalText = span.textContent;
-                    span.textContent = "Copied!";
+                    var original = btn.textContent;
+                    btn.textContent = 'Copied!';
                     btn.style.backgroundColor = "#dcfce7";
                     btn.style.borderColor = "#86efac";
                     btn.style.color = "#15803d";
                     setTimeout(function () {
-                        span.textContent = originalText;
+                        btn.textContent = original;
                         btn.style.backgroundColor = "";
                         btn.style.borderColor = "";
                         btn.style.color = "";
                     }, 1200);
                 });
-            });
+            };
+            btn._copHandler = handler;
+            btn.addEventListener('click', handler);
         });
-        var archiveButtons = announcementLog.querySelectorAll(".js-archive-btn");
+
+        var archiveButtons = document.querySelectorAll(".js-archive-btn");
         archiveButtons.forEach(function (btn) {
-            btn.addEventListener("click", function () {
-                var card = btn.closest(".log-card");
-                var id = card.getAttribute("data-id");
+            btn.removeEventListener('click', btn._archHandler);
+            var handler = function () {
+                var card = btn.closest('.log-card');
+                var id = card.getAttribute('data-id');
                 var items = readAnnouncements();
-                items = items.map(function (item) {
-                    if (item.id === id) {
-                        item.archived = !item.archived;
-                    }
-                    return item;
-                });
+                items = items.map(function (item) { if (item.id === id) item.archived = !item.archived; return item; });
                 saveAnnouncements(items);
                 renderAnnouncements();
-            });
+            };
+            btn._archHandler = handler;
+            btn.addEventListener('click', handler);
         });
-        var deleteButtons = announcementLog.querySelectorAll(".js-delete-btn");
+
+        var deleteButtons = document.querySelectorAll('.js-delete-btn');
         deleteButtons.forEach(function (btn) {
-            btn.addEventListener("click", function () {
-                var card = btn.closest(".log-card");
-                var id = card.getAttribute("data-id");
-                if (confirm("Are you sure you want to permanently delete this announcement log?")) {
-                    var items = readAnnouncements();
-                    items = items.filter(function (item) {
-                        return item.id !== id;
-                    });
+            btn.removeEventListener('click', btn._delHandler);
+            var handler = function () {
+                var card = btn.closest('.log-card');
+                var id = card.getAttribute('data-id');
+                if (confirm('Are you sure you want to permanently delete this announcement log?')) {
+                    var items = readAnnouncements().filter(function (item) { return item.id !== id; });
                     saveAnnouncements(items);
                     renderAnnouncements();
                 }
-            });
+            };
+            btn._delHandler = handler;
+            btn.addEventListener('click', handler);
+        });
+
+        // Card click opens modal with details (ignore clicks on buttons)
+        var cards = document.querySelectorAll('.log-card');
+        cards.forEach(function (card) {
+            card.removeEventListener('click', card._cardHandler);
+            var handler = function (e) {
+                var ignore = e.target.closest('.btn-text-action') || e.target.closest('.btn-copy-small') || e.target.closest('.js-delete-btn') || e.target.closest('.js-archive-btn');
+                if (ignore) return;
+                var id = card.getAttribute('data-id');
+                openAnnouncementModal(id);
+            };
+            card._cardHandler = handler;
+            card.addEventListener('click', handler);
         });
     }
-    // Toggle manual override sliding open
-    toggleOverrideBtn.addEventListener("click", function () {
-        overrideSection.classList.toggle("open");
-        toggleOverrideBtn.classList.toggle("rotated");
+
+    // Modal elements
+    var annModal = document.getElementById('annModal');
+    var annModalClose = document.getElementById('annModalClose');
+    var modalTitle = document.getElementById('modalTitle');
+    var modalRecipients = document.getElementById('modalRecipients');
+    var modalStatus = document.getElementById('modalStatus');
+    var modalTime = document.getElementById('modalTime');
+    var modalMessage = document.getElementById('modalMessage');
+    var modalArchiveBtn = document.getElementById('modalArchiveBtn');
+    var modalDeleteBtn = document.getElementById('modalDeleteBtn');
+
+    function openAnnouncementModal(id) {
+        var items = readAnnouncements();
+        var item = items.find(function (it) { return it.id === id; });
+        if (!item) return;
+        // If modal markup was removed, fall back to a simple alert with details
+        if (!annModal) {
+            var textParts = [];
+            textParts.push((item.details && item.details.length > 0) ? item.details : (item.referenceNo || 'Announcement'));
+            textParts.push('\nRecipients: ' + (recipientLabels[item.recipientGroup] || item.recipientGroup));
+            textParts.push('\nStatus: ' + (item.status || ''));
+            textParts.push('\nSent: ' + new Date(item.createdAt).toLocaleString());
+            textParts.push('\n\n' + (item.message || ''));
+            alert(textParts.join(''));
+            return;
+        }
+        modalTitle.textContent = (item.details && item.details.length > 0) ? item.details : (item.referenceNo || 'Announcement');
+        modalRecipients.textContent = recipientLabels[item.recipientGroup] || item.recipientGroup;
+        modalStatus.textContent = item.status || '';
+        modalTime.textContent = new Date(item.createdAt).toLocaleString();
+        modalMessage.textContent = item.message || '';
+        modalArchiveBtn.textContent = item.archived ? 'Restore' : 'Archive';
+        modalArchiveBtn.onclick = function () {
+            var all = readAnnouncements().map(function (itm) { if (itm.id === id) itm.archived = !itm.archived; return itm; });
+            saveAnnouncements(all);
+            closeModal();
+            renderAnnouncements();
+        };
+        modalDeleteBtn.onclick = function () {
+            if (!confirm('Permanently delete this announcement?')) return;
+            var remaining = readAnnouncements().filter(function (itm) { return itm.id !== id; });
+            saveAnnouncements(remaining);
+            closeModal();
+            renderAnnouncements();
+        };
+        annModal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        if (annModal) annModal.classList.add('hidden');
+    }
+
+    if (annModalClose) {
+        annModalClose.addEventListener('click', closeModal);
+    }
+    if (annModal) {
+        annModal.addEventListener('click', function (e) {
+            if (e.target === annModal) closeModal();
+        });
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && annModal && !annModal.classList.contains('hidden')) closeModal();
     });
     // Reset compose inputs
     clearFormBtn.addEventListener("click", function () {
         announcementForm.reset();
-        overrideSection.classList.remove("open");
-        toggleOverrideBtn.classList.remove("rotated");
         updatePreview();
     });
     // Filter logs tabs trigger
@@ -387,7 +470,7 @@
     announcementPenalty.addEventListener("input", updatePreview);
     announcementReference.addEventListener("input", updatePreview);
     announcementDetails.addEventListener("input", updatePreview);
-    announcementMessage.addEventListener("input", updatePreview);
+    
     // Form submit
     announcementForm.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -425,9 +508,7 @@
         announcementPenalty.value = "";
         announcementReference.value = "";
         announcementDetails.value = "";
-        announcementMessage.value = "";
-        overrideSection.classList.remove("open");
-        toggleOverrideBtn.classList.remove("rotated");
+        
         updatePreview();
         // Transition processing to delivered simulation
         setTimeout(function () {
