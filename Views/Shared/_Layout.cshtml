@@ -1,0 +1,27 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Bantay Dagat</title>
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <div class="topbar">
+            <div class="brand">
+            </div>
+            <div class="topbar-right">
+                @* Logout moved to sidebar under SMS Operations *@
+            </div>
+        </div>
+    </header>
+
+    <main role="main" class="container">
+        @RenderBody()
+    </main>
+
+    <script src="~/js/blotter-print.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

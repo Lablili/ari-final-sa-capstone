@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var role = ViewBag.Role as string;
+}
+
+<h2>Welcome, @ViewBag.UserName</h2>
+
+@if (role == "BantayDagatAdmin" || role == "SuperAdmin")
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Patrol Reports</h5>
+            <p>3 pending reports (placeholder)</p>
+            <a asp-controller="PatrolReports" asp-action="Index" class="btn btn-primary">View Patrol Reports</a>
+        </div>
+    </div>
+}
+
+@if (role == "FisherfolkAdmin" || role == "SuperAdmin")
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Fisherfolk Records</h5>
+            <p>12 registered fisherfolk (placeholder)</p>
+            <a asp-controller="FisherfolkRecords" asp-action="Index" class="btn btn-primary">View Fisherfolk Records</a>
+        </div>
+    </div>
+}
+
+@if (role == "SuperAdmin")
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Administrative Controls</h5>
+            <a asp-controller="UserManagement" asp-action="Index" class="btn btn-secondary">Manage Admins</a>
+        </div>
+    </div>
+}

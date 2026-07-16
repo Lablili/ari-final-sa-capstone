@@ -1,0 +1,436 @@
+@import "variables";
+
+.admin-tab-content {
+    display: none;
+    animation: fadeInTab 0.3s ease-in-out;
+
+    &.active {
+        display: block;
+    }
+}
+
+@keyframes fadeInTab {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tab Layout Adjustments */
+.admin-tabs {
+    margin-bottom: 24px;
+
+    .tab-button {
+        padding: 10px 20px;
+        font-weight: 600;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+
+        &.active {
+            background-color: var(--accent);
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(60, 142, 244, 0.25);
+        }
+
+        &:hover:not(.active) {
+            background-color: rgba(60, 142, 244, 0.08);
+            border-color: rgba(60, 142, 244, 0.15);
+        }
+    }
+}
+
+/* Role Pills */
+.role-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+
+    &.super-admin {
+        background-color: #fef3c7;
+        color: #d97706;
+        border: 1px solid #fcd34d;
+    }
+
+    &.bd-admin {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+    }
+
+    &.ff-admin {
+        background-color: #dcfce7;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+}
+
+/* Status Toggle Button */
+.status-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 2px 12px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+
+    &.active {
+        background-color: #e6fcf5;
+        color: #0ca678;
+        border-color: #c3fae8;
+
+        &:hover {
+            background-color: #0ca678;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(12, 166, 120, 0.2);
+        }
+    }
+
+    &.inactive {
+        background-color: #fff5f5;
+        color: #f03e3e;
+        border-color: #ffe3e3;
+
+        &:hover {
+            background-color: #f03e3e;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(240, 62, 62, 0.2);
+        }
+    }
+}
+
+/* Actions Group */
+.action-buttons-group {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background-color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+
+    &:hover {
+        transform: scale(1.08);
+    }
+
+    &.key-btn {
+        color: #3b82f6;
+
+        &:hover {
+            background-color: #eff6ff;
+            border-color: #bfdbfe;
+        }
+    }
+
+    &.delete-btn {
+        color: #ef4444;
+
+        &:hover {
+            background-color: #fef2f2;
+            border-color: #fca5a5;
+        }
+    }
+}
+
+/* Alerts and Toast notifications */
+.toast-alert {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    transition: all 0.4s ease;
+
+    .toast-icon {
+        font-size: 1.15rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        color: #ffffff;
+    }
+
+    &.success {
+        background-color: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+
+        .toast-icon {
+            background-color: #22c55e;
+        }
+    }
+
+    &.danger {
+        background-color: #fef2f2;
+        border: 1px solid #fca5a5;
+        color: #991b1b;
+
+        .toast-icon {
+            background-color: #ef4444;
+        }
+    }
+}
+
+/* System Diagnostics Styles */
+.system-diagnostic-panel {
+    border-color: #dbeafe;
+
+    .diagnostics-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        padding-top: 10px;
+    }
+
+    .summary-metric {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 14px 18px;
+        background-color: #f8fafc;
+        border: 1px solid var(--border-soft);
+        border-radius: 14px;
+
+        &.full-width {
+            grid-column: span 2;
+        }
+    }
+
+    .metric-label {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .metric-val {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--text);
+        word-break: break-all;
+    }
+}
+
+.connection-string-code {
+    background-color: #0f172a;
+    color: #38bdf8;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 0.88rem;
+    display: block;
+    margin-top: 4px;
+    overflow-x: auto;
+}
+
+.table-name-code {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+    font-size: 0.9rem;
+    border: 1px solid #e2e8f0;
+}
+
+.table-icon {
+    margin-right: 6px;
+}
+
+/* Settings Form Formating */
+.settings-form-body {
+    padding: 0;
+
+    .field-group {
+        margin-bottom: 18px;
+    }
+}
+
+/* ==================== EXPANDED SECTIONS ==================== */
+
+/* Overview feeds */
+.overview-feed-section {
+    padding-top: 10px;
+
+    h4 {
+        margin: 0 0 10px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border-soft);
+        padding-bottom: 6px;
+    }
+}
+
+.overview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.overview-list-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    background-color: #f8fafc;
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateX(4px);
+        background-color: #ffffff;
+        border-color: var(--border);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    }
+}
+
+.item-icon {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #eef5ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+
+    &.yellow {
+        background-color: #fffbeb;
+    }
+
+    &.red {
+        background-color: #fef2f2;
+    }
+
+    &.green {
+        background-color: #f0fdf4;
+    }
+}
+
+.item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    overflow: hidden;
+}
+
+.item-bold {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.item-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+
+    &.yellow {
+        background-color: #fef3c7;
+        color: #b45309;
+    }
+
+    &.red {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+}
+
+/* Tables and Truncation helper */
+.table-narrow {
+    th, td {
+        padding: 10px 12px;
+    }
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: var(--muted);
+}
+
+.font-weight-semibold {
+    font-weight: 600;
+}
+
+/* Status colors in stats grid */
+.status-online {
+    color: var(--green) !important;
+}
+
+.status-offline {
+    color: var(--danger) !important;
+}
+
+/* Custom Settings formatting inside panel */
+.test-sms-subpanel {
+    .field-group {
+        margin-bottom: 12px;
+    }
+}

@@ -1,0 +1,42 @@
+@model IEnumerable<ari_final_sa_capstone.Models.FakeUser>
+@{
+    ViewData["Title"] = "Manage Admins";
+}
+
+<h2>Manage Admins</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Active</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>@a.FullName</td>
+                <td>@a.Email</td>
+                <td>@a.Role</td>
+                <td>@(a.IsActive ? "Yes" : "No")</td>
+                <td>
+                    <form asp-action="ToggleActive" method="post" style="display:inline">
+                        <input type="hidden" name="email" value="@a.Email" />
+                        <button class="btn btn-sm btn-warning" type="submit">Toggle Active</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="CreateAdmin" class="btn btn-primary">Create Admin</a>

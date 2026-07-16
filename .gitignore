@@ -1,0 +1,16 @@
+# Visual Studio / .NET Core
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Sensitive files
+pass.txt
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini

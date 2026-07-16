@@ -1,0 +1,155 @@
+@model ari_final_sa_capstone.Models.LoginViewModel
+@{
+    Layout = null; // login page shouldn't use the normal site layout/nav
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Login - Fisheries Monitoring System</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .split-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .left-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: white;
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .left-panel .logo-icon {
+            font-size: 40px;
+            margin-bottom: 40px;
+        }
+        .left-panel h1 {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .left-panel p {
+            font-size: 15px;
+            opacity: 0.9;
+            margin-top: 20px;
+            max-width: 380px;
+        }
+        .left-panel .footer-text {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+        .right-panel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        .login-box {
+            width: 100%;
+            max-width: 380px;
+        }
+        .login-box h2 {
+            font-weight: 800;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .login-box .subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .form-control {
+            border: none;
+            border-bottom: 1px solid #d1d5db;
+            border-radius: 0;
+            padding-left: 0;
+        }
+        .form-control:focus {
+            box-shadow: none;
+            border-bottom: 1px solid #2563eb;
+        }
+        .btn-login {
+            background: #111827;
+            color: white;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .btn-login:hover {
+            background: #1f2937;
+            color: white;
+        }
+        .forgot-link {
+            text-align: center;
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 15px;
+        }
+        @@media (max-width: 768px) {
+            .left-panel { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="split-container">
+        <!-- Left branding panel -->
+        <div class="left-panel">
+            <div>
+                <div class="logo-icon">🐟</div>
+                <h1>Hello,<br />Fisheries System!</h1>
+                <p>Manage fisherfolk records, patrol reports, and violations — all in one secure system for the Fisheries Department and Bantay Dagat.</p>
+            </div>
+            <div class="footer-text">© 2026 Fisheries Monitoring System. All rights reserved.</div>
+        </div>
+
+        <!-- Right login panel -->
+        <div class="right-panel">
+            <div class="login-box">
+                <h2>Welcome Back!</h2>
+                <p class="subtitle">Log in with your admin account to continue.</p>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger py-2">
+                        <div asp-validation-summary="All"></div>
+                    </div>
+                }
+
+                <form asp-controller="Account" asp-action="Login" method="post">
+                    <div class="mb-4">
+                        <input asp-for="Email" class="form-control" placeholder="Email address" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-2">
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Password" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mt-3">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label small text-muted">Remember me</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-login">Login Now</button>
+                </form>
+
+                <div class="forgot-link">
+                    Forgot password? <a href="#" class="fw-bold text-dark">Click here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

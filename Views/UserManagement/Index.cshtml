@@ -1,0 +1,807 @@
+@model ari_final_sa_capstone.Models.SuperAdminDashboardViewModel
+@{
+    ViewData["Title"] = "Super Admin Console";
+    ViewData["ActivePage"] = "UserManagement";
+}
+
+<div class="dashboard-shell">
+    @await Html.PartialAsync("_DashboardSidebar")
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-title-area">
+                <h2>Super Admin Console</h2>
+            </div>
+            <div class="topbar-meta">
+                <span class="date-indicator">
+                    <svg class="date-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 2v4M8 2v4M3 10h18"></path>
+                    </svg>
+                    <span id="currentDateDisplay">Wednesday, May 27, 2026</span>
+                </span>
+            </div>
+        </header>
+
+        <!-- Status Alerts -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="toast-alert success">
+                <span class="toast-icon">✓</span>
+                <span class="toast-msg">@TempData["Success"]</span>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="toast-alert danger">
+                <span class="toast-icon">✕</span>
+                <span class="toast-msg">@TempData["Error"]</span>
+            </div>
+        }
+
+        <!-- Top Overview Stats -->
+        <section class="stats-grid">
+            <article class="stat-card">
+                <p class="stat-title">System Admins</p>
+                <h3>@Model.Admins.Count</h3>
+                <p class="stat-subtext positive">Active: @Model.Admins.Count(a => a.IsActive)</p>
+            </article>
+            <article class="stat-card">
+                <p class="stat-title">GSM Gateway Status</p>
+                <h3 id="stat-gsm-status" class="status-online">Online</h3>
+                <p class="stat-subtext" id="stat-gsm-sub">Signal: 92% (COM3)</p>
+            </article>
+            <article class="stat-card">
+                <p class="stat-title">Database Status</p>
+                @if (Model.Diagnostics.DbConnectionOk)
+                {
+                    <h3 class="status-online">Online</h3>
+                    <p class="stat-subtext positive">Connected: @Model.Diagnostics.DatabaseName</p>
+                }
+                else
+                {
+                    <h3 class="status-offline">Offline</h3>
+                    <p class="stat-subtext negative">Connection failed</p>
+                }
+            </article>
+            <article class="stat-card">
+                <p class="stat-title">Audit Events (Today)</p>
+                <h3 id="stat-audit-events-today">0</h3>
+                <p class="stat-subtext text-muted" id="stat-audit-sub">Logged activities</p>
+            </article>
+        </section>
+
+        <!-- Main Tab Controls -->
+        <div class="log-tabs-panel admin-tabs">
+            <div class="tabs-main">
+                <button class="tab-button active" onclick="switchAdminTab('adminsTab', this)" type="button">Manage Admins (@Model.Admins.Count)</button>
+                <button class="tab-button" onclick="switchAdminTab('gsmTab', this)" type="button">GSM SMS Gateway</button>
+                <button class="tab-button" onclick="switchAdminTab('auditTab', this)" type="button">System Audit Log</button>
+                <button class="tab-button" onclick="switchAdminTab('diagnosticsTab', this)" type="button">⚙️ DB Diagnostics</button>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 1: MANAGE ADMINS ==================== -->
+        <div class="admin-tab-content active" id="adminsTab">
+            <div class="directory-header-section">
+                <button class="btn-primary" onclick="openNewAdminModal()" type="button">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Register New Admin
+                </button>
+            </div>
+
+            <div class="filters-search-panel">
+                <div class="barangay-filters">
+                    <button class="filter-button active" onclick="filterAdmins('all', this)" type="button">All Roles</button>
+                    <button class="filter-button" onclick="filterAdmins('SuperAdmin', this)" type="button">Super Admins</button>
+                    <button class="filter-button" onclick="filterAdmins('BantayDagatAdmin', this)" type="button">Bantay Dagat</button>
+                    <button class="filter-button" onclick="filterAdmins('FisherfolkAdmin', this)" type="button">Fisherfolk</button>
+                </div>
+                <div class="search-wrapper">
+                    <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"></path>
+                    </svg>
+                    <input class="search-input" id="adminSearchInput" onkeyup="searchAdminList()" type="text" placeholder="Search administrators...">
+                </div>
+            </div>
+
+            <div class="database-container">
+                <table class="fisherfolk-table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Full Name</th>
+                            <th>Email Address</th>
+                            <th>Role / Privilege</th>
+                            <th>Date Created</th>
+                            <th style="text-align: center;">Status</th>
+                            <th style="text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody">
+                        @foreach (var admin in Model.Admins)
+                        {
+                            <tr class="admin-row" data-role="@admin.Role">
+                                <td class="admin-name font-weight-semibold">@admin.FullName</td>
+                                <td>@admin.Email</td>
+                                <td>
+                                    @if (admin.Role == "SuperAdmin")
+                                    {
+                                        <span class="role-pill super-admin">Super Admin</span>
+                                    }
+                                    else if (admin.Role == "BantayDagatAdmin")
+                                    {
+                                        <span class="role-pill bd-admin">Bantay Dagat Admin</span>
+                                    }
+                                    else if (admin.Role == "FisherfolkAdmin")
+                                    {
+                                        <span class="role-pill ff-admin">Fisherfolk Admin</span>
+                                    }
+                                </td>
+                                <td>@admin.DateCreated.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td style="text-align: center;">
+                                    <form asp-action="ToggleActive" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@admin.Id" />
+                                        <button type="submit" class="status-toggle-btn @(admin.IsActive ? "active" : "inactive")" title="Click to Toggle Status">
+                                            @(admin.IsActive ? "Active" : "Disabled")
+                                        </button>
+                                    </form>
+                                </td>
+                                <td style="text-align: center;">
+                                    <div class="action-buttons-group">
+                                        <button class="action-btn key-btn" onclick="openResetPasswordModal('@admin.Id', '@admin.FullName')" title="Reset Password">🔑</button>
+                                        <form asp-action="DeleteAdmin" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this admin account?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@admin.Id" />
+                                            <button type="submit" class="action-btn delete-btn" title="Delete Account">🗑️</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 3: GSM GATEWAY SETTINGS ==================== -->
+        <div class="admin-tab-content" id="gsmTab">
+            <div class="content-grid">
+                <!-- Gateway settings form -->
+                <section class="panel">
+                    <div class="panel-header">
+                        <h3>GSM Hardware Configuration</h3>
+                    </div>
+                    <form class="fisherfolk-form" id="gsmGatewayForm" onsubmit="saveGsmConfiguration(event)">
+                        <label class="field-group">
+                            <span class="field-label">Modem Serial Connection</span>
+                            <select class="field-input" id="gsmPortSelect">
+                                <option value="COM3" selected>COM3 (USB-to-UART Adapter)</option>
+                                <option value="COM1">COM1 (Motherboard DB9)</option>
+                                <option value="/dev/ttyUSB0">/dev/ttyUSB0 (Linux Gateway)</option>
+                            </select>
+                        </label>
+                        <label class="field-group">
+                            <span class="field-label">Gateway Mode</span>
+                            <select class="field-input" id="gsmModeSelect" onchange="toggleGsmModemState()">
+                                <option value="online" selected>Online (Normal Operations)</option>
+                                <option value="offline">Offline (Simulate Disconnected Modem)</option>
+                            </select>
+                        </label>
+                        <label class="field-group">
+                            <span class="field-label">GSM Signal Strength</span>
+                            <input class="field-input" type="text" id="gsmSignalInput" value="Good (-75 dBm)" readonly>
+                        </label>
+                        <label class="field-group">
+                            <span class="field-label">Hardware Signature</span>
+                            <input class="field-input" type="text" id="gsmSignatureInput" value="SIMCOM_SIM800C_V2.1">
+                        </label>
+                        <div class="form-actions field-span-2">
+                            <button class="form-btn form-btn-submit" type="submit">Save Configurations</button>
+                            <button class="form-btn form-btn-reset" onclick="triggerGsmHardReset()" type="button">Hard Reset Modem</button>
+                        </div>
+                    </form>
+
+                    <!-- Test SMS panel -->
+                    <div class="test-sms-subpanel" style="margin-top: 30px; border-top: 1px solid var(--border-soft); padding-top: 20px;">
+                        <h4 style="margin-bottom: 12px; color: var(--text);">Send Test SMS Message</h4>
+                        <form class="fisherfolk-form" id="testSmsForm" onsubmit="sendTestSmsMessage(event)">
+                            <label class="field-group">
+                                <span class="field-label">Recipient GSM Number</span>
+                                <input class="field-input" type="text" id="testSmsRecipient" placeholder="e.g. 0917 842 3156" required>
+                            </label>
+                            <label class="field-group">
+                                <span class="field-label">SMS Message Content</span>
+                                <textarea class="field-input" id="testSmsMessage" placeholder="Type test message text here..." required style="height: 60px; min-height: 60px;"></textarea>
+                            </label>
+                            <div class="form-actions" style="margin-top: 10px;">
+                                <button class="form-btn form-btn-submit" type="submit" style="background-color: var(--accent);">Send Broadcast Test</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- SMS Logs and queues -->
+                <section class="panel">
+                    <div class="panel-header">
+                        <h3>Outbound SMS Broadcast Queue</h3>
+                        <button class="btn-outline" onclick="processSmsQueue()" type="button">Flush Queue</button>
+                    </div>
+                    <div class="database-container" style="max-height: 180px; min-height: 120px; overflow-y: auto;">
+                        <table class="fisherfolk-table table-narrow">
+                            <thead>
+                                <tr>
+                                    <th>Recipient</th>
+                                    <th>Message Preview</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="smsQueueTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="panel-header" style="margin-top: 24px;">
+                        <h3>GSM Delivery History Logs</h3>
+                        <div class="action-buttons-group">
+                            <button class="btn-outline" onclick="retryFailedSmsLogs()" type="button">Retry Failed</button>
+                            <button class="btn-outline" onclick="clearSmsLogs()" type="button">Clear Logs</button>
+                        </div>
+                    </div>
+                    <div class="database-container" style="max-height: 250px; overflow-y: auto;">
+                        <table class="fisherfolk-table table-narrow">
+                            <thead>
+                                <tr>
+                                    <th>Recipient</th>
+                                    <th>Message Details</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="smsLogsTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 4: SYSTEM AUDIT LOG ==================== -->
+        <div class="admin-tab-content" id="auditTab">
+            <section class="panel">
+                <div class="panel-header">
+                    <h3>Government System Audit Log</h3>
+                    <button class="btn-outline" onclick="clearAuditTrail()" type="button">Clear Audit Trail</button>
+                </div>
+                <p class="panel-subtitle" style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px;">
+                    Tracks logins, registration creations, deactivations, password resets, and changes to records for strict accountability.
+                </p>
+                <div class="database-container" style="max-height: 500px; overflow-y: auto;">
+                    <table class="fisherfolk-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Actor / Administrator</th>
+                                <th>Operation Description</th>
+                                <th>Source Host</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditLogsTableBody">
+                            <!-- Populated dynamically in JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ==================== TAB 5: DATABASE DIAGNOSTICS ==================== -->
+        <div class="admin-tab-content" id="diagnosticsTab">
+            <section class="panel system-diagnostic-panel">
+                <div class="panel-header">
+                    <h3>SQL Server Database Details</h3>
+                </div>
+                <div class="diagnostics-summary-grid">
+                    <div class="summary-metric">
+                        <span class="metric-label">Server Connection</span>
+                        <span class="metric-val @(Model.Diagnostics.DbConnectionOk ? "text-success" : "text-danger")">
+                            @(Model.Diagnostics.DbConnectionOk ? "CONNECTED" : "DISCONNECTED")
+                        </span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="metric-label">Database Name</span>
+                        <span class="metric-val">@Model.Diagnostics.DatabaseName</span>
+                    </div>
+                    <div class="summary-metric full-width">
+                        <span class="metric-label">Connection String (System)</span>
+                        <code class="connection-string-code">@Model.Diagnostics.ConnectionString</code>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel database-tables-panel" style="margin-top: 20px;">
+                <div class="panel-header">
+                    <h3>Active Database Catalog Tables</h3>
+                </div>
+                <div class="database-container">
+                    <table class="fisherfolk-table table-narrow">
+                        <thead>
+                            <tr>
+                                <th>Table Schema &amp; Name</th>
+                                <th style="text-align: right; padding-right: 40px;">Estimated Row Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var table in Model.Diagnostics.Tables)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="table-icon">📂</span>
+                                        <code class="table-name-code">dbo.@table.TableName</code>
+                                    </td>
+                                    <td class="font-weight-semibold" style="text-align: right; padding-right: 40px;">
+                                        @table.RowCount.ToString("N0")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- MODAL 1: REGISTER NEW ADMIN -->
+<div class="modal hidden" id="registerAdminModal">
+    <div class="modal-overlay" onclick="closeNewAdminModal()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Register New Administrator</h2>
+            <button class="modal-close" onclick="closeNewAdminModal()" type="button">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form asp-action="CreateAdmin" method="post" class="fisherfolk-form">
+                @Html.AntiForgeryToken()
+                <label class="field-group field-span-2">
+                    <span class="field-label">Complete Name</span>
+                    <input asp-for="NewAdmin.FullName" class="field-input" type="text" placeholder="e.g. John Doe" required>
+                </label>
+                <label class="field-group field-span-2">
+                    <span class="field-label">Email Address</span>
+                    <input asp-for="NewAdmin.Email" class="field-input" type="email" placeholder="email@example.com" required>
+                </label>
+                <label class="field-group field-span-2">
+                    <span class="field-label">Initial Password</span>
+                    <input asp-for="NewAdmin.Password" class="field-input" type="password" placeholder="Min. 6 characters" required>
+                </label>
+                <label class="field-group field-span-2">
+                    <span class="field-label">Assigned Role Privilege</span>
+                    <select asp-for="NewAdmin.Role" class="field-input" required>
+                        <option value="">Select privilege level</option>
+                        <option value="SuperAdmin">Super Admin (All Access)</option>
+                        <option value="BantayDagatAdmin">Bantay Dagat Admin (Patrols/Incidents)</option>
+                        <option value="FisherfolkAdmin">Fisherfolk Admin (Registries)</option>
+                    </select>
+                </label>
+                <div class="form-actions field-span-2" style="margin-top: 15px;">
+                    <button class="form-btn form-btn-submit" type="submit">Register Administrator</button>
+                    <button class="form-btn form-btn-reset" onclick="closeNewAdminModal()" type="button">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 2: RESET PASSWORD -->
+<div class="modal hidden" id="resetPasswordModal">
+    <div class="modal-overlay" onclick="closeResetPasswordModal()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Reset Password</h2>
+            <button class="modal-close" onclick="closeResetPasswordModal()" type="button">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form asp-action="ResetPassword" method="post" class="fisherfolk-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="resetPasswordAdminId" />
+                <div class="admin-reset-info field-span-2" style="margin-bottom: 15px; color: var(--text);">
+                    Resetting password for: <strong id="resetPasswordAdminName">-</strong>
+                </div>
+                <label class="field-group field-span-2">
+                    <span class="field-label">New Secure Password</span>
+                    <input class="field-input" type="password" name="newPassword" placeholder="Min. 6 characters" required minlength="6">
+                </label>
+                <div class="form-actions field-span-2" style="margin-top: 15px;">
+                    <button class="form-btn form-btn-submit" type="submit">Update Password</button>
+                    <button class="form-btn form-btn-reset" onclick="closeResetPasswordModal()" type="button">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Check for Backend Audit event from MVC Actions and log it immediately to Client Database
+        @if (TempData["AuditEvent"] != null)
+        {
+                    <text>
+                            (function() {
+                                var logs = JSON.parse(localStorage.getItem('bantay-dagat-audit-logs') || '[]');
+                                logs.unshift({
+                                    timestamp: new Date().toISOString(),
+                                    user: 'super@admin.com',
+                                    action: '@Html.Raw(TempData["AuditEvent"])',
+                                    host: window.location.hostname || 'localhost'
+                                });
+                                localStorage.setItem('bantay-dagat-audit-logs', JSON.stringify(logs));
+                            })();
+                    </text>
+        }
+
+        // Set current date
+        const d = new Date();
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        document.getElementById("currentDateDisplay").textContent = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+
+        // Tab Switching
+        function switchAdminTab(tabId, btn) {
+            // Hide all tabs
+            document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.remove('active'));
+            // Deactivate all tab buttons
+            document.querySelectorAll('.admin-tabs .tab-button').forEach(el => el.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            // Activate clicked button
+            btn.classList.add('active');
+            
+            // Refresh data for the specific tab
+            if (tabId === 'adminsTab') {
+                loadOverviewData();
+            } else if (tabId === 'gsmTab') {
+                loadGsmTab();
+            } else if (tabId === 'auditTab') {
+                loadAuditLogs();
+            }
+        }
+
+        // Search administrators
+        function searchAdminList() {
+            const input = document.getElementById("adminSearchInput");
+            const filter = input.value.toUpperCase();
+            const rows = document.querySelectorAll("#adminTableBody .admin-row");
+            
+            rows.forEach(row => {
+                const nameCol = row.querySelector(".admin-name");
+                const emailCol = row.cells[1];
+                if (nameCol && emailCol) {
+                    const text = (nameCol.textContent + " " + emailCol.textContent).toUpperCase();
+                    row.style.display = text.indexOf(filter) > -1 ? "" : "none";
+                }
+            });
+        }
+
+        // Filter administrators by role
+        function filterAdmins(role, btn) {
+            // Deactivate other filter buttons
+            document.querySelectorAll('.filters-search-panel .filter-button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const rows = document.querySelectorAll("#adminTableBody .admin-row");
+            rows.forEach(row => {
+                if (role === 'all') {
+                    row.style.display = "";
+                } else {
+                    row.style.display = row.getAttribute('data-role') === role ? "" : "none";
+                }
+            });
+        }
+
+        // Modal triggers
+        function openNewAdminModal() {
+            document.getElementById("registerAdminModal").classList.remove("hidden");
+        }
+        function closeNewAdminModal() {
+            document.getElementById("registerAdminModal").classList.add("hidden");
+        }
+
+        function openResetPasswordModal(id, name) {
+            document.getElementById("resetPasswordAdminId").value = id;
+            document.getElementById("resetPasswordAdminName").textContent = name;
+            document.getElementById("resetPasswordModal").classList.remove("hidden");
+        }
+        function closeResetPasswordModal() {
+            document.getElementById("resetPasswordModal").classList.add("hidden");
+        }
+
+        // Hide alert toasts after 4 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.toast-alert').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-10px)';
+                setTimeout(() => el.remove(), 400);
+            });
+        }, 4000);
+
+        // ==========================================
+        // DYNAMIC LOCAL STORAGE LOAD & OVERVIEW SYNC
+        // ==========================================
+        function loadOverviewData() {
+            // Update Audit events stats
+            var logs = JSON.parse(localStorage.getItem('bantay-dagat-audit-logs') || '[]');
+            var today = new Date().toLocaleDateString();
+            var todayLogs = logs.filter(l => new Date(l.timestamp).toLocaleDateString() === today).length;
+            
+            var auditEventsEl = document.getElementById('stat-audit-events-today');
+            if (auditEventsEl) {
+                auditEventsEl.textContent = todayLogs;
+            }
+            var auditSubEl = document.getElementById('stat-audit-sub');
+            if (auditSubEl) {
+                auditSubEl.textContent = `${logs.length} total events in trail`;
+            }
+        }
+
+        // ==========================================
+        // GSM GATEWAY MANAGEMENT & SMS OPERATIONS
+        // ==========================================
+        function loadGsmTab() {
+            // Load status configuration
+            var port = localStorage.getItem('gsm-gateway-port') || 'COM3';
+            var mode = localStorage.getItem('gsm-gateway-mode') || 'online';
+            var signature = localStorage.getItem('gsm-gateway-signature') || 'Gikan sa Bantay Dagat Bantayan';
+
+            document.getElementById('gsmPortSelect').value = port;
+            document.getElementById('gsmModeSelect').value = mode;
+            document.getElementById('gsmSignatureInput').value = signature;
+
+            toggleGsmModemState();
+            refreshSmsLogTables();
+        }
+
+        function toggleGsmModemState() {
+            var mode = document.getElementById('gsmModeSelect').value;
+            localStorage.setItem('gsm-gateway-mode', mode);
+            
+            var statusEl = document.getElementById('stat-gsm-status');
+            var subEl = document.getElementById('stat-gsm-sub');
+            var signalInput = document.getElementById('gsmSignalInput');
+
+            if (mode === 'online') {
+                statusEl.textContent = "Online";
+                statusEl.className = "status-online";
+                subEl.textContent = `Signal: 92% (${document.getElementById('gsmPortSelect').value})`;
+                signalInput.value = "Good (-75 dBm)";
+            } else {
+                statusEl.textContent = "Offline";
+                statusEl.className = "status-offline";
+                subEl.textContent = "Modem Disconnected";
+                signalInput.value = "N/A (Disconnected)";
+            }
+        }
+
+        function saveGsmConfiguration(e) {
+            e.preventDefault();
+            var port = document.getElementById('gsmPortSelect').value;
+            var signature = document.getElementById('gsmSignatureInput').value;
+            
+            localStorage.setItem('gsm-gateway-port', port);
+            localStorage.setItem('gsm-gateway-signature', signature);
+            toggleGsmModemState();
+
+            // Log audit event
+            logAuditEvent(`Updated GSM Gateway Settings (Port: ${port})`);
+            alert("GSM settings updated successfully!");
+        }
+
+        function triggerGsmHardReset() {
+            if (confirm("Resetting the GSM gateway hardware may terminate active SMS broadcasts. Continue?")) {
+                var sig = document.getElementById('gsmSignalInput');
+                sig.value = "Resetting Gateway...";
+                logAuditEvent("Initiated GSM Gateway modem hardware reset");
+                setTimeout(() => {
+                    sig.value = "Good (-75 dBm)";
+                    alert("GSM Gateway modem hard reset complete! Online.");
+                }, 1500);
+            }
+        }
+
+        function refreshSmsLogTables() {
+            var logs = JSON.parse(localStorage.getItem('bantay-dagat-sms-logs') || '[]');
+            var queue = JSON.parse(localStorage.getItem('bantay-dagat-sms-queue') || '[]');
+
+            // Update stats counter
+            var today = new Date().toLocaleDateString();
+            var todaySentCount = logs.filter(l => l.status === 'Sent' && new Date(l.timestamp).toLocaleDateString() === today).length;
+            document.getElementById('stat-gsm-status').nextElementSibling.textContent = `SMS Sent Today: ${todaySentCount} messages`;
+
+            // Render Queue
+            var queueBody = document.getElementById('smsQueueTableBody');
+            if (queueBody) {
+                if (!queue.length) {
+                    queueBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Outbound message queue is empty.</td></tr>';
+                } else {
+                    queueBody.innerHTML = queue.map((q, idx) => `
+                        <tr>
+                            <td><code>${q.recipient}</code></td>
+                            <td class="text-truncate" style="max-width: 250px;">${q.message}</td>
+                            <td><span class="badge yellow">Queued</span></td>
+                        </tr>
+                    `).join('');
+                }
+            }
+
+            // Render Logs
+            var logsBody = document.getElementById('smsLogsTableBody');
+            if (logsBody) {
+                if (!logs.length) {
+                    logsBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No SMS transaction logs recorded.</td></tr>';
+                } else {
+                    logsBody.innerHTML = logs.map(l => {
+                        var timeStr = new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        var statusClass = l.status === 'Sent' ? 'text-success' : 'text-danger';
+                        return `
+                            <tr>
+                                <td><code>${l.recipient}</code></td>
+                                <td style="max-width: 200px; font-size: 0.9rem;" class="text-truncate" title="${l.message}">${l.message}</td>
+                                <td class="font-weight-semibold ${statusClass}">${l.status}</td>
+                                <td style="font-size: 0.85rem;">${timeStr}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
+        }
+
+        function sendTestSmsMessage(e) {
+            e.preventDefault();
+            var recipient = document.getElementById('testSmsRecipient').value;
+            var message = document.getElementById('testSmsMessage').value;
+            var signature = localStorage.getItem('gsm-gateway-signature') || 'Gikan sa Bantay Dagat Bantayan';
+            
+            var fullMsg = message + "\n\n[" + signature + "]";
+            var mode = localStorage.getItem('gsm-gateway-mode') || 'online';
+
+            var queue = JSON.parse(localStorage.getItem('bantay-dagat-sms-queue') || '[]');
+            queue.push({
+                recipient: recipient,
+                message: fullMsg,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('bantay-dagat-sms-queue', JSON.stringify(queue));
+            refreshSmsLogTables();
+
+            document.getElementById('testSmsRecipient').value = '';
+            document.getElementById('testSmsMessage').value = '';
+
+            // Simulate automatic gateway processing
+            setTimeout(processSmsQueue, 1000);
+        }
+
+        function processSmsQueue() {
+            var queue = JSON.parse(localStorage.getItem('bantay-dagat-sms-queue') || '[]');
+            if (!queue.length) return;
+
+            var logs = JSON.parse(localStorage.getItem('bantay-dagat-sms-logs') || '[]');
+            var mode = localStorage.getItem('gsm-gateway-mode') || 'online';
+
+            // Process item
+            var msg = queue.shift();
+            
+            if (mode === 'online') {
+                msg.status = 'Sent';
+            } else {
+                msg.status = 'Failed (Gateway Offline)';
+            }
+            msg.timestamp = new Date().toISOString();
+
+            logs.unshift(msg);
+            localStorage.setItem('bantay-dagat-sms-queue', JSON.stringify(queue));
+            localStorage.setItem('bantay-dagat-sms-logs', JSON.stringify(logs));
+            
+            refreshSmsLogTables();
+            
+            if (mode !== 'online') {
+                alert("Outbound SMS failed. The GSM modem connection is Offline.");
+            }
+        }
+
+        function retryFailedSmsLogs() {
+            var logs = JSON.parse(localStorage.getItem('bantay-dagat-sms-logs') || '[]');
+            var mode = localStorage.getItem('gsm-gateway-mode') || 'online';
+
+            if (mode !== 'online') {
+                alert("Cannot retry SMS sending. The GSM modem connection is currently Offline.");
+                return;
+            }
+
+            var failedLogs = logs.filter(l => l.status.indexOf('Failed') === 0);
+            if (!failedLogs.length) {
+                alert("No failed SMS messages to retry.");
+                return;
+            }
+
+            logs.forEach(l => {
+                if (l.status.indexOf('Failed') === 0) {
+                    l.status = 'Sent';
+                    l.timestamp = new Date().toISOString();
+                }
+            });
+
+            localStorage.setItem('bantay-dagat-sms-logs', JSON.stringify(logs));
+            logAuditEvent(`Retried and successfully sent ${failedLogs.length} failed SMS broadcasts`);
+            refreshSmsLogTables();
+            alert(`Resent ${failedLogs.length} failed messages!`);
+        }
+
+        function clearSmsLogs() {
+            if (confirm("Delete all SMS history logs? This cannot be undone.")) {
+                localStorage.removeItem('bantay-dagat-sms-logs');
+                refreshSmsLogTables();
+            }
+        }
+
+        // ==========================================
+        // AUDIT LOG MANAGEMENT
+        // ==========================================
+        function loadAuditLogs() {
+            var logs = JSON.parse(localStorage.getItem('bantay-dagat-audit-logs') || '[]');
+            
+            // Seed default events if audit trail is empty
+            if (!logs.length) {
+                logs = [
+                    { timestamp: new Date(Date.now() - 3600000 * 24).toISOString(), user: 'system_initializer', action: 'Government database tables migrations applied', host: 'localhost' },
+                    { timestamp: new Date(Date.now() - 3600000 * 23.5).toISOString(), user: 'system_initializer', action: 'Roles seeded: SuperAdmin, BantayDagatAdmin, FisherfolkAdmin', host: 'localhost' },
+                    { timestamp: new Date(Date.now() - 3600000 * 23).toISOString(), user: 'super@admin.com', action: 'SuperAdmin Account initialized', host: '127.0.0.1' }
+                ];
+                localStorage.setItem('bantay-dagat-audit-logs', JSON.stringify(logs));
+            }
+
+            var body = document.getElementById('auditLogsTableBody');
+            if (body) {
+                body.innerHTML = logs.map(l => {
+                    var d = new Date(l.timestamp);
+                    var timeStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    return `
+                        <tr>
+                            <td style="font-size: 0.85rem; color: var(--muted);">${timeStr}</td>
+                            <td class="font-weight-semibold"><code>${l.user}</code></td>
+                            <td>${l.action}</td>
+                            <td><small class="text-muted">${l.host || '127.0.0.1'}</small></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function logAuditEvent(actionText) {
+            var logs = JSON.parse(localStorage.getItem('bantay-dagat-audit-logs') || '[]');
+            logs.unshift({
+                timestamp: new Date().toISOString(),
+                user: 'super@admin.com',
+                action: actionText,
+                host: window.location.hostname || 'localhost'
+            });
+            localStorage.setItem('bantay-dagat-audit-logs', JSON.stringify(logs));
+        }
+
+        function clearAuditTrail() {
+            if (confirm("Permanently clear system audit trail logs?")) {
+                localStorage.removeItem('bantay-dagat-audit-logs');
+                loadAuditLogs();
+            }
+        }
+
+        // Initialize lists on load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOverviewData();
+        });
+    </script>
+}

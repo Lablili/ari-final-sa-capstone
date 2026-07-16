@@ -1,0 +1,100 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+    var activePage = (ViewData["ActivePage"] as string) ?? string.Empty;
+    
+    if (string.IsNullOrEmpty(activePage))
+    {
+        if (controller.Equals("UserManagement", StringComparison.OrdinalIgnoreCase))
+        {
+            activePage = "UserManagement";
+        }
+        else
+        {
+            activePage = action;
+        }
+    }
+    
+    Func<string, string> navClass = page => activePage.Equals(page, StringComparison.OrdinalIgnoreCase) ? "nav-item active" : "nav-item";
+
+    var sessionUser = Context?.Session?.GetString("UserName");
+    var sessionRole = Context?.Session?.GetString("UserRole");
+    var displayName = !string.IsNullOrEmpty(sessionUser) ? sessionUser : (User?.Identity?.Name ?? "");
+    var displayRole = !string.IsNullOrEmpty(sessionRole) ? sessionRole : (User != null && User.Identity.IsAuthenticated ? string.Join(", ", (User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value))) : "");
+}
+
+<aside class="sidebar">
+    <div class="brand">
+        <h1>Bantay Dagat</h1>
+        <p>Coastal Monitoring System</p>
+    </div>
+
+    @if (displayRole != "SuperAdmin")
+    {
+        <div class="nav-group">
+            <p class="nav-label">MAIN</p>
+            <nav class="nav-menu">
+                <a class="@navClass("Index")" asp-controller="Home" asp-action="Index">
+                    <span class="nav-icon overview-icon" aria-hidden="true"></span>
+                    <span>Overview</span>
+                </a>
+                <a class="@navClass("Feedback")" asp-controller="Home" asp-action="Feedback">
+                    <span class="nav-icon report-icon" aria-hidden="true"></span>
+                    <span>Incident Reports</span>
+                </a>
+                <a class="@navClass("FisherfolkInfo")" asp-controller="Home" asp-action="FisherfolkInfo">
+                    <span class="nav-icon fisherfolk-icon" aria-hidden="true"></span>
+                    <span>Fisherfolk Info</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="nav-group">
+            <p class="nav-label">COMMUNICATION</p>
+            <nav class="nav-menu">
+                <a class="@navClass("Announcement")" asp-controller="Home" asp-action="Announcement">
+                    <span class="nav-icon announcement-icon" aria-hidden="true"></span>
+                    <span>Announcements</span>
+                </a>
+                <a class="nav-item" href="#">
+                    <span class="nav-icon weather-icon" aria-hidden="true"></span>
+                    <span>SMS Operations</span>
+                </a>
+            </nav>
+        </div>
+    }
+
+    @if (displayRole == "SuperAdmin")
+    {
+        <div class="nav-group">
+            <p class="nav-label">ADMINISTRATION</p>
+            <nav class="nav-menu">
+                <a class="@navClass("UserManagement")" asp-controller="UserManagement" asp-action="Index">
+                    <span class="nav-icon admin-icon" aria-hidden="true"></span>
+                    <span>Manage Admins</span>
+                </a>
+            </nav>
+        </div>
+    }
+
+    <div class="nav-group">
+        <p class="nav-label">ACCOUNT</p>
+        <nav class="nav-menu">
+            <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form" style="margin: 0;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="nav-item btn-logout-link" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 10px 14px; color: #94a3b8; font-size: 0.9rem; font-weight: 500; border-radius: 8px; transition: all 0.2s;">
+                    <span class="nav-icon logout-icon" aria-hidden="true"></span>
+                    <span>Logout</span>
+                </button>
+            </form>
+        </nav>
+    </div>
+
+    @if (!string.IsNullOrEmpty(displayName))
+    {
+        <div class="sidebar-profile-simple" style="display: flex; align-items: center; gap: 12px; padding: 16px 14px; border-top: 1px solid #1e293b; margin-top: auto;">
+            <div style="font-size: 1.3rem; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: rgba(255,255,255,0.08); border-radius: 50%; color: #ffffff;">👤</div>
+            <span style="font-size: 0.9rem; font-weight: 600; color: #ffffff; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;" title="@displayName">@displayName</span>
+        </div>
+    }
+</aside>

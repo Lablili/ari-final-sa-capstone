@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Bantay Dagat</title>
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                @{ var role = Context.Session.GetString("UserRole"); }
+                @if (!string.IsNullOrEmpty(role))
+                {
+                    <li><a asp-controller="AdminDashboard" asp-action="Index">Admin Dashboard</a></li>
+
+                    @if (role == "BantayDagatAdmin" || role == "SuperAdmin")
+                    {
+                        <li><a asp-controller="PatrolReports" asp-action="Index">Patrol Reports</a></li>
+                        <li><a asp-controller="Violations" asp-action="Index">Violations</a></li>
+                    }
+
+                    @if (role == "FisherfolkAdmin" || role == "SuperAdmin")
+                    {
+                        <li><a asp-controller="FisherfolkRecords" asp-action="Index">Fisherfolk Records</a></li>
+                        <li><a asp-controller="Permits" asp-action="Index">Permits</a></li>
+                    }
+
+                    @if (role == "SuperAdmin")
+                    {
+                        <li><a asp-controller="UserManagement" asp-action="Index">Manage Admins</a></li>
+                    }
+
+                    <li><a asp-controller="Account" asp-action="Logout">Logout</a></li>
+                }
+                else
+                {
+                    <li><a asp-controller="Account" asp-action="Login">Login</a></li>
+                }
+            </ul>
+        </nav>
+    </header>
+
+    <main role="main" class="container">
+        @RenderBody()
+    </main>
+
+    <script src="~/js/blotter-print.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

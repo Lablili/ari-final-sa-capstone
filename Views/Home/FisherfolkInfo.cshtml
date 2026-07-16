@@ -1,0 +1,165 @@
+@{
+    ViewData["Title"] = "Fisherfolk Info";
+}
+
+
+<div class="dashboard-shell hidden" id="dashboardShell">
+    @await Html.PartialAsync("_DashboardSidebar")
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-title-area">
+                <h2>Fisherfolk Registry</h2>
+            </div>
+            <div class="topbar-meta">
+                <span class="date-indicator">
+                    <svg class="date-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 2v4M8 2v4M3 10h18"></path>
+                    </svg>
+                    <span id="currentDateDisplay">Wednesday, May 27, 2026</span>
+                </span>
+
+            </div>
+        </header>
+
+        <div class="directory-header-section">
+            <button class="btn-primary" id="btnRegisterLocalFisherman" type="button">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Register Local Fisherman
+            </button>
+        </div>
+
+        <div class="filters-search-panel">
+            <div class="barangay-filters">
+                <button class="filter-button active" data-filter="all" type="button">All Barangays</button>
+                <button class="filter-button" data-filter="Patao" type="button">Barangay Patao</button>
+                <button class="filter-button" data-filter="Guiwanon" type="button">Barangay Guiwanon</button>
+                <button class="filter-button" data-filter="Sulangan" type="button">Barangay Sulangan</button>
+            </div>
+            <div class="search-wrapper">
+                <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"></path>
+                </svg>
+                <input class="search-input" id="directorySearchInput" type="text" placeholder="Search registrations or contacts...">
+            </div>
+        </div>
+
+        <div class="database-container">
+            <table class="fisherfolk-table">
+                <thead>
+                    <tr>
+                        <th>Owner Name</th>
+                        <th>Barangay</th>
+                        <th>Assigned Vessel</th>
+                        <th>Reg Code</th>
+                        <th>GSM Mobile</th>
+                        <th>License Status</th>
+                        <th style="text-align: center;">Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="fisherfolkTableBody"></tbody>
+            </table>
+        </div>
+
+        <section class="panel archive-panel">
+            <h3>Archived Records</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">View and permanently delete archived fisherfolk records.</p>
+            <div class="database-container">
+                <table class="fisherfolk-table">
+                    <thead>
+                        <tr>
+                            <th>Owner Name</th>
+                            <th>Barangay</th>
+                            <th>Assigned Vessel</th>
+                            <th>Reg Code</th>
+                            <th>GSM Mobile</th>
+                            <th>License Status</th>
+                            <th style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="archiveTableBody"></tbody>
+                </table>
+                <div class="empty-state" id="emptyArchiveState">
+                    <p>No archived records</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="modal hidden" id="registerFormModal">
+            <div class="modal-overlay" id="formModalOverlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Register Local Fisherman</h2>
+                    <button class="modal-close" id="formModalCloseButton" type="button" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form class="fisherfolk-form" id="fisherfolkForm">
+                        <span class="panel-pill" id="fisherfolkStatus" style="grid-column: span 2; margin-top: 0; margin-bottom: 10px;">Ready to edit</span>
+                        <label class="field-group field-span-2"><span class="field-label">Complete Name</span><input class="field-input" type="text" name="completeName" placeholder="Enter full name" required></label>
+                        <label class="field-group field-span-2"><span class="field-label">Address</span><input class="field-input" type="text" name="address" placeholder="House no., street, purok" required></label>
+                        <label class="field-group"><span class="field-label">Barangay</span><select class="field-input" name="barangay" required><option value="" selected>Select barangay</option><option value="Patao">Patao</option><option value="Guiwanon">Guiwanon</option><option value="Sulangan">Sulangan</option></select></label>
+                        <label class="field-group"><span class="field-label">Birthdate</span><input class="field-input" type="date" name="birthdate" id="birthdateField" required></label>
+                        <label class="field-group"><span class="field-label">Age</span><input class="field-input" type="number" name="age" id="ageField" placeholder="Auto-calculated" readonly></label>
+                        <label class="field-group"><span class="field-label">Gender</span><select class="field-input" name="gender" required><option value="" selected>Select gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></label>
+                        <label class="field-group"><span class="field-label">Type of Fishing Vessel</span><select class="field-input" name="vesselType" required><option value="" selected>Select vessel type</option><option value="Small Scale">Small Scale</option><option value="Medium Scale">Medium Scale</option><option value="Large Scale">Large Scale</option></select></label>
+                        <label class="field-group"><span class="field-label">Assigned Vessel (Boat Name)</span><input class="field-input" type="text" name="vesselName" placeholder="e.g. M/B Pag-asa" required></label>
+                        <label class="field-group"><span class="field-label">Boat Number</span><input class="field-input" type="text" name="boatNumber" placeholder="Enter boat number" required></label>
+                        <label class="field-group"><span class="field-label">Fishing License / Permit No.</span><input class="field-input" type="text" name="permitNumber" placeholder="Permit or license number"></label>
+                        <label class="field-group field-span-2"><span class="field-label">Ways of Capturing Fishes</span><select class="field-input" name="captureMethod" required><option value="" selected>Select fishing method</option><option value="Pamasol / Panagat">Pamasol / Panagat</option><option value="Pukot / Pamanti">Pukot / Pamanti</option><option value="Bubo">Bubo</option><option value="Salambaw">Salambaw</option><option value="Spearfishing (Pana)">Spearfishing (Pana)</option><option value="Palangre">Palangre</option><option value="Motorized Net Fishing">Motorized Net Fishing</option></select></label>
+                        <label class="field-group"><span class="field-label">Contact Number</span><input class="field-input" type="tel" name="contactNumber" placeholder="09xx xxx xxxx"></label>
+                        <label class="field-group"><span class="field-label">Registration Status</span><select class="field-input" name="registrationStatus" required><option value="" selected>Select status</option><option value="Active">Active</option><option value="For Renewal">For Renewal</option><option value="Pending Verification">Pending Verification</option><option value="Inactive">Inactive</option></select></label>
+                        <div class="form-actions field-span-2">
+                            <button class="form-btn form-btn-submit" type="submit">Save Fisherfolk Info</button>
+                            <button class="form-btn form-btn-reset" type="reset" id="formResetButton">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal hidden" id="fisherfolkDetailModal">
+            <div class="modal-overlay" id="modalOverlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Fisherfolk Details</h2>
+                    <button class="modal-close" id="modalCloseButton" type="button" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="detail-section">
+                        <div class="detail-row">
+                            <div class="detail-item"><span class="detail-label">Complete Name</span><span class="detail-value" id="detailName">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Age</span><span class="detail-value" id="detailAge">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Gender</span><span class="detail-value" id="detailGender">-</span></div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-item full"><span class="detail-label">Address</span><span class="detail-value" id="detailAddress">-</span></div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-item"><span class="detail-label">Barangay</span><span class="detail-value" id="detailBarangay">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Contact Number</span><span class="detail-value" id="detailContact">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Birthdate</span><span class="detail-value" id="detailBirthdate">-</span></div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-item"><span class="detail-label">Assigned Vessel (Boat Name)</span><span class="detail-value" id="detailVesselName">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Vessel Type</span><span class="detail-value" id="detailVesselType">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Boat Number</span><span class="detail-value" id="detailBoatNumber">-</span></div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-item"><span class="detail-label">Fishing License / Permit No.</span><span class="detail-value" id="detailPermit">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Capture Method</span><span class="detail-value" id="detailMethod">-</span></div>
+                            <div class="detail-item"><span class="detail-label">Registration Status</span><span class="detail-value status-badge" id="detailStatus">-</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script src="~/js/fisherfolk-info.js" asp-append-version="true"></script>
+}
