@@ -152,10 +152,6 @@ function openDetail(id) {
   document.getElementById('detailModal').classList.remove('hidden');
 
     document.getElementById('detailBody').innerHTML = `
-
-      </div>
-    </div>
-
     <div class="info-grid">
       <div class="info-card"><div class="info-l">Sender</div><div class="info-v">${activeMsg.sender}</div></div>
       <div class="info-card"><div class="info-l">Contact</div><div class="info-v">${activeMsg.contact}</div></div>
