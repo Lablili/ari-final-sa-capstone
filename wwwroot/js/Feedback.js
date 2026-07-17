@@ -1,5 +1,5 @@
 // ════ DATA ════
-const DATA = [
+let DATA = [
   { id:1, cat:'sos',      sender:'Juan dela Cruz',      contact:'+63 912 345 6789', brgy:'Patao',              vessel:'Bangka #BD-0042', time:'2026-05-25 06:14', status:'new',      subject:'Kalit nga pagka-dehado sa makina – Mayday',    msg:'Mayday! Nabuslot ang makina. Duol mi mga 3 nautical miles sa amihan-sidlakan sa Patao. 4 ka crew, walay kadaut. Palihug padala dayon og tabang. Ang barko naglutaw paingon sa amihanan-kasadpan.' },
   { id:2, cat:'sos',      sender:'Roberto Mancao',      contact:'+63 918 876 5432', brgy:'Guiwanon',           vessel:'Bangka #BD-0098', time:'2026-05-24 21:45', status:'review',   subject:'Hangyo og Reskyu – Nag-umol ang Bangka',       msg:'Natumba ang among bangka duol sa baybayon sa Guiwanon. 2 ka mangingisda nagkapilit sa hull. Kinahanglan og dali nga reskyu. Duol sa pulang buoy ang lokasyon.' },
   { id:3, cat:'incident', sender:'Pedro Santos',         contact:'+63 917 111 2222', brgy:'Sulangan',           vessel:'Bangka #BD-0011', time:'2026-05-25 08:30', status:'new',      subject:'Iligal nga pagpangisda – Paggamit sa dinamita', msg:'Nakit-an namo ang usa ka dako nga motorized banca nga naggamit og dinamita sa daplin sa coral reef duol sa Sulangan sa alas 8:00 sa buntag. Wala kiniy marka ug nidagan paingon sa kasadpan.' },
@@ -42,6 +42,40 @@ const PER = 6;
 let activeMsg = null;
 
 // ════ UTILITIES ════
+function showToast(message) {
+  let toast = document.getElementById('feedbackToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'feedbackToast';
+    toast.style.cssText = `
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #10b981;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      font-family: 'Inter', sans-serif;
+    `;
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.offsetHeight; // trigger reflow
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(-20px)';
+  }, 2000);
+}
+
 function fmtDate(s, short) {
   const d = new Date(s);
   return short
@@ -190,8 +224,13 @@ function setStatus(id, val) {
   const m = DATA.find(x=>x.id===id);
   if (m) {
     m.status=val;
+    try {
+      localStorage.setItem('bantay-dagat-feedback', JSON.stringify(DATA));
+    } catch(e) {}
     openDetail(id);
     renderCounts();
+    renderTable();
+    showToast("Status updated to " + (val === 'review' ? 'Reviewed' : 'Resolved') + "!");
   }
 }
 
@@ -232,11 +271,17 @@ function openBlotter(id) {
       <div class="b-field"><label>Location / Barangay</label><div class="val">${m.brgy}</div></div>
     </div>
 
-    <div class="blotter-sec">Narrative</div>
-    <div class="narrative">${m.msg}</div>
+    <div class="blotter-sec" style="display: flex; justify-content: space-between; align-items: center;">
+      <span>Narrative</span>
+      <span style="font-size: 11px; font-weight: normal; color: #64748b; text-transform: none;" class="no-print">(Click to edit narrative)</span>
+    </div>
+    <div class="narrative" contenteditable="true" style="outline: none;">${m.msg}</div>
 
-    <div class="blotter-sec">Action by Official</div>
-    <div class="narrative blank">(To be filled by responding Bantay Dagat official)</div>
+    <div class="blotter-sec" style="display: flex; justify-content: space-between; align-items: center;">
+      <span>Action by Official</span>
+      <span style="font-size: 11px; font-weight: normal; color: #64748b; text-transform: none;" class="no-print">(Click to edit action)</span>
+    </div>
+    <div class="narrative blank" contenteditable="true" style="outline: none;">(To be filled by responding Bantay Dagat official)</div>
 
     <div class="sig-grid">
       <div class="sig-block">
@@ -343,6 +388,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var key = 'bantay-dagat-feedback';
     if (!localStorage.getItem(key)) {
       localStorage.setItem(key, JSON.stringify(DATA));
+    } else {
+      var stored = localStorage.getItem(key);
+      if (stored) {
+        DATA = JSON.parse(stored);
+      }
     }
   } catch (e) {
     // ignore storage errors

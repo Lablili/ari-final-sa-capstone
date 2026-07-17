@@ -359,6 +359,11 @@
     margin: 0 0 4px;
     font-size: 0.99rem;
     line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .item-meta {

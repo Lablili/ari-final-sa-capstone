@@ -10,12 +10,13 @@ namespace ari_final_sa_capstone.Data
         {
         }
 
+        public DbSet<Announcement> Announcements { get; set; }
+        public DbSet<FisherfolkRegistry> FisherfolkRegistries { get; set; }
+        public DbSet<FeedbackMessage> FeedbackMessages { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder); // required — this builds all the Identity tables (AspNetUsers, AspNetRoles, etc.)
-
-            // Your custom tables (Violations, PatrolReports, FisherfolkRecords, etc.)
-            // will go here later as DbSet<T> properties + any relationship config.
         }
     }
 }

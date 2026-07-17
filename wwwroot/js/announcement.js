@@ -45,7 +45,7 @@
     };
     var recipientLabels = {
         "all": "All registered fisherfolk (1,248)",
-        "north": "Barangay Kabac (312)",
+        "north": "Barangay Sulangan (312)",
         "south": "Barangay Patao (284)",
         "licensed": "Barangay Guiwanon (652)"
     };

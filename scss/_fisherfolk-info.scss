@@ -424,6 +424,28 @@ body {
 .search-wrapper {
     position: relative;
     width: 320px;
+
+    .search-input {
+        padding-right: 70px;
+    }
+
+    .btn-outline {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 12px;
+        font-size: 0.8rem;
+        border-radius: 14px;
+        border: 1px solid $border-color;
+        background-color: #ffffff;
+        box-shadow: none;
+
+        &:hover {
+            border-color: darken($border-color, 10%);
+            background-color: #f8fafc;
+        }
+    }
 }
 
 .search-input {
