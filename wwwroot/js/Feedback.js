@@ -249,7 +249,7 @@ function exportFeedbackCSV() {
   const csvRows = [headers.map(h => csvCell(h)).join(',')];
 
   rows.forEach(m => {
-    const cat  = CAT[m.cat]    ? CAT[m.cat].label    : m.cat;
+    const cat  = CAT[m.cat]     ? CAT[m.cat].label     : m.cat;
     const stat = STAT[m.status] ? STAT[m.status].label : m.status;
     let dateStr = m.time || '';
     try { dateStr = new Date(m.time).toLocaleString('en-PH', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}); } catch(e) {}
@@ -277,7 +277,6 @@ function exportFeedbackCSV() {
   link.click();
   document.body.removeChild(link);
 }
-
 
 // ════ DETAIL VIEW ════
 function openDetail(id) {
@@ -322,13 +321,18 @@ function closeDetail() {
   document.getElementById('detailModal').classList.add('hidden');
 }
 
-function setStatus(id, val) {
+async function setStatus(id, val) {
   const m = DATA.find(x=>x.id===id);
   if (m) {
-    m.status=val;
+    m.status = val;
+    // Persist to the database via the API
     try {
-      localStorage.setItem('bantay-dagat-feedback', JSON.stringify(DATA));
-    } catch(e) {}
+      await fetch('/api/feedback/' + id + '/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: val })
+      });
+    } catch(e) { /* fail silently, UI already updated */ }
     openDetail(id);
     renderCounts();
     renderTable();
@@ -438,8 +442,8 @@ function showDashboard() {
   dashboardShell.classList.remove("hidden");
   loginError.textContent = "";
   displayCurrentDate();
-  renderCounts();
-  renderTable();
+  // Load data from DB first, seed if empty
+  loadFeedbackFromDb();
 }
 
 function showLogin() {
@@ -471,59 +475,54 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('detailModalOverlay').addEventListener('click', closeDetail);
   document.getElementById('detailModalCloseButton').addEventListener('click', closeDetail);
 
-  // Authentication Setup (defensive)
-  var authEnabled = true;
-  if (!loginForm || !loginScreen || !passwordInput || !loginError) {
-    authEnabled = false;
-    if (dashboardShell) dashboardShell.classList.remove("hidden");
-    // initialize UI pieces that don't require auth
-    displayCurrentDate();
-    renderCounts();
-    renderTable();
+  // Authentication Setup
+  if (localStorage.getItem(STORAGE_KEY) === "true") {
+    showDashboard();
+  } else {
+    showLogin();
   }
 
-  if (authEnabled) {
-    if (localStorage.getItem(STORAGE_KEY) === "true") {
+  loginForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+    if (passwordInput.value === PASSWORD) {
+      localStorage.setItem(STORAGE_KEY, "true");
       showDashboard();
-    } else {
-      showLogin();
+      return;
     }
+    loginError.textContent = "Incorrect password. Please try again.";
+    passwordInput.select();
+  });
 
-    if (loginForm) {
-      loginForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-        if (passwordInput.value === PASSWORD) {
-          localStorage.setItem(STORAGE_KEY, "true");
-          showDashboard();
-          return;
-        }
-        loginError.textContent = "Incorrect password. Please try again.";
-        passwordInput.select();
-      });
-    }
-
-    if (logoutButton) {
-      logoutButton.addEventListener("click", function () {
-        localStorage.removeItem(STORAGE_KEY);
-        showLogin();
-      });
-    }
-  }
+  logoutButton.addEventListener("click", function () {
+    localStorage.removeItem(STORAGE_KEY);
+    showLogin();
+  });
 });
 
-// Persist feedback seed so other pages (Overview) can read it from localStorage
-(function persistFeedbackSeed() {
+// ════ DB SYNC ════
+async function loadFeedbackFromDb() {
   try {
-    var key = 'bantay-dagat-feedback';
-    if (!localStorage.getItem(key)) {
-      localStorage.setItem(key, JSON.stringify(DATA));
+    const res = await fetch('/api/feedback');
+    if (!res.ok) throw new Error('API error');
+    const dbData = await res.json();
+
+    if (dbData.length === 0) {
+      // DB is empty — seed it with the built-in sample DATA
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(DATA)
+      });
+      // Re-fetch so IDs are DB-assigned
+      const res2 = await fetch('/api/feedback');
+      DATA = await res2.json();
     } else {
-      var stored = localStorage.getItem(key);
-      if (stored) {
-        DATA = JSON.parse(stored);
-      }
+      DATA = dbData;
     }
-  } catch (e) {
-    // ignore storage errors
+  } catch(e) {
+    // If API is unreachable, fall back to the built-in sample data
+    console.warn('Feedback API unavailable, using local DATA:', e);
   }
-})();
+  renderCounts();
+  renderTable();
+}

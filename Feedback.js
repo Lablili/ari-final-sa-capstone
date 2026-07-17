@@ -321,13 +321,18 @@ function closeDetail() {
   document.getElementById('detailModal').classList.add('hidden');
 }
 
-function setStatus(id, val) {
+async function setStatus(id, val) {
   const m = DATA.find(x=>x.id===id);
   if (m) {
-    m.status=val;
+    m.status = val;
+    // Persist to the database via the API
     try {
-      localStorage.setItem('bantay-dagat-feedback', JSON.stringify(DATA));
-    } catch(e) {}
+      await fetch('/api/feedback/' + id + '/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: val })
+      });
+    } catch(e) { /* fail silently, UI already updated */ }
     openDetail(id);
     renderCounts();
     renderTable();
@@ -437,8 +442,8 @@ function showDashboard() {
   dashboardShell.classList.remove("hidden");
   loginError.textContent = "";
   displayCurrentDate();
-  renderCounts();
-  renderTable();
+  // Load data from DB first, seed if empty
+  loadFeedbackFromDb();
 }
 
 function showLogin() {
@@ -494,19 +499,30 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// Persist feedback seed so other pages (Overview) can read it from localStorage
-(function persistFeedbackSeed() {
+// ════ DB SYNC ════
+async function loadFeedbackFromDb() {
   try {
-    var key = 'bantay-dagat-feedback';
-    if (!localStorage.getItem(key)) {
-      localStorage.setItem(key, JSON.stringify(DATA));
+    const res = await fetch('/api/feedback');
+    if (!res.ok) throw new Error('API error');
+    const dbData = await res.json();
+
+    if (dbData.length === 0) {
+      // DB is empty — seed it with the built-in sample DATA
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(DATA)
+      });
+      // Re-fetch so IDs are DB-assigned
+      const res2 = await fetch('/api/feedback');
+      DATA = await res2.json();
     } else {
-      var stored = localStorage.getItem(key);
-      if (stored) {
-        DATA = JSON.parse(stored);
-      }
+      DATA = dbData;
     }
-  } catch (e) {
-    // ignore storage errors
+  } catch(e) {
+    // If API is unreachable, fall back to the built-in sample data
+    console.warn('Feedback API unavailable, using local DATA:', e);
   }
-})();
+  renderCounts();
+  renderTable();
+}
