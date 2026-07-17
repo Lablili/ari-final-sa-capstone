@@ -226,26 +226,16 @@ function setupFilterHandlers() {
 }
 
 // ════ EXPORT CSV ════
+function csvCell(val) {
+  return '"' + String(val == null ? '' : val).replace(/"/g, '""') + '"';
+}
 function exportFeedbackCSV() {
   const rows = filtered();
   if (rows.length === 0) { alert('No records to export.'); return; }
 
-  const now = new Date();
-  const stamp = now.toLocaleString('en-PH', {dateStyle:'long', timeStyle:'short'});
-  const csvRows = [];
-
-  // === REPORT HEADER ===
-  csvRows.push('"BANTAY DAGAT COASTAL MANAGEMENT SYSTEM"');
-  csvRows.push('"Municipality of Bantayan – Municipal Agriculturist Office"');
-  csvRows.push('"Incident & Feedback Report"');
-  csvRows.push('"Generated on: ' + stamp + '"');
-  csvRows.push('"Total records exported: ' + rows.length + '"');
-  csvRows.push(''); // blank spacer row
-
-  // === COLUMN HEADERS ===
   const headers = [
     'Report #',
-    'Type of Incident',
+    'Category / Type of Incident',
     'Status',
     'Date & Time Sent',
     'Sender Name',
@@ -253,52 +243,41 @@ function exportFeedbackCSV() {
     'Barangay',
     'Vessel / Boat',
     'Subject',
-    'Full Message / Narrative',
-    'Reviewed By (Officer)'
+    'Full Message / Narrative'
   ];
-  csvRows.push(headers.map(h => '"' + h + '"').join(','));
 
-  // === DATA ROWS ===
+  const csvRows = [headers.map(h => csvCell(h)).join(',')];
+
   rows.forEach(m => {
-    const cat = CAT[m.cat] ? CAT[m.cat].label : m.cat;
+    const cat  = CAT[m.cat]    ? CAT[m.cat].label    : m.cat;
     const stat = STAT[m.status] ? STAT[m.status].label : m.status;
+    let dateStr = m.time || '';
+    try { dateStr = new Date(m.time).toLocaleString('en-PH', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}); } catch(e) {}
     const row = [
       m.id,
-      '"' + cat + '"',
-      '"' + stat + '"',
-      '"' + String(m.time||'').replace(/"/g,'""') + '"',
-      '"' + String(m.sender||'').replace(/"/g,'""') + '"',
-      '"' + String(m.contact||'').replace(/"/g,'""') + '"',
-      '"' + String(m.brgy||'').replace(/"/g,'""') + '"',
-      '"' + String(m.vessel||'N/A').replace(/"/g,'""') + '"',
-      '"' + String(m.subject||'').replace(/"/g,'""') + '"',
-      '"' + String(m.msg||'').replace(/"/g,'""') + '"',
-      '"' + String(m.reviewedBy||'—').replace(/"/g,'""') + '"'
+      csvCell(cat),
+      csvCell(stat),
+      csvCell(dateStr),
+      csvCell(m.sender),
+      csvCell(m.contact),
+      csvCell(m.brgy),
+      csvCell(m.vessel || 'N/A'),
+      csvCell(m.subject),
+      csvCell(m.msg)
     ];
     csvRows.push(row.join(','));
   });
 
-  // === SUMMARY FOOTER ===
-  csvRows.push('');
-  const newCount = rows.filter(m=>m.status==='new').length;
-  const reviewCount = rows.filter(m=>m.status==='review').length;
-  const resolvedCount = rows.filter(m=>m.status==='resolved').length;
-  const sosCount = rows.filter(m=>m.cat==='sos').length;
-  const incCount = rows.filter(m=>m.cat==='incident').length;
-  const cmpCount = rows.filter(m=>m.cat==='complaint').length;
-  const infCount = rows.filter(m=>m.cat==='info').length;
-  csvRows.push('"--- SUMMARY ---"');
-  csvRows.push('"Status Breakdown","New: ' + newCount + '","In Review: ' + reviewCount + '","Resolved: ' + resolvedCount + '"');
-  csvRows.push('"Type Breakdown","SOS/Rescue: ' + sosCount + '","Incident: ' + incCount + '","Complaint: ' + cmpCount + '","Info: ' + infCount + '"');
-
+  const now = new Date();
   const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + csvRows.join('\n');
   const link = document.createElement('a');
   link.setAttribute('href', encodeURI(csvContent));
-  link.setAttribute('download', 'BantayDagat_Feedback_Report_' + now.toISOString().slice(0,10) + '.csv');
+  link.setAttribute('download', 'BantayDagat_Feedback_' + now.toISOString().slice(0, 10) + '.csv');
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
+
 
 // ════ DETAIL VIEW ════
 function openDetail(id) {

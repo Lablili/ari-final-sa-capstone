@@ -40,11 +40,10 @@
                     </svg>
                     <input class="search-input" id="searchInput" type="text" placeholder="Search sender, subject, message…">
                 </div>
-                <button class="btn-outline" id="btnClear" style="display:none;" onclick="clearFilters()">✕ Clear Filters</button>
             </div>
 
             <!-- Dropdown filter row -->
-            <div style="display: flex; align-items: center; gap: 12px; border-top: 1px solid #f1f5f9; padding-top: 12px; width: 100%; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 12px; width: 100%; flex-wrap: wrap;">
                 <!-- Type of Incident -->
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <label for="typeFilter" style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Type:</label>
@@ -71,16 +70,23 @@
                     <label for="statusFilter" style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Status:</label>
                     <select id="statusFilter" class="filter-dropdown" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #1e293b; font-size: 13px; font-weight: 500; outline: none; cursor: pointer;">
                         <option value="all">All Statuses</option>
-                        <option value="new">🔴 New</option>
-                        <option value="review">🟡 In Review</option>
-                        <option value="resolved">🟢 Resolved</option>
+                        <option value="new">New</option>
+                        <option value="review">In Review</option>
+                        <option value="resolved">Resolved</option>
                     </select>
                 </div>
-                <!-- Export CSV -->
-                <button class="btn-outline" id="btnExportCSV" type="button" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;" onclick="exportFeedbackCSV()">
+                <!-- Clear Filters — always visible -->
+                <button id="btnClear" type="button" onclick="clearFilters()" style="display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Clear
+                </button>
+                <!-- Export CSV (server-side – pulls ALL records from the database) -->
+                <a class="btn-outline" id="btnExportCSV"
+                   href="@Url.Action("ExportFeedbackCsv", "Home")"
+                   style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                     Export CSV
-                </button>
+                </a>
             </div>
         </div>
 
