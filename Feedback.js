@@ -238,61 +238,83 @@ function openBlotter(id) {
   const m = DATA.find(x=>x.id===id);
   if (!m) return;
   const c = CAT[m.cat];
-  const bNo = 'BD-' + String(m.id).padStart(4,'0') + '-2026';
-  const now = new Date().toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
+  const bNoShort = String(m.id).padStart(2,'0');
+  const dateObj = new Date(m.time);
+  const timeStr = isNaN(dateObj.getTime()) ? '03:00 PM' : dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const dateStr = isNaN(dateObj.getTime()) ? 'April 08, 2026' : dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
   document.getElementById('blotterBody').innerHTML = `
-    <div class="blotter-gov">
-      <div class="lgu">Republic of the Philippines · Local Government Unit</div>
-      <div class="dept">Office of Bantay Dagat – Coastal Monitoring Unit</div>
-      <h2>Blotter Form</h2>
-    </div>
-
-    <div class="blotter-row">
-      <div class="b-field"><label>Blotter No.</label><div class="val">${bNo}</div></div>
-      <div class="b-field"><label>Date Recorded</label><div class="val">${now}</div></div>
-      <div class="b-field"><label>Category</label><div class="val">${c.label}</div></div>
-    </div>
-
-    <div class="blotter-sec">Reporter Information</div>
-    <div class="blotter-row">
-      <div class="b-field"><label>Name</label><div class="val">${m.sender}</div></div>
-      <div class="b-field"><label>Contact Number</label><div class="val">${m.contact}</div></div>
-      <div class="b-field"><label>Barangay</label><div class="val">${m.brgy}</div></div>
-    </div>
-
-    <div class="blotter-sec">Incident / Report Details</div>
-    <div class="blotter-row blotter-row-2">
-      <div class="b-field"><label>Subject</label><div class="val">${m.subject}</div></div>
-      <div class="b-field"><label>Vessel</label><div class="val">${m.vessel}</div></div>
-    </div>
-    <div class="blotter-row blotter-row-2">
-      <div class="b-field"><label>Date and Time of Report</label><div class="val">${fmtDate(m.time,false)}</div></div>
-      <div class="b-field"><label>Location / Barangay</label><div class="val">${m.brgy}</div></div>
-    </div>
-
-    <div class="blotter-sec" style="display: flex; justify-content: space-between; align-items: center;">
-      <span>Narrative</span>
-      <span style="font-size: 11px; font-weight: normal; color: #64748b; text-transform: none;" class="no-print">(Click to edit narrative)</span>
-    </div>
-    <div class="narrative" contenteditable="true" style="outline: none;">${m.msg}</div>
-
-    <div class="blotter-sec" style="display: flex; justify-content: space-between; align-items: center;">
-      <span>Action by Official</span>
-      <span style="font-size: 11px; font-weight: normal; color: #64748b; text-transform: none;" class="no-print">(Click to edit action)</span>
-    </div>
-    <div class="narrative blank" contenteditable="true" style="outline: none;">(To be filled by responding Bantay Dagat official)</div>
-
-    <div class="sig-grid">
-      <div class="sig-block">
-        <div style="height:44px"></div>
-        <div class="sig-line">${m.sender}</div>
-        <div class="sig-sub">Signature of Reporter</div>
+    <div class="blotter-gov" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 20px;">
+      <!-- Left Logo: Bayan ng Bantayan -->
+      <div class="blotter-logo" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+        <img src="/logo-bantayan.jpg" alt="Bayan ng Bantayan Logo" style="width: 65px; height: 65px; object-fit: contain;">
       </div>
-      <div class="sig-block">
-        <div style="height:44px"></div>
-        <div class="sig-line">________________________________</div>
-        <div class="sig-sub">Responding Bantay Dagat Official</div>
+
+      <div style="text-align: center; flex: 1; font-family: 'Times New Roman', Times, serif; line-height: 1.3;">
+        <div style="font-size: 14px; font-weight: 500;">Republic of the Philippines</div>
+        <div style="font-size: 14px; font-weight: 500;">Province of Cebu</div>
+        <div style="font-size: 15px; font-weight: 700; text-transform: uppercase;">Municipality of Bantayan</div>
+        <div style="font-size: 14px; font-weight: 600; color: #1e293b;">Municipal Agriculturist Office</div>
+        <div style="font-size: 15px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Bantay Dagat Headquarters</div>
+        <div style="font-size: 12px; color: #475569;">Brgy. Suba, Bantayan, Cebu</div>
+      </div>
+
+      <!-- Right Logo: Bantay Dagat -->
+      <div class="blotter-logo" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+        <svg width="65" height="65" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="46" fill="#f8fafc" stroke="#047857" stroke-width="3"/>
+          <circle cx="50" cy="50" r="38" fill="#065f46" stroke="#eab308" stroke-width="1.5"/>
+          <path d="M50 22 L50 78 M35 45 L65 45 M35 55 L65 55" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+          <text x="50" y="82" font-size="7" font-weight="bold" fill="#ffffff" text-anchor="middle">BANTAY DAGAT</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Date printed on the right -->
+    <div style="text-align: right; font-weight: bold; margin-bottom: 20px; font-size: 14px; font-family: 'Times New Roman', Times, serif; outline: none;" contenteditable="true">
+      ${dateStr}
+    </div>
+
+    <!-- File details table block -->
+    <div class="blotter-meta-grid" style="display: grid; grid-template-columns: 140px 20px 1fr; row-gap: 8px; margin-bottom: 15px; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.4;">
+      <div style="font-weight: 500;">File no.</div><div>:</div><div contenteditable="true" style="font-weight: bold; outline: none;">${bNoShort}</div>
+      <div style="font-weight: 500;">Subject</div><div>:</div><div contenteditable="true" style="outline: none;">Excerpt from the Municipal Bantay Dagat Blotter Report</div>
+      <div style="font-weight: 500;">Nature of Case</div><div>:</div><div contenteditable="true" style="outline: none;">Resolution #33 Ordinance #02 Series of 2020 Section 37 Article 8</div>
+    </div>
+
+    <!-- Black solid line divider -->
+    <div style="border-top: 2px solid #000; margin-bottom: 20px;"></div>
+
+    <!-- Grid info (Occurrence and Suspect) -->
+    <div class="occurrence-grid" style="display: grid; grid-template-columns: 180px 1fr; gap: 16px; margin-bottom: 20px; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.5; text-align: justify;">
+      <div style="font-weight: bold;">Time/Date/Place<br>Of Occurrence</div>
+      <div contenteditable="true" style="outline: none;">--At about ${timeStr} of ${dateStr} at the vicinity municipal waters off Brgy. ${m.brgy}, Bantayan, Cebu.</div>
+      
+      <div style="font-weight: bold;">Arrested Suspect</div>
+      <div contenteditable="true" style="outline: none;">--${m.sender}, resident of Brgy. ${m.brgy}, Bantayan, Cebu (Vessel: ${m.vessel || 'N/A'}, Contact: ${m.contact || 'N/A'}).</div>
+    </div>
+
+    <!-- Facts section -->
+    <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; font-family: 'Times New Roman', Times, serif;">Facts -</div>
+    <div class="narrative" contenteditable="true" style="outline: none; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.6; min-height: 180px; margin-bottom: 40px; text-align: justify; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 4px; background: #f8fafc;">
+      ${m.msg}
+      <br><br>
+      A. (1) One ${m.vessel || 'motorized banca'} owned by [Owner Name] powered by [Engine Details] using [Gear Details] with [Catch Details] estimated value of Php [Value].
+      <br><br>
+      Two (2) arrested violators penalties to pay Two Thousand Five Hundred pesos each (P 2,500.00) as payment for the second offense of violating above mentioned ordinance with a total of Five (5) thousand pesos (P 5,000.00).
+    </div>
+
+    <!-- Signatures -->
+    <div class="sig-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; font-size: 14px; font-family: 'Times New Roman', Times, serif; margin-top: 50px;">
+      <div>
+        <div style="margin-bottom: 35px;">Blotter by:</div>
+        <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Julius L. Ejes</div>
+        <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none; margin-top: 4px;">Deputy Officer</div>
+      </div>
+      <div>
+        <div style="margin-bottom: 35px;">Noted by:</div>
+        <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Niven G. Pestaño</div>
+        <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none; margin-top: 4px;">Bantay Dagat Officer</div>
       </div>
     </div>`;
 

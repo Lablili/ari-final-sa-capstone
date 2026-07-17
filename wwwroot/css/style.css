@@ -2828,7 +2828,9 @@ select.form-input-styled {
   }
 
   .blotter-gov {
-    text-align: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     margin-bottom: 16px;
     border-bottom: 2px double #000000 !important;
     padding-bottom: 12px;
