@@ -25,38 +25,62 @@
         </header>
 
         <div class="stat-row">
-            <div class="stat"><div><div class="stat-n" id="s-total">0</div><div class="stat-l">Total</div></div></div>
-            <div class="stat"><div><div class="stat-n" id="s-sos">0</div><div class="stat-l">SOS / Rescue</div></div></div>
-            <div class="stat"><div><div class="stat-n" id="s-inc">0</div><div class="stat-l">Incident</div></div></div>
-            <div class="stat"><div><div class="stat-n" id="s-new">0</div><div class="stat-l">Others</div></div></div>
+            <div class="stat"><div><div class="stat-n" id="s-total" style="color: #1e293b;">0</div><div class="stat-l">Total Reports</div></div></div>
+            <div class="stat"><div><div class="stat-n" id="s-new" style="color: #ef4444;">0</div><div class="stat-l">New</div></div></div>
+            <div class="stat"><div><div class="stat-n" id="s-review" style="color: #f59e0b;">0</div><div class="stat-l">In Review</div></div></div>
+            <div class="stat"><div><div class="stat-n" id="s-resolved" style="color: #10b981;">0</div><div class="stat-l">Resolved</div></div></div>
         </div>
 
-        <div class="filters-search-panel">
-            <div class="barangay-filters" id="chips">
-                <button class="filter-button active" data-f="all" type="button">All <span class="chip-count" id="cc-all">0</span></button>
-                <button class="filter-button" data-f="sos" type="button">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    SOS / Rescue <span class="chip-count" id="cc-sos">0</span>
-                </button>
-                <button class="filter-button" data-f="incident" type="button">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    Incident <span class="chip-count" id="cc-incident">0</span>
-                </button>
-                <button class="filter-button" data-f="complaint" type="button">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    Complaint <span class="chip-count" id="cc-complaint">0</span>
-                </button>
-                <button class="filter-button" data-f="info" type="button">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    Other <span class="chip-count" id="cc-info">0</span>
-                </button>
+        <div class="filters-search-panel" style="display: flex; flex-direction: column; gap: 14px; align-items: stretch;">
+            <!-- Search bar row -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
+                <div class="search-wrapper" style="margin: 0; flex: 1; max-width: 380px;">
+                    <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                        <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input class="search-input" id="searchInput" type="text" placeholder="Search sender, subject, message…">
+                </div>
+                <button class="btn-outline" id="btnClear" style="display:none;" onclick="clearFilters()">✕ Clear Filters</button>
             </div>
-            <div class="search-wrapper">
-                <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
-                    <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input class="search-input" id="searchInput" type="text" placeholder="Search Message">
-                <button class="btn-outline" id="btnClear" style="display:none; margin-left: 8px;" onclick="clearFilters()">Clear</button>
+
+            <!-- Dropdown filter row -->
+            <div style="display: flex; align-items: center; gap: 12px; border-top: 1px solid #f1f5f9; padding-top: 12px; width: 100%; flex-wrap: wrap;">
+                <!-- Type of Incident -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <label for="typeFilter" style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Type:</label>
+                    <select id="typeFilter" class="filter-dropdown" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #1e293b; font-size: 13px; font-weight: 500; outline: none; cursor: pointer;">
+                        <option value="all">All Types</option>
+                        <option value="sos">SOS / Rescue</option>
+                        <option value="incident">Incident Report</option>
+                        <option value="complaint">Complaint</option>
+                        <option value="info">Information</option>
+                    </select>
+                </div>
+                <!-- Barangay -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <label for="brgyFilter" style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Barangay:</label>
+                    <select id="brgyFilter" class="filter-dropdown" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #1e293b; font-size: 13px; font-weight: 500; outline: none; cursor: pointer;">
+                        <option value="all">All Barangays</option>
+                        <option value="Patao">Patao</option>
+                        <option value="Guiwanon">Guiwanon</option>
+                        <option value="Sulangan">Sulangan</option>
+                    </select>
+                </div>
+                <!-- Status -->
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <label for="statusFilter" style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Status:</label>
+                    <select id="statusFilter" class="filter-dropdown" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #1e293b; font-size: 13px; font-weight: 500; outline: none; cursor: pointer;">
+                        <option value="all">All Statuses</option>
+                        <option value="new">🔴 New</option>
+                        <option value="review">🟡 In Review</option>
+                        <option value="resolved">🟢 Resolved</option>
+                    </select>
+                </div>
+                <!-- Export CSV -->
+                <button class="btn-outline" id="btnExportCSV" type="button" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;" onclick="exportFeedbackCSV()">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Export CSV
+                </button>
             </div>
         </div>
 
