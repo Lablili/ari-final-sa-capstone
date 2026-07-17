@@ -2823,12 +2823,12 @@ select.form-input-styled {
     color: #000000 !important;
     display: flex !important;
     flex-direction: column !important;
-    min-height: 11.2in !important;
+    min-height: 10.5in !important;
     box-sizing: border-box !important;
   }
 
   @page {
-    size: 8.5in 13in;
+    size: A4;
     margin: 0.5in 0.4in;
   }
 

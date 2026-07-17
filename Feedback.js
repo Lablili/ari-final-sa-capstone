@@ -291,7 +291,7 @@ function openBlotter(id) {
       <div contenteditable="true" style="outline: none;">--At about ${timeStr} of ${dateStr} at the vicinity municipal waters off Brgy. ${m.brgy}, Bantayan, Cebu.</div>
       
       <div style="font-weight: bold;">Arrested Suspect</div>
-      <div contenteditable="true" style="outline: none;">--${m.sender}, resident of Brgy. ${m.brgy}, Bantayan, Cebu (Vessel: ${m.vessel || 'N/A'}, Contact: ${m.contact || 'N/A'}).</div>
+      <div contenteditable="true" style="outline: none;">--${m.sender}, resident of Brgy. ${m.brgy}, Bantayan, Cebu (Vessel: ${m.vessel || 'N/A'}, Contact: ${m.contact || 'N/A'}). [Add other suspects: Name, Age, DOB, address, and vessel role]</div>
     </div>
 
     <!-- Facts section -->
@@ -299,9 +299,14 @@ function openBlotter(id) {
     <div class="narrative" contenteditable="true" style="outline: none; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.6; min-height: 180px; margin-bottom: 40px; text-align: justify; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 4px; background: #f8fafc;">
       ${m.msg}
       <br><br>
-      A. (1) One ${m.vessel || 'motorized banca'} owned by [Owner Name] powered by [Engine Details] using [Gear Details] with [Catch Details] estimated value of Php [Value].
+      --[Case Facts & Apprehension Summary]--<br>
+      (Explain the incident details here: State how the violator was apprehended, unauthorized gears/documents used, and any registered/unregistered violations from the municipality.)
       <br><br>
-      Two (2) arrested violators penalties to pay Two Thousand Five Hundred pesos each (P 2,500.00) as payment for the second offense of violating above mentioned ordinance with a total of Five (5) thousand pesos (P 5,000.00).
+      --[Confiscated Assets & Properties]--<br>
+      A. (1) One [motorized banca / vessel type] named "[Vessel Name]" owned by [Owner Name], powered by [Engine Details, e.g. YAMA 16HP], using [Fishing Gear/Trap type] with [Catch details, e.g. 10kls assorted fish] estimated value of Php [Value].
+      <br><br>
+      --[Apprehension Penalties & Fine Details]--<br>
+      State the penalties: [Number] arrested violators are penalized to pay [Amount in words] pesos each (P [Amount in numbers]) as payment for [First/Second] offense of violating Section [Section No.] of Municipal Ordinance [Ordinance No.], Series of [Year], with a combined total fine of [Total in words] pesos (P [Total in numbers]).
     </div>
 
     <!-- Signatures -->
