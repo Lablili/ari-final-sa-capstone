@@ -10,17 +10,8 @@ let DATA = [
   { id:8, cat:'info',     sender:'Emilio Ramos',         contact:'+63 956 888 9999', brgy:'Guiwanon',           vessel:'N/A',             time:'2026-05-20 13:30', status:'review',   subject:'Hangyo sa Patrol Schedule sa Hunyo 2026',    msg:'Maayong adlaw. Nangayo kami sa schedule sa Bantay Dagat patrol para sa Hunyo 2026 alang sa records sa barangay council. Gusto usab namo magkokoordinar para sa coastal clean-up.' },
 ];
 
-// ════ AUTH CONSTANTS ════
-const PASSWORD = "bantay";
-const STORAGE_KEY = "bantay-dagat-authenticated";
-
 // ════ SELECTORS ════
-const loginScreen = document.getElementById("loginScreen");
 const dashboardShell = document.getElementById("dashboardShell");
-const loginForm = document.getElementById("loginForm");
-const passwordInput = document.getElementById("password");
-const loginError = document.getElementById("loginError");
-const logoutButton = document.getElementById("logoutButton");
 
 // ════ METADATA ════
 const CAT = {
@@ -436,24 +427,7 @@ function closeBlotter() {
   document.getElementById('blotterOverlay').classList.remove('open');
 }
 
-// ════ AUTHENTICATION VIEW ROUTING ════
-function showDashboard() {
-  loginScreen.classList.add("hidden");
-  dashboardShell.classList.remove("hidden");
-  loginError.textContent = "";
-  displayCurrentDate();
-  // Load data from DB first, seed if empty
-  loadFeedbackFromDb();
-}
-
-function showLogin() {
-  dashboardShell.classList.add("hidden");
-  loginScreen.classList.remove("hidden");
-  passwordInput.value = "";
-  loginError.textContent = "";
-  passwordInput.focus();
-}
-
+// ════ INIT ════
 function displayCurrentDate() {
   const today = new Date();
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -463,11 +437,9 @@ function displayCurrentDate() {
   }
 }
 
-// ════ INIT ════
 document.addEventListener('DOMContentLoaded', function() {
-  // Setup DOM Event Listeners and Filters
   setupFilterHandlers();
-  
+
   document.getElementById('blotterOverlay').addEventListener('click', e => {
     if (e.target === document.getElementById('blotterOverlay')) closeBlotter();
   });
@@ -475,28 +447,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('detailModalOverlay').addEventListener('click', closeDetail);
   document.getElementById('detailModalCloseButton').addEventListener('click', closeDetail);
 
-  // Authentication Setup
-  if (localStorage.getItem(STORAGE_KEY) === "true") {
-    showDashboard();
-  } else {
-    showLogin();
-  }
-
-  loginForm.addEventListener("submit", function (event) {
-    event.preventDefault();
-    if (passwordInput.value === PASSWORD) {
-      localStorage.setItem(STORAGE_KEY, "true");
-      showDashboard();
-      return;
-    }
-    loginError.textContent = "Incorrect password. Please try again.";
-    passwordInput.select();
-  });
-
-  logoutButton.addEventListener("click", function () {
-    localStorage.removeItem(STORAGE_KEY);
-    showLogin();
-  });
+  displayCurrentDate();
+  // Load all feedback from the database
+  loadFeedbackFromDb();
 });
 
 // ════ DB SYNC ════
