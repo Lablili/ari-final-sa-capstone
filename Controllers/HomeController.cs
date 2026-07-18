@@ -107,6 +107,63 @@ public class HomeController : Controller
         return $"\"{safe}\"";
     }
 
+    [HttpGet]
+    public async Task<IActionResult> ExportFisherfolkCsv()
+    {
+        var records = await _db.FisherfolkRegistries
+            .OrderBy(f => f.Frlname)
+            .ThenBy(f => f.Frfname)
+            .ToListAsync();
+
+        var sb = new StringBuilder();
+
+        // UTF-8 BOM so Excel opens it correctly
+        sb.AppendLine(
+            "\uFEFF" +
+            "Fisherfolk ID," +
+            "Complete Name," +
+            "Address," +
+            "Barangay," +
+            "Birthdate," +
+            "Age," +
+            "Gender," +
+            "Vessel Type," +
+            "Vessel Name," +
+            "Boat Number," +
+            "Permit Number," +
+            "Capture Method," +
+            "Contact Number," +
+            "Registration Status"
+        );
+
+        foreach (var f in records)
+        {
+            var fullName = $"{f.Frfname} {(string.IsNullOrEmpty(f.Frmname) ? "" : f.Frmname + " ")}{f.Frlname}";
+            var dateStr = f.Frbirthdate.ToString("yyyy-MM-dd");
+
+            sb.AppendLine(
+                $"{f.FrId}," +
+                $"{CsvCell(fullName)}," +
+                $"{CsvCell(f.Fraddress)}," +
+                $"{CsvCell(f.Frbarangay)}," +
+                $"{CsvCell(dateStr)}," +
+                $"{f.Frage}," +
+                $"{CsvCell(f.Frgender)}," +
+                $"{CsvCell(f.FrvesselType)}," +
+                $"{CsvCell(f.FrvesselName)}," +
+                $"{CsvCell(f.FrboatNumber)}," +
+                $"{CsvCell(f.FrpermitNumber)}," +
+                $"{CsvCell(f.FrcaptureMethod)}," +
+                $"{CsvCell(f.FrcontactNumber)}," +
+                $"{CsvCell(f.FrregistrationStatus)}"
+            );
+        }
+
+        var fileName = $"BantayDagat_Fisherfolk_{DateTime.Now:yyyy-MM-dd}.csv";
+        var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+        return File(bytes, "text/csv; charset=utf-8", fileName);
+    }
+
     public async Task<IActionResult> FisherfolkInfo()
     {
         ViewData["Title"] = "Fisherfolk Info";
