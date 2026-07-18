@@ -27,7 +27,7 @@ public class HomeController : Controller
 
     public IActionResult Feedback()
     {
-        ViewData["Title"] = "Feedback";
+        ViewData["Title"] = "Community Reports";
         return View();
     }
 

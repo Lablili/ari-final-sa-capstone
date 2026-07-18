@@ -33,7 +33,7 @@
                 <p class="stat-subtext positive" id="stat-fisherfolk-sub">Active Registry</p>
             </article>
             <article class="stat-card">
-                <p class="stat-title">Incident Reports</p>
+                <p class="stat-title">Community Reports</p>
                 <h3 id="stat-reports">0</h3>
                 <p class="stat-subtext negative" id="stat-reports-sub">0 New Reports</p>
             </article>
@@ -70,8 +70,8 @@
         <section class="content-grid">
             <article class="panel">
                 <div class="panel-header">
-                    <h3>Recent incident reports</h3>
-                    <a class="panel-link" asp-controller="Home" asp-action="Feedback">Open Incident File</a>
+                    <h3>Recent community reports</h3>
+                    <a class="panel-link" asp-controller="Home" asp-action="Feedback">Open Community Reports</a>
                 </div>
 
                 <div class="report-list">
@@ -116,7 +116,7 @@
                     </div>
                 </div>
 
-                <a class="report-footer-link" asp-controller="Home" asp-action="Feedback">Tan-awa ang tanang reports sa Incident Reports file</a>
+                <a class="report-footer-link" asp-controller="Home" asp-action="Feedback">Tan-awa ang tanang reports sa Community Reports file</a>
             </article>
 
             <article class="panel">
@@ -211,7 +211,7 @@
                 new Chart(ctxA, {
                     type: 'bar',
                     data: {
-                        labels: ['Announcements Sent', 'Incident Reports'],
+                        labels: ['Announcements Sent', 'Community Reports'],
                         datasets: [{
                             label: 'Total Count',
                             data: [countA, countR],
