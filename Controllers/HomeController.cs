@@ -107,9 +107,17 @@ public class HomeController : Controller
         return $"\"{safe}\"";
     }
 
-    public IActionResult FisherfolkInfo()
+    public async Task<IActionResult> FisherfolkInfo()
     {
         ViewData["Title"] = "Fisherfolk Info";
+
+        var all = _db.FisherfolkRegistries;
+
+        ViewBag.Total         = await all.CountAsync();
+        ViewBag.CountPatao    = await all.CountAsync(f => f.Frbarangay == "Patao");
+        ViewBag.CountGuiwanon = await all.CountAsync(f => f.Frbarangay == "Guiwanon");
+        ViewBag.CountSulangan = await all.CountAsync(f => f.Frbarangay == "Sulangan");
+
         return View();
     }
 

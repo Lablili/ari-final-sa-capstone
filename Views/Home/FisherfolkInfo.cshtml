@@ -3,7 +3,7 @@
 }
 
 
-<div class="dashboard-shell hidden" id="dashboardShell">
+<div class="dashboard-shell" id="dashboardShell">
     @await Html.PartialAsync("_DashboardSidebar")
 
     <main class="main-content">
@@ -22,6 +22,35 @@
 
             </div>
         </header>
+
+        <!-- ══ FISHERFOLK STATS DASHBOARD ══ -->
+        <section class="stats-grid" style="margin-bottom: 20px;">
+
+            <article class="stat-card" style="border-left: 4px solid #3b82f6;">
+                <p class="stat-title">Total Registered</p>
+                <h3 style="color:#3b82f6;">@ViewBag.Total</h3>
+                <p class="stat-subtext">All barangays combined</p>
+            </article>
+
+            <article class="stat-card">
+                <p class="stat-title">Brgy. Patao</p>
+                <h3>@ViewBag.CountPatao</h3>
+                <p class="stat-subtext">Registered fisherfolk</p>
+            </article>
+
+            <article class="stat-card">
+                <p class="stat-title">Brgy. Guiwanon</p>
+                <h3>@ViewBag.CountGuiwanon</h3>
+                <p class="stat-subtext">Registered fisherfolk</p>
+            </article>
+
+            <article class="stat-card">
+                <p class="stat-title">Brgy. Sulangan</p>
+                <h3>@ViewBag.CountSulangan</h3>
+                <p class="stat-subtext">Registered fisherfolk</p>
+            </article>
+
+        </section>
 
         <div class="directory-header-section">
             <button class="btn-primary" id="btnRegisterLocalFisherman" type="button">
