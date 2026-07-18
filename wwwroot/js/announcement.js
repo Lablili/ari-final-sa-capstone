@@ -28,6 +28,12 @@
     var announcementCount = document.getElementById("announcementCount");
     var currentDateDisplay = document.getElementById("currentDateDisplay");
     
+    var tabCompose = document.getElementById("tabCompose");
+    var tabHistory = document.getElementById("tabHistory");
+    var historyTabCount = document.getElementById("historyTabCount");
+    var composeSection = document.getElementById("composeSection");
+    var historySection = document.getElementById("historySection");
+
     var clearFormBtn = document.getElementById("clearFormBtn");
     var logFilterTabs = document.getElementById("logFilterTabs");
     // Template Messages
@@ -206,6 +212,10 @@
                 badge.textContent = counts[key];
             }
         });
+        
+        if (historyTabCount) {
+            historyTabCount.textContent = counts.all + counts.archived;
+        }
     }
     // Render database log items
     function renderAnnouncements() {
@@ -451,6 +461,36 @@
         announcementForm.reset();
         updatePreview();
     });
+
+    // Tab switching logic
+    if (tabCompose && tabHistory && composeSection && historySection) {
+        tabCompose.addEventListener("click", function () {
+            tabCompose.classList.add("active");
+            tabHistory.classList.remove("active");
+            
+            tabCompose.style.color = "#1d4ed8";
+            tabCompose.style.borderBottomColor = "#3b82f6";
+            tabHistory.style.color = "#6b7280";
+            tabHistory.style.borderBottomColor = "transparent";
+            
+            composeSection.style.display = "block";
+            historySection.style.display = "none";
+        });
+        
+        tabHistory.addEventListener("click", function () {
+            tabHistory.classList.add("active");
+            tabCompose.classList.remove("active");
+            
+            tabHistory.style.color = "#1d4ed8";
+            tabHistory.style.borderBottomColor = "#3b82f6";
+            tabCompose.style.color = "#6b7280";
+            tabCompose.style.borderBottomColor = "transparent";
+            
+            historySection.style.display = "block";
+            composeSection.style.display = "none";
+        });
+    }
+
     // Filter logs tabs trigger
     logFilterTabs.addEventListener("click", function (event) {
         var btn = event.target.closest("button");
@@ -520,6 +560,10 @@
             });
             saveAnnouncements(currentItems);
             renderAnnouncements();
+            // Automatically switch to history tab to see the new announcement
+            if (tabHistory) {
+                tabHistory.click();
+            }
         }, 1400);
     });
     // Print functionality

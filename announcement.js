@@ -28,6 +28,12 @@
     var announcementCount = document.getElementById("announcementCount");
     var currentDateDisplay = document.getElementById("currentDateDisplay");
     
+    var tabCompose = document.getElementById("tabCompose");
+    var tabHistory = document.getElementById("tabHistory");
+    var historyTabCount = document.getElementById("historyTabCount");
+    var composeSection = document.getElementById("composeSection");
+    var historySection = document.getElementById("historySection");
+
     var clearFormBtn = document.getElementById("clearFormBtn");
     var logFilterTabs = document.getElementById("logFilterTabs");
     // Template Messages
@@ -45,7 +51,7 @@
     };
     var recipientLabels = {
         "all": "All registered fisherfolk (1,248)",
-        "north": "Barangay Kabac (312)",
+        "north": "Barangay Sulangan (312)",
         "south": "Barangay Patao (284)",
         "licensed": "Barangay Guiwanon (652)"
     };
@@ -206,6 +212,10 @@
                 badge.textContent = counts[key];
             }
         });
+        
+        if (historyTabCount) {
+            historyTabCount.textContent = counts.all + counts.archived;
+        }
     }
     // Render database log items
     function renderAnnouncements() {
@@ -451,6 +461,36 @@
         announcementForm.reset();
         updatePreview();
     });
+
+    // Tab switching logic
+    if (tabCompose && tabHistory && composeSection && historySection) {
+        tabCompose.addEventListener("click", function () {
+            tabCompose.classList.add("active");
+            tabHistory.classList.remove("active");
+            
+            tabCompose.style.color = "#1d4ed8";
+            tabCompose.style.borderBottomColor = "#3b82f6";
+            tabHistory.style.color = "#6b7280";
+            tabHistory.style.borderBottomColor = "transparent";
+            
+            composeSection.style.display = "block";
+            historySection.style.display = "none";
+        });
+        
+        tabHistory.addEventListener("click", function () {
+            tabHistory.classList.add("active");
+            tabCompose.classList.remove("active");
+            
+            tabHistory.style.color = "#1d4ed8";
+            tabHistory.style.borderBottomColor = "#3b82f6";
+            tabCompose.style.color = "#6b7280";
+            tabCompose.style.borderBottomColor = "transparent";
+            
+            historySection.style.display = "block";
+            composeSection.style.display = "none";
+        });
+    }
+
     // Filter logs tabs trigger
     logFilterTabs.addEventListener("click", function (event) {
         var btn = event.target.closest("button");
@@ -520,6 +560,10 @@
             });
             saveAnnouncements(currentItems);
             renderAnnouncements();
+            // Automatically switch to history tab to see the new announcement
+            if (tabHistory) {
+                tabHistory.click();
+            }
         }, 1400);
     });
     // Print functionality
@@ -562,42 +606,60 @@
         link.click();
         document.body.removeChild(link);
     });
-    // Authentication View routing
+    // Authentication View routing (defensive)
     function showDashboard() {
-        loginScreen.classList.add("hidden");
-        dashboardShell.classList.remove("hidden");
-        loginError.textContent = "";
+        if (loginScreen) loginScreen.classList.add("hidden");
+        if (dashboardShell) dashboardShell.classList.remove("hidden");
+        if (loginError) loginError.textContent = "";
         setHeaderDate();
         renderAnnouncements();
         updatePreview();
     }
     function showLogin() {
-        dashboardShell.classList.add("hidden");
-        loginScreen.classList.remove("hidden");
-        passwordInput.value = "";
-        loginError.textContent = "";
-        passwordInput.focus();
+        if (dashboardShell) dashboardShell.classList.add("hidden");
+        if (loginScreen) loginScreen.classList.remove("hidden");
+        if (passwordInput) passwordInput.value = "";
+        if (loginError) loginError.textContent = "";
+        if (passwordInput) passwordInput.focus();
     }
-    // Event Listeners setup
-    if (localStorage.getItem(STORAGE_KEY) === "true") {
-        showDashboard();
-    } else {
-        showLogin();
+
+    var authEnabled = true;
+    if (!loginForm || !loginScreen || !passwordInput || !loginError) {
+        authEnabled = false;
+        if (dashboardShell) dashboardShell.classList.remove("hidden");
+        setHeaderDate();
+        renderAnnouncements();
+        updatePreview();
     }
-    loginForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-        if (passwordInput.value === PASSWORD) {
-            localStorage.setItem(STORAGE_KEY, "true");
+
+    if (authEnabled) {
+        // Event Listeners setup
+        if (localStorage.getItem(STORAGE_KEY) === "true") {
             showDashboard();
-            return;
+        } else {
+            showLogin();
         }
-        loginError.textContent = "Incorrect password. Please try again.";
-        passwordInput.select();
-    });
-    logoutButton.addEventListener("click", function () {
-        localStorage.removeItem(STORAGE_KEY);
-        showLogin();
-    });
+
+        if (loginForm) {
+            loginForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                if (passwordInput.value === PASSWORD) {
+                    localStorage.setItem(STORAGE_KEY, "true");
+                    showDashboard();
+                    return;
+                }
+                loginError.textContent = "Incorrect password. Please try again.";
+                passwordInput.select();
+            });
+        }
+
+        if (logoutButton) {
+            logoutButton.addEventListener("click", function () {
+                localStorage.removeItem(STORAGE_KEY);
+                showLogin();
+            });
+        }
+    }
     // Auto-update relative timestamps every 30 seconds
     setInterval(function () {
         if (localStorage.getItem(STORAGE_KEY) === "true") {
