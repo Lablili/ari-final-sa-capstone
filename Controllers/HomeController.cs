@@ -113,6 +113,38 @@ public class HomeController : Controller
 
         var all = _db.FisherfolkRegistries;
 
+        if (await all.CountAsync() == 0)
+        {
+            _db.FisherfolkRegistries.AddRange(new List<FisherfolkRegistry>
+            {
+                new FisherfolkRegistry {
+                    Frfname = "Juan", Frlname = "Dela Cruz Jr.", Fraddress = "Purok 2, Sitio Proper",
+                    Frbarangay = "Patao", Frbirthdate = new DateTime(1987, 6, 14), Frage = 38,
+                    Frgender = "Male", FrvesselType = "Small Scale", FrvesselName = "M/B Pag-asa",
+                    FrboatNumber = "BTY-PAT-014", FrpermitNumber = "BD-BAN-2026-0014",
+                    FrcaptureMethod = "Pamasol / Panagat", FrcontactNumber = "+63 917 555 1024",
+                    FrregistrationStatus = "Active", FrregCode = "BTY-PAT-014", FrisActive = true
+                },
+                new FisherfolkRegistry {
+                    Frfname = "Elpidio", Frlname = "Reyes", Fraddress = "Purok 1, Silang",
+                    Frbarangay = "Patao", Frbirthdate = new DateTime(1980, 11, 8), Frage = 45,
+                    Frgender = "Male", FrvesselType = "Medium Scale", FrvesselName = "M/B Sea Hawk",
+                    FrboatNumber = "BTY-PAT-035", FrpermitNumber = "BD-BAN-2026-0215",
+                    FrcaptureMethod = "Motorized Net Fishing", FrcontactNumber = "+63 918 333 4455",
+                    FrregistrationStatus = "For Renewal", FrregCode = "BTY-PAT-035", FrisActive = true
+                },
+                new FisherfolkRegistry {
+                    Frfname = "Rosa", Frlname = "Aquino", Fraddress = "Purok 3, Ligaya",
+                    Frbarangay = "Guiwanon", Frbirthdate = new DateTime(1995, 7, 19), Frage = 30,
+                    Frgender = "Female", FrvesselType = "Small Scale", FrvesselName = "M/B Aurora",
+                    FrboatNumber = "BTY-GUI-042", FrpermitNumber = "BD-BAN-2026-1187",
+                    FrcaptureMethod = "Bubo", FrcontactNumber = "+63 918 234 5678",
+                    FrregistrationStatus = "Pending Verification", FrregCode = "BTY-GUI-042", FrisActive = true
+                }
+            });
+            await _db.SaveChangesAsync();
+        }
+
         ViewBag.Total         = await all.CountAsync();
         ViewBag.CountPatao    = await all.CountAsync(f => f.Frbarangay == "Patao");
         ViewBag.CountGuiwanon = await all.CountAsync(f => f.Frbarangay == "Guiwanon");
