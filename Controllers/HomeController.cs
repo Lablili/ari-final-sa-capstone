@@ -31,9 +31,21 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Announcement()
+    public async Task<IActionResult> Announcement()
     {
         ViewData["Title"] = "Announcements";
+
+        // Live counts from the database
+        var all       = await _db.FisherfolkRegistries.CountAsync();
+        var sulangan  = await _db.FisherfolkRegistries.CountAsync(f => f.Frbarangay == "Sulangan");
+        var patao     = await _db.FisherfolkRegistries.CountAsync(f => f.Frbarangay == "Patao");
+        var guiwanon  = await _db.FisherfolkRegistries.CountAsync(f => f.Frbarangay == "Guiwanon");
+
+        ViewBag.CountAll      = all.ToString("N0");
+        ViewBag.CountSulangan = sulangan.ToString("N0");
+        ViewBag.CountPatao    = patao.ToString("N0");
+        ViewBag.CountGuiwanon = guiwanon.ToString("N0");
+
         return View();
     }
 

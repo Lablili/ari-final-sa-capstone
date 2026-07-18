@@ -4,7 +4,7 @@
 
 
 
-<div class="dashboard-shell hidden" id="dashboardShell">
+<div class="dashboard-shell" id="dashboardShell">
     @await Html.PartialAsync("_DashboardSidebar")
 
     <main class="main-content">
@@ -43,10 +43,10 @@
                     <div class="form-field-wrapper">
                         <label class="form-label-with-icon" for="recipientGroup">Recipient Group</label>
                         <select class="form-input-styled" id="recipientGroup" name="recipientGroup">
-                            <option value="all">All registered fisherfolk (1,248)</option>
-                            <option value="north">Barangay Sulangan (312)</option>
-                            <option value="south">Barangay Patao (284)</option>
-                            <option value="licensed">Barangay Guiwanon (652)</option>
+                            <option value="all">All registered fisherfolk (@ViewBag.CountAll)</option>
+                            <option value="Sulangan">Barangay Sulangan (@ViewBag.CountSulangan)</option>
+                            <option value="Patao">Barangay Patao (@ViewBag.CountPatao)</option>
+                            <option value="Guiwanon">Barangay Guiwanon (@ViewBag.CountGuiwanon)</option>
                         </select>
                     </div>
                     <div class="form-field-wrapper">
