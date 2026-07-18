@@ -141,6 +141,7 @@
 
     // ════ DB-BACKED STORAGE ════
     var dbRecords = []; // in-memory cache from API
+    var currentEditingId = null;
 
     async function loadFromDb() {
         try {
@@ -178,11 +179,19 @@
             registrationStatus: dto.registrationStatus
         };
         try {
-            await fetch('/api/fisherfolk', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            if (currentEditingId) {
+                await fetch('/api/fisherfolk/' + currentEditingId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                await fetch('/api/fisherfolk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
             await loadFromDb(); // refresh table from DB
         } catch (e) {
             alert('Failed to save record. Please check your connection.');
@@ -244,6 +253,11 @@
                 '</td>' +
                 '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
                 '<td style="text-align: center;">' +
+                    '<button class="edit-btn" type="button" data-index="' + index + '" title="Edit Record" style="margin-right: 5px;">' +
+                        '<svg class="edit-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">' +
+                            '<path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>' +
+                        '</svg>' +
+                    '</button>' +
                     '<button class="delete-btn" type="button" data-index="' + index + '" title="Archive Record">' +
                         '<svg class="trash-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">' +
                             '<path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />' +
@@ -252,8 +266,14 @@
                 '</td>';
 
             row.addEventListener("click", function (event) {
+                var editBtn = event.target.closest(".edit-btn");
                 var deleteBtn = event.target.closest(".delete-btn");
-                if (deleteBtn) {
+                
+                if (editBtn) {
+                    var indexToEdit = parseInt(editBtn.getAttribute("data-index"));
+                    editFisherfolk(indexToEdit);
+                    event.stopPropagation();
+                } else if (deleteBtn) {
                     var indexToArchive = parseInt(deleteBtn.getAttribute("data-index"));
                     archiveFisherfolk(indexToArchive);
                     event.stopPropagation();
@@ -264,6 +284,35 @@
 
             fisherfolkTableBody.appendChild(row);
         });
+    }
+
+    function editFisherfolk(index) {
+        var database = getFisherfolkDatabase();
+        var record = database[index];
+        if (!record) return;
+
+        currentEditingId = record.id;
+        
+        fisherfolkForm.elements["completeName"].value = record.completeName || "";
+        fisherfolkForm.elements["address"].value = record.address || "";
+        fisherfolkForm.elements["barangay"].value = record.barangay || "";
+        fisherfolkForm.elements["birthdate"].value = record.birthdate || "";
+        fisherfolkForm.elements["age"].value = record.age || "";
+        fisherfolkForm.elements["gender"].value = record.gender || "";
+        fisherfolkForm.elements["vesselType"].value = record.vesselType || "";
+        fisherfolkForm.elements["vesselName"].value = record.vesselName || "";
+        fisherfolkForm.elements["boatNumber"].value = record.boatNumber || "";
+        fisherfolkForm.elements["permitNumber"].value = record.permitNumber || "";
+        fisherfolkForm.elements["captureMethod"].value = record.captureMethod || "";
+        fisherfolkForm.elements["contactNumber"].value = record.contactNumber || "";
+        fisherfolkForm.elements["registrationStatus"].value = record.registrationStatus || "";
+
+        var titleEl = document.querySelector("#registerFormModal h2");
+        if (titleEl) titleEl.textContent = "Edit Fisherfolk Info";
+
+        fisherfolkStatus.textContent = "Editing Mode";
+        syncAge();
+        registerFormModal.classList.remove("hidden");
     }
 
     function showFisherfolkDetail(index) {
@@ -328,6 +377,8 @@
         var database = getFisherfolkDatabase();
         if (index < 0 || index >= database.length) return;
         var record = database[index];
+
+        if (!confirm("Are you sure you want to delete this fisherfolk record?")) return;
 
         // Delete from DB if it has an id
         if (record.id) {
@@ -456,6 +507,10 @@
     });
 
     btnRegisterLocalFisherman.addEventListener("click", function () {
+        currentEditingId = null;
+        var titleEl = document.querySelector("#registerFormModal h2");
+        if (titleEl) titleEl.textContent = "Register Local Fisherman";
+
         fisherfolkForm.reset();
         fisherfolkStatus.textContent = "Ready to edit";
         syncAge();

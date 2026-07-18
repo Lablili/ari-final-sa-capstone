@@ -76,6 +76,37 @@ namespace ari_final_sa_capstone.Controllers
             return Ok(new { id = record.FrId });
         }
 
+        // PUT api/fisherfolk/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] FisherfolkDto dto)
+        {
+            if (dto == null) return BadRequest();
+
+            var record = await _db.FisherfolkRegistries.FindAsync(id);
+            if (record == null) return NotFound();
+
+            var nameParts = (dto.CompleteName ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            record.Frfname = nameParts.Length > 0 ? nameParts[0] : "-";
+            record.Frlname = nameParts.Length > 1 ? nameParts[^1] : "-";
+            record.Frmname = nameParts.Length > 2 ? string.Join(" ", nameParts[1..^1]) : null;
+
+            record.Fraddress = dto.Address ?? "";
+            record.Frbarangay = dto.Barangay ?? "";
+            record.Frbirthdate = DateTime.TryParse(dto.Birthdate, out var bd) ? bd : DateTime.MinValue;
+            record.Frage = dto.Age;
+            record.Frgender = dto.Gender ?? "";
+            record.FrvesselType = dto.VesselType ?? "";
+            record.FrvesselName = dto.VesselName ?? "";
+            record.FrboatNumber = dto.BoatNumber ?? "";
+            record.FrpermitNumber = dto.PermitNumber;
+            record.FrcaptureMethod = dto.CaptureMethod ?? "";
+            record.FrcontactNumber = dto.ContactNumber ?? "";
+            record.FrregistrationStatus = dto.RegistrationStatus ?? "Active";
+
+            await _db.SaveChangesAsync();
+            return Ok();
+        }
+
         // DELETE api/fisherfolk/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
