@@ -213,15 +213,9 @@
 
             var statusClass = "";
             var statusText = "";
-            if (record.registrationStatus === "Active") {
+            if (record.registrationStatus === "Active" || record.registrationStatus === "Licensed") {
                 statusClass = "status-active";
-                statusText = "Licensed";
-            } else if (record.registrationStatus === "For Renewal") {
-                statusClass = "status-renewal";
-                statusText = "Pending Renewal";
-            } else if (record.registrationStatus === "Pending Verification") {
-                statusClass = "status-pending";
-                statusText = "Pending Verification";
+                statusText = "Active";
             } else {
                 statusClass = "status-inactive";
                 statusText = "Inactive";
@@ -374,15 +368,9 @@
         archive.forEach(function (record, index) {
             var statusClass = "";
             var statusText = "";
-            if (record.registrationStatus === "Active") {
+            if (record.registrationStatus === "Active" || record.registrationStatus === "Licensed") {
                 statusClass = "status-active";
-                statusText = "Licensed";
-            } else if (record.registrationStatus === "For Renewal") {
-                statusClass = "status-renewal";
-                statusText = "Pending Renewal";
-            } else if (record.registrationStatus === "Pending Verification") {
-                statusClass = "status-pending";
-                statusText = "Pending Verification";
+                statusText = "Active";
             } else {
                 statusClass = "status-inactive";
                 statusText = "Inactive";
