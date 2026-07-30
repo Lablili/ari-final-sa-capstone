@@ -19,9 +19,67 @@ public class HomeController : Controller
         _db = db;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
         ViewData["Title"] = "Overview";
+
+        var blotters = await _db.BlotterReports.ToListAsync();
+        var totalIncidents = blotters.Count;
+        var avgResponseTime = totalIncidents > 0 ? blotters.Average(b => b.ResponseTimeMinutes) : 0;
+        var closedCases = blotters.Count(b => b.Status == "Closed");
+        
+        var smsLogs = await _db.SMSLogs.ToListAsync();
+        var totalSmsSent = smsLogs.Count;
+        var deliveredSms = smsLogs.Count(s => s.DeliveryStatus == "Delivered");
+        var deliveryRate = totalSmsSent > 0 ? (double)deliveredSms / totalSmsSent * 100 : 0;
+
+        var fisherfolk = await _db.FisherfolkRegistries.ToListAsync();
+        var totalFisherfolk = fisherfolk.Count;
+        
+        var submissions = await _db.ReportSubmissions.ToListAsync();
+        var activeUsers = submissions.Select(s => s.FisherfolkId).Distinct().Count();
+        var adoptionRate = totalFisherfolk > 0 ? (double)activeUsers / totalFisherfolk * 100 : 0;
+
+        ViewBag.TotalIncidents = totalIncidents;
+        ViewBag.AvgResponseTime = Math.Round(avgResponseTime, 2);
+        ViewBag.EnforcementRate = totalIncidents > 0 ? Math.Round((double)closedCases / totalIncidents * 100, 2) : 0;
+        
+        ViewBag.DeliveryRate = Math.Round(deliveryRate, 2);
+        ViewBag.AdoptionRate = Math.Round(adoptionRate, 2);
+        ViewBag.TotalFisherfolk = totalFisherfolk;
+
+        var last12Months = Enumerable.Range(0, 12).Select(i => DateTime.Now.AddMonths(-11 + i)).ToList();
+        var incidentsOverTime = last12Months.Select(m => new {
+            Month = m.ToString("MMM yyyy"),
+            Count = blotters.Count(b => b.IncidentDate.Year == m.Year && b.IncidentDate.Month == m.Month)
+        }).ToList();
+        
+        ViewBag.TimeLabels = System.Text.Json.JsonSerializer.Serialize(incidentsOverTime.Select(x => x.Month));
+        ViewBag.TimeData = System.Text.Json.JsonSerializer.Serialize(incidentsOverTime.Select(x => x.Count));
+
+        var barangays = new[] { "Patao", "Guiwanon", "Sulangan", "Other" };
+        var byBarangay = blotters.GroupBy(b => 
+            barangays.Contains(b.Location) ? b.Location : "Other"
+        ).Select(g => new { Barangay = g.Key, Count = g.Count() }).ToList();
+        
+        var bgyLabels = barangays.ToList();
+        var bgyData = bgyLabels.Select(b => byBarangay.FirstOrDefault(x => x.Barangay == b)?.Count ?? 0).ToList();
+        
+        ViewBag.BarangayLabels = System.Text.Json.JsonSerializer.Serialize(bgyLabels);
+        ViewBag.BarangayData = System.Text.Json.JsonSerializer.Serialize(bgyData);
+
+        var incidentTypes = blotters.GroupBy(b => b.IncidentType)
+                                    .Select(g => new { Type = g.Key, Count = g.Count() })
+                                    .ToList();
+        ViewBag.IncidentTypesLabels = System.Text.Json.JsonSerializer.Serialize(incidentTypes.Select(x => x.Type));
+        ViewBag.IncidentTypesData = System.Text.Json.JsonSerializer.Serialize(incidentTypes.Select(x => x.Count));
+
+        var incidentStatus = blotters.GroupBy(b => b.Status)
+                                     .Select(g => new { Status = g.Key, Count = g.Count() })
+                                     .ToList();
+        ViewBag.IncidentStatusLabels = System.Text.Json.JsonSerializer.Serialize(incidentStatus.Select(x => x.Status));
+        ViewBag.IncidentStatusData = System.Text.Json.JsonSerializer.Serialize(incidentStatus.Select(x => x.Count));
+
         return View();
     }
 
@@ -166,6 +224,8 @@ public class HomeController : Controller
 
     public async Task<IActionResult> FisherfolkInfo()
     {
+
+
         ViewData["Title"] = "Fisherfolk Info";
 
         var all = _db.FisherfolkRegistries;

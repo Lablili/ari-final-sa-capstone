@@ -23,6 +23,9 @@
     var announcementPenalty = document.getElementById("announcementPenalty");
     var announcementReference = document.getElementById("announcementReference");
     var announcementDetails = document.getElementById("announcementDetails");
+    var officerWrapper = document.getElementById("officerWrapper");
+    var penaltyWrapper = document.getElementById("penaltyWrapper");
+    var referenceWrapper = document.getElementById("referenceWrapper");
     var announcementPreview = document.getElementById("announcementPreview");
     var announcementLog = document.getElementById("announcementLog");
     var announcementCount = document.getElementById("announcementCount");
@@ -36,17 +39,25 @@
 
     var clearFormBtn = document.getElementById("clearFormBtn");
     var logFilterTabs = document.getElementById("logFilterTabs");
+    var searchInput = document.getElementById("announcementSearch");
+    if (searchInput) {
+        searchInput.addEventListener("input", function() {
+            renderAnnouncements();
+        });
+    }
     // Template Messages
     var templates = {
         "ordinance": "Bantay Dagat Notice: Please follow municipal fishing ordinances within Bantayan waters and the 15 km coastal operating area.",
         "no-fishing": "Bantay Dagat Notice: Entry into the identified no-fishing zone is prohibited until further notice from Bantay Dagat staff.",
-        "patrol": "Bantay Dagat Notice: Coastal patrol operations are active. Please keep fishing permits and boat identification ready for verification.",
+        "seasonal": "Bantay Dagat Notice: Seasonal restrictions are now in effect. Please observe the seasonal guidelines for fishing.",
+        "general": "Bantay Dagat Notice: An event/meeting is scheduled. Please see details for more information.",
         "custom": ""
     };
     var templateLabels = {
-        "ordinance": "Ordinance Reminder",
-        "no-fishing": "No-Fishing Zone Notice",
-        "patrol": "Patrol Advisory",
+        "ordinance": "Ordinance/Resolution",
+        "no-fishing": "No Fishing Zone Notice",
+        "seasonal": "Seasonal Notice",
+        "general": "General Events (Meeting, IEC, Workshops, Training)",
         "custom": "Custom Announcement"
     };
     var recipientLabels = {
@@ -181,6 +192,15 @@
     }
     // Reset categories inputs
     function applyTemplate() {
+        if (announcementTemplate.value === "meeting") {
+            if (officerWrapper) officerWrapper.style.display = "none";
+            if (penaltyWrapper) penaltyWrapper.style.display = "none";
+            if (referenceWrapper) referenceWrapper.style.display = "none";
+        } else {
+            if (officerWrapper) officerWrapper.style.display = "";
+            if (penaltyWrapper) penaltyWrapper.style.display = "";
+            if (referenceWrapper) referenceWrapper.style.display = "";
+        }
         // If template changes, clear manual message or reload preview
         updatePreview();
     }
@@ -190,7 +210,8 @@
             all: 0,
             ordinance: 0,
             "no-fishing": 0,
-            patrol: 0,
+            seasonal: 0,
+            general: 0,
             other: 0,
             archived: 0
         };
@@ -201,7 +222,8 @@
                 counts.all += 1;
                 if (item.template === "ordinance") counts.ordinance += 1;
                 else if (item.template === "no-fishing") counts["no-fishing"] += 1;
-                else if (item.template === "patrol") counts.patrol += 1;
+                else if (item.template === "seasonal") counts.seasonal += 1;
+                else if (item.template === "general") counts.general += 1;
                 else counts.other += 1;
             }
         });
@@ -225,22 +247,28 @@
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
         updateTabCounts(items);
+        var searchQuery = searchInput ? searchInput.value.toLowerCase() : "";
+
         // Filter list based on current selection
         var filteredItems = items.filter(function (item) {
             if (currentFilter === "archived") {
-                return item.archived === true;
+                if (item.archived !== true) return false;
+            } else {
+                if (item.archived === true) return false;
+                if (currentFilter !== "all") {
+                    if (currentFilter === "other") {
+                        if (["ordinance", "no-fishing", "seasonal", "general"].includes(item.template)) return false;
+                    } else if (item.template !== currentFilter) {
+                        return false;
+                    }
+                }
             }
-            // Active tabs should not show archived items
-            if (item.archived === true) {
-                return false;
+
+            if (searchQuery) {
+                var rawTitle = String(item.message || item.details || templateLabels[item.template] || "Custom").toLowerCase();
+                if (rawTitle.indexOf(searchQuery) === -1) return false;
             }
-            if (currentFilter === "all") {
-                return true;
-            }
-            if (currentFilter === "other") {
-                return item.template === "custom" || !["ordinance", "no-fishing", "patrol"].includes(item.template);
-            }
-            return item.template === currentFilter;
+            return true;
         });
         // Sent Today counter
         var today = new Date();
@@ -254,195 +282,158 @@
             );
         }).length;
         announcementCount.textContent = sentToday + (sentToday === 1 ? " SENT TODAY" : " SENT TODAY");
+        var tbody = document.getElementById('announcementTableBody');
+        if (!tbody) return;
+
         if (filteredItems.length === 0) {
-            var colOrdinance = document.getElementById('col-ordinance');
-            var colNoFishing = document.getElementById('col-no-fishing');
-            var colOther = document.getElementById('col-other');
-            var empty = '<div class="empty-log-state"><p>No announcements found for this filter.</p></div>';
-            if (colOrdinance) colOrdinance.innerHTML = empty;
-            if (colNoFishing) colNoFishing.innerHTML = '';
-            if (colOther) colOther.innerHTML = '';
+            tbody.innerHTML = '<tr><td colspan="6" style="padding: 16px; text-align: center; color: #6b7280;">No announcements found for this filter.</td></tr>';
             return;
         }
-        // Build columns
-        var colOrdinance = document.getElementById('col-ordinance');
-        var colNoFishing = document.getElementById('col-no-fishing');
-        var colOther = document.getElementById('col-other');
-        function renderCard(item) {
+
+        var rowsHtml = filteredItems.map(function (item, index) {
             var templateName = templateLabels[item.template] || "Custom Announcement";
             var rawTitle = String(item.message || item.details || templateName).split('.').filter(Boolean)[0] || String(item.message || item.details || templateName);
             var titleText = rawTitle.trim();
-            if (titleText.length > 60) titleText = titleText.slice(0, 57) + '...';
+            if (titleText.length > 40) titleText = titleText.slice(0, 37) + '...';
+            
             var recipientText = recipientLabels[item.recipientGroup] || item.recipientGroup;
-            var relativeTime = getRelativeTime(item.createdAt);
+            var dateObj = new Date(item.createdAt);
+            var dateSent = (dateObj.getMonth()+1) + '/' + dateObj.getDate() + '/' + dateObj.getFullYear().toString().slice(-2);
+            
             var isProcessing = item.status === "Processing";
-            var statusClass = isProcessing ? "processing" : "delivered";
-            var statusText = isProcessing ? "Processing" : "Delivered";
-            var archiveBtnText = item.archived ? "Restore" : "Archive";
+            var statusColor = isProcessing ? "#d97706" : "#059669";
+            var statusBg = isProcessing ? "#fef3c7" : "#d1fae5";
+            var statusText = isProcessing ? "PENDING" : "DELIVERED";
+
             return [
-                '<article class="log-card" data-id="' + item.id + '">',
-                '  <div class="log-card-header">',
-                '    <div class="log-card-title-group">',
-                '      <h4 class="log-card-title">' + escapeHtml(titleText) + '</h4>',
-                '    </div>',
-                '    <span class="log-card-status ' + statusClass + '">' + statusText + '</span>',
-                '  </div>',
-                '  <div class="log-card-body">',
-                '    <div class="log-detail-row">',
-                '      <span class="log-detail-label">Recipients:</span>',
-                '      <span class="log-detail-value">' + escapeHtml(recipientText) + '</span>',
-                '    </div>',
-                '    <div class="log-message-box-wrapper">',
-                '      <div class="log-message-box-header">',
-                '        <span class="log-detail-label">SMS Message:</span>',
-                '        <button class="btn-copy-small js-copy-btn" data-text="' + escapeHtml(item.message) + '">Copy message</button>',
-                '      </div>',
-                '      <div class="log-message-box">' + escapeHtml(item.message) + '</div>',
-                '    </div>',
-                '  </div>',
-                '  <div class="log-card-footer">',
-                '    <div class="log-meta-text">',
-                '      GSM Delivery: ' + escapeHtml(String(item.deliveredCount)) + ' recipients processed &bull; ' + relativeTime,
-                '    </div>',
-                '    <div class="log-card-actions">',
-                '      <button class="btn-text-action js-archive-btn"><span>' + archiveBtnText + '</span></button>',
-                '      <button class="btn-text-action delete-action js-delete-btn"><span>Delete</span></button>',
-                '    </div>',
-                '  </div>',
-                '</article>'
-            ].join("\n");
-        }
-
-        // Fill columns
-        colOrdinance.innerHTML = filteredItems.filter(function (it) { return it.template === 'ordinance'; }).map(renderCard).join('\n');
-        colNoFishing.innerHTML = filteredItems.filter(function (it) { return it.template === 'no-fishing'; }).map(renderCard).join('\n');
-        colOther.innerHTML = filteredItems.filter(function (it) { return !(['ordinance','no-fishing'].includes(it.template)); }).map(renderCard).join('\n');
-
-        // Update column counts
-        var elCountOrd = document.getElementById('col-count-ordinance'); if (elCountOrd) elCountOrd.textContent = colOrdinance.querySelectorAll('.log-card').length;
-        var elCountNo = document.getElementById('col-count-no-fishing'); if (elCountNo) elCountNo.textContent = colNoFishing.querySelectorAll('.log-card').length;
-        var elCountOther = document.getElementById('col-count-other'); if (elCountOther) elCountOther.textContent = colOther.querySelectorAll('.log-card').length;
-
-        // Wire event listeners on rendered buttons (global)
-        var copyButtons = document.querySelectorAll(".js-copy-btn");
-        copyButtons.forEach(function (btn) {
-            btn.removeEventListener('click', btn._copHandler);
-            var handler = function () {
-                var text = this.getAttribute("data-text");
-                navigator.clipboard.writeText(text).then(function () {
-                    var original = btn.textContent;
-                    btn.textContent = 'Copied!';
-                    btn.style.backgroundColor = "#dcfce7";
-                    btn.style.borderColor = "#86efac";
-                    btn.style.color = "#15803d";
-                    setTimeout(function () {
-                        btn.textContent = original;
-                        btn.style.backgroundColor = "";
-                        btn.style.borderColor = "";
-                        btn.style.color = "";
-                    }, 1200);
-                });
-            };
-            btn._copHandler = handler;
-            btn.addEventListener('click', handler);
+                '<tr style="border-bottom: 1px solid #e5e7eb; transition: background 0.15s ease;" onmouseover="this.style.background=\'#f9fafb\'" onmouseout="this.style.background=\'none\'" data-id="' + item.id + '">',
+                '  <td style="padding: 12px 16px; font-size: 0.9rem; color: #374151;">' + dateSent + '</td>',
+                '  <td style="padding: 12px 16px; font-size: 0.9rem; color: #374151;">' + escapeHtml(templateName) + '</td>',
+                '  <td style="padding: 12px 16px; font-size: 0.9rem; color: #374151;">' + escapeHtml(recipientText) + '</td>',
+                '  <td style="padding: 12px 16px; font-size: 0.9rem; color: #374151;">' + escapeHtml(titleText) + '</td>',
+                '  <td style="padding: 12px 16px; font-size: 0.85rem; font-weight: 600;"><span style="background: ' + statusBg + '; color: ' + statusColor + '; padding: 2px 8px; border-radius: 9999px;">' + statusText + '</span></td>',
+                '  <td style="padding: 12px 16px;">',
+                '    <button class="btn-text-action js-view-btn" style="color: #2563eb; font-weight: 500; font-size: 0.9rem; border: none; background: none; cursor: pointer;">[View]</button>',
+                '  </td>',
+                '</tr>'
+            ].join("");
         });
+        tbody.innerHTML = rowsHtml.join("\n");
 
-        var archiveButtons = document.querySelectorAll(".js-archive-btn");
-        archiveButtons.forEach(function (btn) {
-            btn.removeEventListener('click', btn._archHandler);
+        var viewButtons = document.querySelectorAll('.js-view-btn');
+        viewButtons.forEach(function (btn) {
+            btn.removeEventListener('click', btn._viewHandler);
             var handler = function () {
-                var card = btn.closest('.log-card');
-                var id = card.getAttribute('data-id');
-                var items = readAnnouncements();
-                items = items.map(function (item) { if (item.id === id) item.archived = !item.archived; return item; });
-                saveAnnouncements(items);
-                renderAnnouncements();
-            };
-            btn._archHandler = handler;
-            btn.addEventListener('click', handler);
-        });
-
-        var deleteButtons = document.querySelectorAll('.js-delete-btn');
-        deleteButtons.forEach(function (btn) {
-            btn.removeEventListener('click', btn._delHandler);
-            var handler = function () {
-                var card = btn.closest('.log-card');
-                var id = card.getAttribute('data-id');
-                if (confirm('Are you sure you want to permanently delete this announcement log?')) {
-                    var items = readAnnouncements().filter(function (item) { return item.id !== id; });
-                    saveAnnouncements(items);
-                    renderAnnouncements();
-                }
-            };
-            btn._delHandler = handler;
-            btn.addEventListener('click', handler);
-        });
-
-        // Card click opens modal with details (ignore clicks on buttons)
-        var cards = document.querySelectorAll('.log-card');
-        cards.forEach(function (card) {
-            card.removeEventListener('click', card._cardHandler);
-            var handler = function (e) {
-                var ignore = e.target.closest('.btn-text-action') || e.target.closest('.btn-copy-small') || e.target.closest('.js-delete-btn') || e.target.closest('.js-archive-btn');
-                if (ignore) return;
-                var id = card.getAttribute('data-id');
+                var row = btn.closest('tr');
+                var id = row.getAttribute('data-id');
                 openAnnouncementModal(id);
             };
-            card._cardHandler = handler;
-            card.addEventListener('click', handler);
+            btn._viewHandler = handler;
+            btn.addEventListener('click', handler);
         });
     }
 
     // Modal elements
-    var annModal = document.getElementById('annModal');
-    var annModalClose = document.getElementById('annModalClose');
-    var modalTitle = document.getElementById('modalTitle');
+    var modalIdLabel = document.getElementById('modalIdLabel');
+    var modalCategory = document.getElementById('modalCategory');
     var modalRecipients = document.getElementById('modalRecipients');
+    var modalLocation = document.getElementById('modalLocation');
+    var modalEffective = document.getElementById('modalEffective');
+    var modalOfficer = document.getElementById('modalOfficer');
+    var modalPenalty = document.getElementById('modalPenalty');
+    var modalReference = document.getElementById('modalReference');
+    var modalDetails = document.getElementById('modalDetails');
+    var modalProcessed = document.getElementById('modalProcessed');
+    var modalResendBtn = document.getElementById('modalResendBtn');
+    
+    var modalOfficerRow = document.getElementById('modalOfficerRow');
+    var modalPenaltyRow = document.getElementById('modalPenaltyRow');
+    var modalReferenceRow = document.getElementById('modalReferenceRow');
+    
     var modalStatus = document.getElementById('modalStatus');
     var modalTime = document.getElementById('modalTime');
-    var modalMessage = document.getElementById('modalMessage');
     var modalArchiveBtn = document.getElementById('modalArchiveBtn');
     var modalDeleteBtn = document.getElementById('modalDeleteBtn');
 
     function openAnnouncementModal(id) {
         var items = readAnnouncements();
         var item = items.find(function (it) { return it.id === id; });
-        if (!item) return;
-        // If modal markup was removed, fall back to a simple alert with details
-        if (!annModal) {
-            var textParts = [];
-            textParts.push((item.details && item.details.length > 0) ? item.details : (item.referenceNo || 'Announcement'));
-            textParts.push('\nRecipients: ' + (recipientLabels[item.recipientGroup] || item.recipientGroup));
-            textParts.push('\nStatus: ' + (item.status || ''));
-            textParts.push('\nSent: ' + new Date(item.createdAt).toLocaleString());
-            textParts.push('\n\n' + (item.message || ''));
-            alert(textParts.join(''));
-            return;
+        if (!item || !annModal) return;
+        
+        var templateName = templateLabels[item.template] || "Custom Announcement";
+        
+        if (modalIdLabel) modalIdLabel.textContent = "ANNOUNCEMENT " + (id.split('-')[1] || id);
+        if (modalStatus) {
+            modalStatus.textContent = item.status === "Processing" ? "PENDING" : "DELIVERED";
+            modalStatus.style.color = item.status === "Processing" ? "#d97706" : "#059669";
         }
-        modalTitle.textContent = (item.details && item.details.length > 0) ? item.details : (item.referenceNo || 'Announcement');
-        modalRecipients.textContent = recipientLabels[item.recipientGroup] || item.recipientGroup;
-        modalStatus.textContent = item.status || '';
-        modalTime.textContent = new Date(item.createdAt).toLocaleString();
-        modalMessage.textContent = item.message || '';
-        modalArchiveBtn.textContent = item.archived ? 'Restore' : 'Archive';
-        modalArchiveBtn.onclick = function () {
-            var all = readAnnouncements().map(function (itm) { if (itm.id === id) itm.archived = !itm.archived; return itm; });
-            saveAnnouncements(all);
-            closeModal();
-            renderAnnouncements();
-        };
-        modalDeleteBtn.onclick = function () {
-            if (!confirm('Permanently delete this announcement?')) return;
-            var remaining = readAnnouncements().filter(function (itm) { return itm.id !== id; });
-            saveAnnouncements(remaining);
-            closeModal();
-            renderAnnouncements();
-        };
-        annModal.classList.remove('hidden');
+        if (modalTime) modalTime.textContent = getRelativeTime(item.createdAt);
+        
+        if (modalCategory) modalCategory.textContent = templateName;
+        if (modalRecipients) modalRecipients.textContent = recipientLabels[item.recipientGroup] || item.recipientGroup;
+        if (modalLocation) modalLocation.textContent = item.location || "N/A";
+        if (modalEffective) modalEffective.textContent = item.effectiveDate || "N/A";
+        if (modalOfficer) modalOfficer.textContent = item.officer || "N/A";
+        if (modalPenalty) modalPenalty.textContent = item.penalty || "N/A";
+        if (modalReference) modalReference.textContent = item.referenceNo || "N/A";
+        if (modalDetails) modalDetails.textContent = item.details || item.message || "N/A";
+        if (modalProcessed) modalProcessed.textContent = (item.deliveredCount || 0).toLocaleString();
+
+        if (item.template === 'meeting') {
+            if (modalOfficerRow) modalOfficerRow.style.display = 'none';
+            if (modalPenaltyRow) modalPenaltyRow.style.display = 'none';
+            if (modalReferenceRow) modalReferenceRow.style.display = 'none';
+        } else {
+            if (modalOfficerRow) modalOfficerRow.style.display = 'flex';
+            if (modalPenaltyRow) modalPenaltyRow.style.display = 'flex';
+            if (modalReferenceRow) modalReferenceRow.style.display = 'flex';
+        }
+
+        if (modalArchiveBtn) {
+            modalArchiveBtn.textContent = item.archived ? 'Restore' : 'Archive';
+            modalArchiveBtn.onclick = function () {
+                var all = readAnnouncements().map(function (itm) { if (itm.id === id) itm.archived = !itm.archived; return itm; });
+                saveAnnouncements(all);
+                closeModal();
+                renderAnnouncements();
+            };
+        }
+        
+        if (modalDeleteBtn) {
+            modalDeleteBtn.onclick = function () {
+                if (!confirm('Permanently delete this announcement?')) return;
+                var remaining = readAnnouncements().filter(function (itm) { return itm.id !== id; });
+                saveAnnouncements(remaining);
+                closeModal();
+                renderAnnouncements();
+            };
+        }
+
+        if (modalResendBtn) {
+            modalResendBtn.onclick = function () {
+                closeModal();
+                // Switch to compose tab
+                if (tabCompose) tabCompose.click();
+                
+                // Populate fields
+                if (announcementTemplate) announcementTemplate.value = item.template;
+                if (recipientGroup) recipientGroup.value = item.recipientGroup;
+                if (announcementLocation) announcementLocation.value = item.location || "";
+                if (announcementEffectiveDate) announcementEffectiveDate.value = item.effectiveDate || "";
+                if (announcementOfficer) announcementOfficer.value = item.officer || "";
+                if (announcementPenalty) announcementPenalty.value = item.penalty || "";
+                if (announcementReference) announcementReference.value = item.referenceNo || "";
+                if (announcementDetails) announcementDetails.value = item.details || "";
+                
+                applyTemplate();
+            };
+        }
+
+        annModal.style.display = 'flex';
     }
 
     function closeModal() {
-        if (annModal) annModal.classList.add('hidden');
+        if (annModal) annModal.style.display = 'none';
     }
 
     if (annModalClose) {
@@ -454,7 +445,7 @@
         });
     }
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && annModal && !annModal.classList.contains('hidden')) closeModal();
+        if (e.key === 'Escape' && annModal && annModal.style.display === 'flex') closeModal();
     });
     // Reset compose inputs
     clearFormBtn.addEventListener("click", function () {

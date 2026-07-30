@@ -13,6 +13,10 @@ namespace ari_final_sa_capstone.Data
         public DbSet<Announcement> Announcements { get; set; }
         public DbSet<FisherfolkRegistry> FisherfolkRegistries { get; set; }
         public DbSet<FeedbackMessage> FeedbackMessages { get; set; }
+        public DbSet<BlotterReport> BlotterReports { get; set; }
+        public DbSet<SMSLog> SMSLogs { get; set; }
+        public DbSet<ReportSubmission> ReportSubmissions { get; set; }
+        public DbSet<SurveyResponse> SurveyResponses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

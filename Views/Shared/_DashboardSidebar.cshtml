@@ -26,16 +26,26 @@
 <aside class="sidebar">
     <div class="brand">
         <h1>Bantay Dagat</h1>
-        <p>Coastal Monitoring System</p>
     </div>
 
     <div class="nav-group">
         <p class="nav-label">MAIN</p>
         <nav class="nav-menu">
-            <a class="@navClass("Index")" asp-controller="Home" asp-action="Index">
-                <span class="nav-icon overview-icon" aria-hidden="true"></span>
-                <span>Overview</span>
-            </a>
+            @if (displayRole != "SuperAdmin")
+            {
+                <a class="@navClass("Index")" asp-controller="Home" asp-action="Index">
+                    <span class="nav-icon overview-icon" aria-hidden="true"></span>
+                    <span>Overview</span>
+                </a>
+            }
+            @if (displayRole == "SuperAdmin")
+            {
+                <a class="@navClass("SystemDashboard")" asp-controller="SuperAdmin" asp-action="SystemDashboard">
+                    <span class="nav-icon overview-icon" aria-hidden="true"></span>
+                    <span>System Dashboard</span>
+                </a>
+            }
+            
             @if (displayRole != "SuperAdmin")
             {
                 <a class="@navClass("Feedback")" asp-controller="Home" asp-action="Feedback">
@@ -47,8 +57,11 @@
                     <span>Fisherfolk Info</span>
                 </a>
             }
+            
         </nav>
     </div>
+
+
 
     @if (displayRole != "SuperAdmin")
     {
@@ -59,10 +72,6 @@
                     <span class="nav-icon announcement-icon" aria-hidden="true"></span>
                     <span>Announcements</span>
                 </a>
-                <a class="nav-item" href="#">
-                    <span class="nav-icon weather-icon" aria-hidden="true"></span>
-                    <span>SMS Operations</span>
-                </a>
             </nav>
         </div>
     }
@@ -70,11 +79,19 @@
     @if (displayRole == "SuperAdmin")
     {
         <div class="nav-group">
-            <p class="nav-label">ADMINISTRATION</p>
+            <p class="nav-label">ADMINISTRATION (SUPER ADMIN)</p>
             <nav class="nav-menu">
                 <a class="@navClass("UserManagement")" asp-controller="UserManagement" asp-action="Index">
                     <span class="nav-icon admin-icon" aria-hidden="true"></span>
-                    <span>Manage Admins</span>
+                    <span>User Management</span>
+                </a>
+                <a class="@navClass("Monitoring")" asp-controller="SuperAdmin" asp-action="Monitoring">
+                    <span class="nav-icon report-icon" aria-hidden="true"></span>
+                    <span>Health & Settings</span>
+                </a>
+                <a class="@navClass("DataExport")" asp-controller="SuperAdmin" asp-action="DataExport">
+                    <span class="nav-icon announcement-icon" aria-hidden="true"></span>
+                    <span>Data Export Center</span>
                 </a>
             </nav>
         </div>

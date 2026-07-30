@@ -97,7 +97,7 @@
                     <button class="filter-button active" onclick="filterAdmins('all', this)" type="button">All Roles</button>
                     <button class="filter-button" onclick="filterAdmins('SuperAdmin', this)" type="button">Super Admins</button>
                     <button class="filter-button" onclick="filterAdmins('BantayDagatAdmin', this)" type="button">Bantay Dagat</button>
-                    <button class="filter-button" onclick="filterAdmins('FisherfolkAdmin', this)" type="button">Fisherfolk</button>
+                    <button class="filter-button" onclick="filterAdmins('FisheriesAdmin', this)" type="button">Fisheries</button>
                 </div>
                 <div class="search-wrapper">
                     <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
@@ -135,9 +135,9 @@
                                     {
                                         <span class="role-pill bd-admin">Bantay Dagat Admin</span>
                                     }
-                                    else if (admin.Role == "FisherfolkAdmin")
+                                    else if (admin.Role == "FisheriesAdmin")
                                     {
-                                        <span class="role-pill ff-admin">Fisherfolk Admin</span>
+                                        <span class="role-pill ff-admin">Fisheries Admin</span>
                                     }
                                 </td>
                                 <td>@admin.DateCreated.ToString("yyyy-MM-dd HH:mm")</td>
@@ -385,7 +385,7 @@
                         <option value="">Select privilege level</option>
                         <option value="SuperAdmin">Super Admin (All Access)</option>
                         <option value="BantayDagatAdmin">Bantay Dagat Admin (Patrols/Incidents)</option>
-                        <option value="FisherfolkAdmin">Fisherfolk Admin (Registries)</option>
+                        <option value="FisheriesAdmin">Fisheries Admin (Registries)</option>
                     </select>
                 </label>
                 <div class="form-actions field-span-2" style="margin-top: 15px;">

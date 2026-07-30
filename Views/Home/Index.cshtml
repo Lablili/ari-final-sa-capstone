@@ -14,7 +14,6 @@
                 <h2>Dashboard</h2>
             </div>
             <div class="topbar-meta">
-                <span class="stat-badge" id="newBadge">0 New</span>
                 <span class="date-indicator">
                     <svg class="date-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -115,9 +114,7 @@
                         </div>
                     </div>
                 </div>
-
-                <a class="report-footer-link" asp-controller="Home" asp-action="Feedback">Tan-awa ang tanang reports sa Community Reports file</a>
-            </article>
+                </article>
 
             <article class="panel">
                 <div class="panel-header plain">
@@ -155,20 +152,273 @@
                         </div>
                     </div>
                 </div>
-                <button class="scroll-button" aria-label="Scroll for more">
-                    <span></span>
-                </button>
+                
             </article>
         </section>
         }
+
+        <!-- ANALYTICS DASHBOARD CONTENT COMBINED -->
+        <style>
+            .dashboard-container { display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
+            .metric-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+            .metric-title { color: #64748b; font-weight: 600; font-size: 0.9rem; margin-bottom: 12px; }
+            .metric-value { color: #0f172a; font-size: 2.2rem; font-weight: 700; margin: 0 0 12px 0; }
+            .metric-subtext { font-size: 0.85rem; color: #94a3b8; }
+            .metric-trend { padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; margin-right: 6px; }
+            .trend-up { background: #dcfce7; color: #166534; }
+            .trend-down { background: #fee2e2; color: #991b1b; }
+            .chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); height: 100%; display: flex; flex-direction: column; }
+            .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+            .chart-title { color: #0f172a; font-weight: 700; font-size: 1.1rem; margin: 0; }
+            .row-middle { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+            .row-bottom { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+            @@media (max-width: 1024px) { .row-middle, .row-bottom { grid-template-columns: 1fr; } .top-metrics-grid { grid-template-columns: 1fr 1fr !important; } }
+            @@media (max-width: 640px) { .top-metrics-grid { grid-template-columns: 1fr !important; } }
+        </style>
+
+        <div class="dashboard-container">
+            <div class="top-metrics-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+                <div class="metric-card">
+                    <div class="metric-title">Total Incidents</div>
+                    <h3 class="metric-value">@ViewBag.TotalIncidents</h3>
+                    <div class="metric-subtext"><span class="metric-trend trend-up">&uarr; 4.2%</span> Compared to last month</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Avg Response Time</div>
+                    <h3 class="metric-value">@ViewBag.AvgResponseTime <span style="font-size:1.2rem; color:#64748b;">min</span></h3>
+                    <div class="metric-subtext"><span class="metric-trend trend-down">&darr; 1.5%</span> Compared to last month</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Enforcement Rate</div>
+                    <h3 class="metric-value">@ViewBag.EnforcementRate%</h3>
+                    <div class="metric-subtext"><span class="metric-trend trend-up">&uarr; 2.1%</span> Compared to last month</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">SMS Delivery Ratio</div>
+                    <h3 class="metric-value">@ViewBag.DeliveryRate%</h3>
+                    <div class="metric-subtext"><span class="metric-trend trend-up">&uarr; 0.8%</span> Compared to last month</div>
+                </div>
+            </div>
+
+            <div class="row-middle">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Incidents Over Time</h3>
+                        <span style="color:#94a3b8; font-size:1.2rem;">&middot;&middot;&middot;</span>
+                    </div>
+                    <div style="flex: 1; position: relative; min-height: 250px;">
+                        <canvas id="timeLineChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Incidents by Barangay</h3>
+                        <span style="color:#94a3b8; font-size:1.2rem;">&middot;&middot;&middot;</span>
+                    </div>
+                    <div style="flex: 1; position: relative; min-height: 250px;">
+                        <canvas id="bgyBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row-bottom">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Incident Types</h3>
+                        <span style="color:#94a3b8; font-size:1.2rem;">&middot;&middot;&middot;</span>
+                    </div>
+                    <div style="flex: 1; position: relative; min-height: 250px;">
+                        <canvas id="typeRadarChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Incidents by Status</h3>
+                        <span style="color:#94a3b8; font-size:1.2rem;">&middot;&middot;&middot;</span>
+                    </div>
+                    <div style="flex: 1; position: relative; min-height: 250px; display:flex; justify-content:center; align-items:center;">
+                        <canvas id="statusDoughnutChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Registered Fisherfolk</h3>
+                        <span style="color:#94a3b8; font-size:1.2rem;">&middot;&middot;&middot;</span>
+                    </div>
+                    <div style="flex: 1; position: relative; min-height: 250px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                        <div style="width: 100%; height: 180px; position: relative;">
+                            <canvas id="fisherfolkGaugeChart"></canvas>
+                        </div>
+                        <div style="text-align: center; margin-top: -40px;">
+                            <h2 style="margin:0; font-size: 2.2rem; font-weight: 700; color: #0f172a;">@ViewBag.TotalFisherfolk</h2>
+                            <span style="color: #64748b; font-size: 0.95rem;">Total Users</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 </div>
 
 @section Scripts {
     <script src="~/js/overview-sync.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Analytics Dashboard Charts
+            // 1. Line Chart
+            const timeLabels = @Html.Raw(ViewBag.TimeLabels ?? "[]");
+            const timeData = @Html.Raw(ViewBag.TimeData ?? "[]");
+            if (document.getElementById('timeLineChart')) {
+                new Chart(document.getElementById('timeLineChart').getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: timeLabels,
+                        datasets: [{
+                            label: 'Incidents',
+                            data: timeData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { borderDash: [4, 4] }, border: { display: false } },
+                            x: { grid: { display: false }, border: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            // 2. Horizontal Bar Chart
+            const bgyLabels = @Html.Raw(ViewBag.BarangayLabels ?? "[]");
+            const bgyData = @Html.Raw(ViewBag.BarangayData ?? "[]");
+            if (document.getElementById('bgyBarChart')) {
+                new Chart(document.getElementById('bgyBarChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: bgyLabels,
+                        datasets: [{
+                            label: 'Incidents',
+                            data: bgyData,
+                            backgroundColor: '#0f766e',
+                            barThickness: 12,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { beginAtZero: true, grid: { borderDash: [4, 4] }, border: { display: false } },
+                            y: { grid: { display: false }, border: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            // 3. Radar Chart
+            const typeLabels = @Html.Raw(ViewBag.IncidentTypesLabels ?? "[]");
+            const typeData = @Html.Raw(ViewBag.IncidentTypesData ?? "[]");
+            if (document.getElementById('typeRadarChart')) {
+                new Chart(document.getElementById('typeRadarChart').getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: typeLabels.length ? typeLabels : ['Illegal Fishing', 'Distress', 'Encroachment', 'Other'],
+                        datasets: [{
+                            label: 'Types',
+                            data: typeData.length ? typeData : [0,0,0,0],
+                            backgroundColor: 'rgba(15, 118, 110, 0.15)',
+                            borderColor: '#0f766e',
+                            pointBackgroundColor: '#0f766e',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { 
+                            r: { 
+                                ticks: { display: false },
+                                grid: { color: '#e2e8f0' },
+                                angleLines: { color: '#e2e8f0' }
+                            } 
+                        }
+                    }
+                });
+            }
+
+            // 4. Doughnut Chart
+            const statusLabels = @Html.Raw(ViewBag.IncidentStatusLabels ?? "[]");
+            const statusData = @Html.Raw(ViewBag.IncidentStatusData ?? "[]");
+            if (document.getElementById('statusDoughnutChart')) {
+                new Chart(document.getElementById('statusDoughnutChart').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels.length ? statusLabels : ['Open', 'Closed', 'Dismissed'],
+                        datasets: [{
+                            data: statusData.length ? statusData : [1,1,1],
+                            backgroundColor: ['#eab308', '#0f766e', '#94a3b8', '#3b82f6'],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { usePointStyle: true, padding: 20, font: { family: "'Inter', sans-serif" } }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 5. Gauge Chart
+            const totalFisherfolk = @Html.Raw(ViewBag.TotalFisherfolk ?? 0);
+            const target = 5000;
+            const remainder = target - totalFisherfolk > 0 ? target - totalFisherfolk : 0;
+            if (document.getElementById('fisherfolkGaugeChart')) {
+                new Chart(document.getElementById('fisherfolkGaugeChart').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [totalFisherfolk, remainder],
+                            backgroundColor: ['#0f766e', '#f1f5f9'],
+                            borderWidth: 0,
+                            circumference: 180,
+                            rotation: 270
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '85%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+    
     @if (isSuperAdmin)
     {
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // Fisherfolk Chart (Pie)

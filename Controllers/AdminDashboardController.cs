@@ -8,7 +8,7 @@ namespace ari_final_sa_capstone.Controllers
         public IActionResult Index()
         {
             var role = HttpContext.Session.GetString("UserRole");
-            if (string.IsNullOrEmpty(role) || (role != "SuperAdmin" && role != "BantayDagatAdmin" && role != "FisherfolkAdmin"))
+            if (string.IsNullOrEmpty(role) || (role != "SuperAdmin" && role != "BantayDagatAdmin" && role != "FisheriesAdmin"))
             {
                 return RedirectToAction("Login", "Account");
             }

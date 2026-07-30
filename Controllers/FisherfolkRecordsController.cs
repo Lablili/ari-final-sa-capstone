@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ari_final_sa_capstone.Controllers
 {
-    [Authorize(Roles = "FisherfolkAdmin,SuperAdmin")]
+    [Authorize(Roles = "FisheriesAdmin,SuperAdmin")]
     public class FisherfolkRecordsController : Controller
     {
         public IActionResult List()

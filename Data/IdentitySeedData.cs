@@ -15,7 +15,7 @@ namespace ari_final_sa_capstone.Data
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
             // Ensure all three roles exist.
-            string[] roles = { "SuperAdmin", "BantayDagatAdmin", "FisherfolkAdmin" };
+            string[] roles = { "SuperAdmin", "BantayDagatAdmin", "FisheriesAdmin" };
             foreach (var role in roles)
             {
                 if (!await roleManager.RoleExistsAsync(role))
@@ -64,8 +64,8 @@ namespace ari_final_sa_capstone.Data
                 }
             }
 
-            // Create default FisherfolkAdmin
-            var fisherfolkEmail = "fisherfolk@admin.com";
+            // Create default FisheriesAdmin
+            var fisherfolkEmail = "fisheries@admin.com";
             var fisherfolk = await userManager.FindByEmailAsync(fisherfolkEmail);
             if (fisherfolk == null)
             {
@@ -74,14 +74,14 @@ namespace ari_final_sa_capstone.Data
                     UserName = fisherfolkEmail,
                     Email = fisherfolkEmail,
                     EmailConfirmed = true,
-                    FullName = "Fisherfolk Admin",
+                    FullName = "Fisheries Admin",
                     IsActive = true,
                     DateCreated = DateTime.Now
                 };
                 var result = await userManager.CreateAsync(fisherfolk, "Fisher@Adm2026!");
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(fisherfolk, "FisherfolkAdmin");
+                    await userManager.AddToRoleAsync(fisherfolk, "FisheriesAdmin");
                 }
             }
         }

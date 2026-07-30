@@ -277,6 +277,17 @@ function openDetail(id) {
 
   document.getElementById('detailModal').classList.remove('hidden');
 
+    let actionButtons = '';
+    if (window.UserRole !== 'FisheriesAdmin') {
+      actionButtons = `
+      <button class="btn-secondary" onclick="setStatus(${activeMsg.id},'review')">Mark as Reviewed</button>
+      <button class="btn-secondary" onclick="setStatus(${activeMsg.id},'resolved')">Mark as Resolved</button>
+      <button class="btn-primary" onclick="closeDetail();openBlotter(${activeMsg.id})">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Generate Blotter
+      </button>`;
+    }
+
     document.getElementById('detailBody').innerHTML = `
     <div class="info-grid">
       <div class="info-card"><div class="info-l">Sender</div><div class="info-v">${activeMsg.sender}</div></div>
@@ -291,12 +302,7 @@ function openDetail(id) {
     <div class="msg-block">${activeMsg.msg}</div>
 
     <div class="action-bar">
-      <button class="btn-secondary" onclick="setStatus(${activeMsg.id},'review')">Mark as Reviewed</button>
-      <button class="btn-secondary" onclick="setStatus(${activeMsg.id},'resolved')">Mark as Resolved</button>
-      <button class="btn-primary" onclick="closeDetail();openBlotter(${activeMsg.id})">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        Generate Blotter
-      </button>
+      ${actionButtons}
     </div>`;
 }
 

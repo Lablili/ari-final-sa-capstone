@@ -1,5 +1,6 @@
 @{
     ViewData["Title"] = "Fisherfolk Info";
+    var userRole = Context.Session.GetString("UserRole") ?? "";
 }
 
 
@@ -52,14 +53,17 @@
 
         </section>
 
-        <div class="directory-header-section" style="display: flex; gap: 10px;">
-            <button class="btn-primary" id="btnRegisterLocalFisherman" type="button">
-                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
-                </svg>
-                Register Local Fisherman
-            </button>
-        </div>
+        @if (userRole != "BantayDagatAdmin")
+        {
+            <div class="directory-header-section" style="display: flex; gap: 10px;">
+                <button class="btn-primary" id="btnRegisterLocalFisherman" type="button">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Register Local Fisherman
+                </button>
+            </div>
+        }
 
         <div class="filters-search-panel" style="display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
             <div class="barangay-filters" style="display: flex; gap: 8px;">
@@ -99,11 +103,14 @@
             
             <div class="table-footer" style="padding: 15px 0 5px 0; margin-top: 5px; display: flex; flex-direction: column; gap: 6px;">
                 <span id="activeRecordCount" style="font-size: 14.5px; color: #0f172a; font-weight: 500;">Showing 0 of 0 records</span>
-                <div>
-                    <a href="#" id="btnToggleArchiveFooter" style="font-size: 14.5px; color: #2563eb; text-decoration: none; font-weight: 500;">
-                        <span id="archiveFooterText">View archived</span> (<span id="archiveCountBadge">0</span>) <span id="archiveFooterArrow">&rarr;</span>
-                    </a>
-                </div>
+                @if (userRole != "BantayDagatAdmin")
+                {
+                    <div>
+                        <a href="#" id="btnToggleArchiveFooter" style="font-size: 14.5px; color: #3b82f6; text-decoration: none; font-weight: 500;">
+                            <span id="archiveFooterText">View archived</span> (<span id="archiveCountBadge">0</span>) <span id="archiveFooterArrow">&rarr;</span>
+                        </a>
+                    </div>
+                }
             </div>
         </div>
 
@@ -203,5 +210,8 @@
 </div>
 
 @section Scripts {
+    <script>
+        window.UserRole = '@userRole';
+    </script>
     <script src="~/js/fisherfolk-info.js" asp-append-version="true"></script>
 }

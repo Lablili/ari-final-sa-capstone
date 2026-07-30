@@ -54,8 +54,8 @@ namespace ari_final_sa_capstone.Controllers
                 var roles = await _userManager.GetRolesAsync(user);
                 var role = roles.FirstOrDefault() ?? "No Role";
 
-                // Only show admins (SuperAdmin, BantayDagatAdmin, FisherfolkAdmin)
-                if (role == "SuperAdmin" || role == "BantayDagatAdmin" || role == "FisherfolkAdmin")
+                // Only show admins (SuperAdmin, BantayDagatAdmin, FisheriesAdmin)
+                if (role == "SuperAdmin" || role == "BantayDagatAdmin" || role == "FisheriesAdmin")
                 {
                     viewModel.Admins.Add(new AdminUserDisplayViewModel
                     {

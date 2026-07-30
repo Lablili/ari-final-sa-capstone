@@ -233,7 +233,7 @@
 
 .stat-card {
   padding: 20px 20px 18px;
-  border: 1px solid #dce6f3;
+  border: 1px solid gray;
   border-radius: 18px;
   background: #ffffff;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;

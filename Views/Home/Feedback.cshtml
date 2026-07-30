@@ -1,5 +1,6 @@
 @{
     ViewData["Title"] = "Community Reports";
+    var userRole = Context.Session.GetString("UserRole") ?? "";
 }
 
 
@@ -149,5 +150,8 @@
 </div>
 
 @section Scripts {
+    <script>
+        window.UserRole = '@userRole';
+    </script>
     <script src="~/js/Feedback.js" asp-append-version="true"></script>
 }

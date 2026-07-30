@@ -51,7 +51,7 @@ namespace ari_final_sa_capstone.Controllers
                         return Redirect(returnUrl);
 
                     // If the signed in user is any of the admin roles, go to the admin dashboard.
-                    if (role == "SuperAdmin" || role == "BantayDagatAdmin" || role == "FisherfolkAdmin")
+                    if (role == "SuperAdmin" || role == "BantayDagatAdmin" || role == "FisheriesAdmin")
                     {
                         return RedirectToAction("Index", "AdminDashboard");
                     }

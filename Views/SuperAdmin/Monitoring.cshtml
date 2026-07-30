@@ -1,0 +1,90 @@
+@model IEnumerable<ari_final_sa_capstone.Models.SMSLog>
+@{
+    ViewData["Title"] = "System Monitoring";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["ActivePage"] = "SystemMonitoring";
+}
+
+<div class="dashboard-shell">
+    @await Html.PartialAsync("_DashboardSidebar")
+    <main class="main-content" style="padding: 20px;">
+
+<header class="topbar">
+    <div class="topbar-title-area">
+        <h2>System Monitoring & Health</h2>
+        <p class="text-muted" style="margin-top: 4px; font-size: 0.9rem;">Live view of network status and raw SMS logs</p>
+    </div>
+    <div class="topbar-meta">
+        <span class="date-indicator">
+            <svg class="date-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 2v4M8 2v4M3 10h18"></path>
+            </svg>
+            <span>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</span>
+        </span>
+    </div>
+</header>
+
+<section class="stats-grid" style="margin-top: 24px;">
+    <article class="stat-card">
+        <p class="stat-title">Network Status</p>
+        <h3 class="status-online">Online</h3>
+        <p class="stat-subtext positive">Connected to GSM Network</p>
+    </article>
+    
+    <article class="stat-card">
+        <p class="stat-title">Database Health</p>
+        <h3 class="status-online">Good</h3>
+        <p class="stat-subtext text-muted">Latency: 12ms</p>
+    </article>
+    
+    <article class="stat-card">
+        <p class="stat-title">Modem Status</p>
+        <h3 style="color: var(--text);">Idle</h3>
+        <p class="stat-subtext text-muted">Signal Strength: 85%</p>
+    </article>
+</section>
+
+<section class="panel" style="margin-top: 24px;">
+    <div class="panel-header">
+        <h3>SMS Delivery Logs (Latest 50)</h3>
+    </div>
+    <div class="database-container" style="max-height: 500px; overflow-y: auto;">
+        <table class="fisherfolk-table">
+            <thead>
+                <tr>
+                    <th>Log ID</th>
+                    <th>Type</th>
+                    <th>Target Phone</th>
+                    <th>Status</th>
+                    <th>Time Sent</th>
+                    <th>Time Received</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in Model)
+                {
+                    <tr>
+                        <td>#@log.SmsId</td>
+                        <td><span class="role-pill super-admin">@log.MessageType</span></td>
+                        <td>@log.PhoneNumber</td>
+                        <td class="font-weight-semibold @(log.DeliveryStatus == "Delivered" ? "text-success" : (log.DeliveryStatus == "Failed" ? "text-danger" : "text-warning"))">
+                            @log.DeliveryStatus
+                        </td>
+                        <td style="font-size: 0.85rem; color: var(--muted);">@log.TimestampSent.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td style="font-size: 0.85rem; color: var(--muted);">@(log.TimestampReceived?.ToString("yyyy-MM-dd HH:mm:ss") ?? "-")</td>
+                    </tr>
+                }
+                @if(!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No SMS logs available.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+    </main>
+</div>
