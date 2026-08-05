@@ -3,6 +3,28 @@
     var PASSWORD = "bantay";
     var STORAGE_KEY = "bantay-dagat-authenticated";
 
+    // SignalR Connection
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/smsprogress")
+        .build();
+
+    connection.on("ReceiveProgress", function (data) {
+        var progressDiv = document.getElementById("liveProgress-" + data.announcementId);
+        if (progressDiv) {
+            progressDiv.innerHTML = `
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:8px; margin-top:20px;">
+                    <h4 style="margin:0 0 8px 0; color:#1e40af;">Live Send Progress</h4>
+                    <p style="margin:0 0 4px 0; font-weight:bold;">Sending: ${data.delivered + data.failed}/${data.total} (${data.percent}%)</p>
+                    <p style="margin:0; font-size:0.9rem; color:#4b5563;">Delivered: <span style="color:#059669">${data.delivered}</span> | Pending: <span style="color:#d97706">${data.pending}</span> | Failed: <span style="color:#dc2626">${data.failed}</span></p>
+                </div>
+            `;
+        }
+    });
+
+    connection.start().catch(function (err) {
+        console.error(err.toString());
+    });
+
     // Containers
     var loginScreen = document.getElementById("loginScreen");
     var dashboardShell = document.getElementById("dashboardShell");
@@ -15,17 +37,24 @@
 
     // DOM Elements
     var announcementForm = document.getElementById("announcementForm");
-    var announcementTemplate = document.getElementById("announcementTemplate");
+    
+    // Form fields
     var recipientGroup = document.getElementById("recipientGroup");
-    var announcementLocation = document.getElementById("announcementLocation");
-    var announcementEffectiveDate = document.getElementById("announcementEffectiveDate");
-    var announcementOfficer = document.getElementById("announcementOfficer");
-    var announcementPenalty = document.getElementById("announcementPenalty");
     var announcementReference = document.getElementById("announcementReference");
+    var announcementTitle = document.getElementById("announcementTitle");
+    var announcementEffectiveDate = document.getElementById("announcementEffectiveDate");
+    var announcementLocation = document.getElementById("announcementLocation");
+    var announcementPenalty = document.getElementById("announcementPenalty");
     var announcementDetails = document.getElementById("announcementDetails");
-    var officerWrapper = document.getElementById("officerWrapper");
-    var penaltyWrapper = document.getElementById("penaltyWrapper");
-    var referenceWrapper = document.getElementById("referenceWrapper");
+    
+    var meetingTitle = document.getElementById("meetingTitle");
+    var meetingDate = document.getElementById("meetingDate");
+    var meetingLocation = document.getElementById("meetingLocation");
+    var meetingContact = document.getElementById("meetingContact");
+    
+    var ordinanceFields = document.getElementById("ordinanceFields");
+    var meetingFields = document.getElementById("meetingFields");
+
     var announcementPreview = document.getElementById("announcementPreview");
     var announcementLog = document.getElementById("announcementLog");
     var announcementCount = document.getElementById("announcementCount");
@@ -47,24 +76,18 @@
     }
     // Template Messages
     var templates = {
-        "ordinance": "Bantay Dagat Notice: Please follow municipal fishing ordinances within Bantayan waters and the 15 km coastal operating area.",
-        "no-fishing": "Bantay Dagat Notice: Entry into the identified no-fishing zone is prohibited until further notice from Bantay Dagat staff.",
-        "seasonal": "Bantay Dagat Notice: Seasonal restrictions are now in effect. Please observe the seasonal guidelines for fishing.",
-        "general": "Bantay Dagat Notice: An event/meeting is scheduled. Please see details for more information.",
-        "custom": ""
+        "ordinance": "Bantay Dagat Notice: Ordinance/Resolution -",
+        "meeting": "Bantay Dagat Notice: Meeting/Event -"
     };
     var templateLabels = {
         "ordinance": "Ordinance/Resolution",
-        "no-fishing": "No Fishing Zone Notice",
-        "seasonal": "Seasonal Notice",
-        "general": "General Events (Meeting, IEC, Workshops, Training)",
-        "custom": "Custom Announcement"
+        "meeting": "Meeting/Events"
     };
     var recipientLabels = {
-        "all": "All registered fisherfolk (1,248)",
-        "north": "Barangay Sulangan (312)",
-        "south": "Barangay Patao (284)",
-        "licensed": "Barangay Guiwanon (652)"
+        "all": "All registered fisherfolk",
+        "north": "Barangay Sulangan",
+        "south": "Barangay Patao",
+        "licensed": "Barangay Guiwanon"
     };
     // Default seed announcements
     var seedAnnouncements = [
@@ -72,32 +95,16 @@
             id: "ann-001",
             template: "ordinance",
             recipientGroup: "all",
+            title: "New Fishing Guidelines",
             location: "Bantayan municipal waters",
             effectiveDate: "May 4, 2026",
-            officer: "Officer Juan Dela Cruz",
             penalty: "Fines & warning",
             referenceNo: "Ordinance No. 2024-07",
             details: "Observe only legal fishing methods and avoid restricted areas.",
-            message: "Bantay Dagat Notice: Please follow municipal fishing ordinances within Bantayan waters and the 15 km coastal operating area. Ref: Ordinance No. 2024-07. Area: Bantayan municipal waters. Effective: May 4, 2026. Penalty: Fines & warning. Issued by: Officer Juan Dela Cruz. Details: Observe only legal fishing methods and avoid restricted areas.",
+            message: "Bantay Dagat Notice: Ordinance/Resolution - New Fishing Guidelines. Ref: Ordinance No. 2024-07. Area: Bantayan municipal waters. Effective: May 4, 2026. Penalty: Fines & warning. Details: Observe only legal fishing methods and avoid restricted areas.",
             status: "Delivered",
             createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(), // 1 day ago
-            deliveredCount: 1248,
-            archived: false
-        },
-        {
-            id: "ann-002",
-            template: "no-fishing",
-            recipientGroup: "north",
-            location: "Barangay Kabac shoreline",
-            effectiveDate: "Until further notice",
-            officer: "Officer Elpidio Reyes",
-            penalty: "Confiscation of fishing gear",
-            referenceNo: "Notice No. 2026-05",
-            details: "Restricted zone remains active near the protected coastal section.",
-            message: "Bantay Dagat Notice: Entry into the identified no-fishing zone is prohibited until further notice from Bantay Dagat staff. Ref: Notice No. 2026-05. Area: Barangay Kabac shoreline. Effective: Until further notice. Penalty: Confiscation of fishing gear. Issued by: Officer Elpidio Reyes. Details: Restricted zone remains active near the protected coastal section.",
-            status: "Delivered",
-            createdAt: new Date(Date.now() - 3600 * 1000 * 5).toISOString(), // 5 hours ago
-            deliveredCount: 312,
+            deliveredCount: 0,
             archived: false
         }
     ];
@@ -111,18 +118,40 @@
             currentDateDisplay.textContent = today.toLocaleDateString('en-US', options);
         }
     }
+    function autoArchiveAnnouncements(items) {
+        var modified = false;
+        var sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        items.forEach(function(item) {
+            if (!item.archived && item.createdAt) {
+                var createdDate = new Date(item.createdAt);
+                if (createdDate < sixMonthsAgo) {
+                    item.archived = true;
+                    modified = true;
+                }
+            }
+        });
+
+        if (modified) {
+            saveAnnouncements(items);
+        }
+        return items;
+    }
+
     // Read local database
     function readAnnouncements() {
         var stored = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
         if (!stored) {
             localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(seedAnnouncements));
-            return seedAnnouncements.slice();
+            return autoArchiveAnnouncements(seedAnnouncements.slice());
         }
         try {
-            return JSON.parse(stored) || [];
+            var items = JSON.parse(stored) || [];
+            return autoArchiveAnnouncements(items);
         } catch (error) {
             localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(seedAnnouncements));
-            return seedAnnouncements.slice();
+            return autoArchiveAnnouncements(seedAnnouncements.slice());
         }
     }
     // Save to local database
@@ -156,34 +185,50 @@
         return "Just now";
     }
     // Build the dynamic preview SMS
+    function getSelectedCategory() {
+        var radio = document.querySelector('input[name="template"]:checked');
+        return radio ? radio.value : '';
+    }
+
     function buildMessage() {
-        var baseTemplate = templates[announcementTemplate.value] || "";
+        var category = getSelectedCategory();
+        var baseTemplate = templates[category] || "";
         var finalMessage = baseTemplate;
-        var referenceNo = announcementReference.value.trim();
-        var locationText = announcementLocation.value.trim();
-        var effectiveDate = announcementEffectiveDate.value.trim();
-        var penaltyText = announcementPenalty.value.trim();
-        var officerName = announcementOfficer.value.trim();
+        
         var detailsText = announcementDetails.value.trim();
-        if (referenceNo) {
-            finalMessage += " Ref: " + referenceNo + ".";
+
+        if (category === 'ordinance') {
+            var title = announcementTitle.value.trim();
+            var referenceNo = announcementReference.value.trim();
+            var locationText = announcementLocation.value.trim();
+            var effectiveDate = announcementEffectiveDate.value.trim();
+            var penaltyText = announcementPenalty.value.trim();
+
+            if (title) finalMessage += " " + title + ".";
+            if (referenceNo) finalMessage += " Ref: " + referenceNo + ".";
+            if (locationText) finalMessage += " Area: " + locationText + ".";
+            if (effectiveDate) finalMessage += " Effective: " + effectiveDate + ".";
+            if (penaltyText) finalMessage += " Penalty: " + penaltyText + ".";
+        } else {
+            var title = meetingTitle.value.trim();
+            var eventDate = meetingDate.value.trim();
+            var locationText = meetingLocation.value.trim();
+            var contactText = meetingContact.value.trim();
+
+            if (title) finalMessage += " " + title + ".";
+            if (eventDate) finalMessage += " Date: " + eventDate + ".";
+            if (locationText) finalMessage += " Area: " + locationText + ".";
+            if (contactText) finalMessage += " Contact: " + contactText + ".";
         }
-        if (locationText) {
-            finalMessage += " Area: " + locationText + ".";
-        }
-        if (effectiveDate) {
-            finalMessage += " Effective: " + effectiveDate + ".";
-        }
-        if (penaltyText) {
-            finalMessage += " Penalty: " + penaltyText + ".";
-        }
-        if (officerName) {
-            finalMessage += " Issued by: " + officerName + ".";
-        }
+
         if (detailsText) {
             finalMessage += " Details: " + detailsText;
         }
-        return finalMessage.trim() || "Compose an announcement to preview the outgoing SMS.";
+        var finalString = finalMessage.trim() || "Compose an announcement to preview the outgoing SMS.";
+        if (finalString !== "Compose an announcement to preview the outgoing SMS." && finalString.length > 160) {
+            finalString = finalString.substring(0, 160);
+        }
+        return finalString;
     }
     function updatePreview() {
         if (announcementPreview) {
@@ -192,27 +237,35 @@
     }
     // Reset categories inputs
     function applyTemplate() {
-        if (announcementTemplate.value === "meeting") {
-            if (officerWrapper) officerWrapper.style.display = "none";
-            if (penaltyWrapper) penaltyWrapper.style.display = "none";
-            if (referenceWrapper) referenceWrapper.style.display = "none";
+        var category = getSelectedCategory();
+        if (category === "meeting") {
+            if(ordinanceFields) ordinanceFields.style.display = "none";
+            if(meetingFields) meetingFields.style.display = "grid";
+        } else if (category === "ordinance") {
+            if(ordinanceFields) ordinanceFields.style.display = "grid";
+            if(meetingFields) meetingFields.style.display = "none";
         } else {
-            if (officerWrapper) officerWrapper.style.display = "";
-            if (penaltyWrapper) penaltyWrapper.style.display = "";
-            if (referenceWrapper) referenceWrapper.style.display = "";
+            if(ordinanceFields) ordinanceFields.style.display = "none";
+            if(meetingFields) meetingFields.style.display = "none";
         }
         // If template changes, clear manual message or reload preview
         updatePreview();
+    }
+    
+    var clearCategoryBtn = document.getElementById('clearCategoryBtn');
+    if (clearCategoryBtn) {
+        clearCategoryBtn.addEventListener('click', function() {
+            var templateRadios = document.querySelectorAll('input[name="template"]');
+            templateRadios.forEach(function(r) { r.checked = false; });
+            applyTemplate();
+        });
     }
     // Render counts for tabs
     function updateTabCounts(items) {
         var counts = {
             all: 0,
             ordinance: 0,
-            "no-fishing": 0,
-            seasonal: 0,
-            general: 0,
-            other: 0,
+            meeting: 0,
             archived: 0
         };
         items.forEach(function (item) {
@@ -221,10 +274,7 @@
             } else {
                 counts.all += 1;
                 if (item.template === "ordinance") counts.ordinance += 1;
-                else if (item.template === "no-fishing") counts["no-fishing"] += 1;
-                else if (item.template === "seasonal") counts.seasonal += 1;
-                else if (item.template === "general") counts.general += 1;
-                else counts.other += 1;
+                else if (item.template === "meeting") counts.meeting += 1;
             }
         });
         // Set text content for badges
@@ -256,9 +306,7 @@
             } else {
                 if (item.archived === true) return false;
                 if (currentFilter !== "all") {
-                    if (currentFilter === "other") {
-                        if (["ordinance", "no-fishing", "seasonal", "general"].includes(item.template)) return false;
-                    } else if (item.template !== currentFilter) {
+                    if (item.template !== currentFilter) {
                         return false;
                     }
                 }
@@ -292,7 +340,7 @@
 
         var rowsHtml = filteredItems.map(function (item, index) {
             var templateName = templateLabels[item.template] || "Custom Announcement";
-            var rawTitle = String(item.message || item.details || templateName).split('.').filter(Boolean)[0] || String(item.message || item.details || templateName);
+            var rawTitle = String(item.title || item.message || item.details || templateName);
             var titleText = rawTitle.trim();
             if (titleText.length > 40) titleText = titleText.slice(0, 37) + '...';
             
@@ -334,21 +382,28 @@
     }
 
     // Modal elements
-    var modalIdLabel = document.getElementById('modalIdLabel');
+    var modalTitle = document.getElementById('modalTitle');
     var modalCategory = document.getElementById('modalCategory');
     var modalRecipients = document.getElementById('modalRecipients');
     var modalLocation = document.getElementById('modalLocation');
     var modalEffective = document.getElementById('modalEffective');
-    var modalOfficer = document.getElementById('modalOfficer');
+    var modalEventDate = document.getElementById('modalEventDate');
+    var modalContact = document.getElementById('modalContact');
     var modalPenalty = document.getElementById('modalPenalty');
     var modalReference = document.getElementById('modalReference');
     var modalDetails = document.getElementById('modalDetails');
+    var modalAttachment = document.getElementById('modalAttachment');
     var modalProcessed = document.getElementById('modalProcessed');
     var modalResendBtn = document.getElementById('modalResendBtn');
     
-    var modalOfficerRow = document.getElementById('modalOfficerRow');
+    var modalTitleRow = document.getElementById('modalTitleRow');
+    var modalLocationRow = document.getElementById('modalLocationRow');
+    var modalEffectiveRow = document.getElementById('modalEffectiveRow');
+    var modalEventDateRow = document.getElementById('modalEventDateRow');
+    var modalContactRow = document.getElementById('modalContactRow');
     var modalPenaltyRow = document.getElementById('modalPenaltyRow');
     var modalReferenceRow = document.getElementById('modalReferenceRow');
+    var modalAttachmentRow = document.getElementById('modalAttachmentRow');
     
     var modalStatus = document.getElementById('modalStatus');
     var modalTime = document.getElementById('modalTime');
@@ -370,23 +425,36 @@
         if (modalTime) modalTime.textContent = getRelativeTime(item.createdAt);
         
         if (modalCategory) modalCategory.textContent = templateName;
+        if (modalTitle) modalTitle.textContent = item.title || "N/A";
         if (modalRecipients) modalRecipients.textContent = recipientLabels[item.recipientGroup] || item.recipientGroup;
         if (modalLocation) modalLocation.textContent = item.location || "N/A";
         if (modalEffective) modalEffective.textContent = item.effectiveDate || "N/A";
-        if (modalOfficer) modalOfficer.textContent = item.officer || "N/A";
+        if (modalEventDate) modalEventDate.textContent = item.eventDate || "N/A";
+        if (modalContact) modalContact.textContent = item.contactPerson || "N/A";
         if (modalPenalty) modalPenalty.textContent = item.penalty || "N/A";
         if (modalReference) modalReference.textContent = item.referenceNo || "N/A";
-        if (modalDetails) modalDetails.textContent = item.details || item.message || "N/A";
+        if (modalDetails) modalDetails.textContent = item.message || "N/A";
+        if (modalAttachment) {
+            if (item.attachmentPath) {
+                modalAttachment.innerHTML = '<a href="' + item.attachmentPath + '" target="_blank" style="color: #2563eb; text-decoration: underline;">View Attachment</a>';
+            } else {
+                modalAttachment.textContent = "No attachment";
+            }
+        }
         if (modalProcessed) modalProcessed.textContent = (item.deliveredCount || 0).toLocaleString();
 
         if (item.template === 'meeting') {
-            if (modalOfficerRow) modalOfficerRow.style.display = 'none';
+            if (modalEffectiveRow) modalEffectiveRow.style.display = 'none';
             if (modalPenaltyRow) modalPenaltyRow.style.display = 'none';
             if (modalReferenceRow) modalReferenceRow.style.display = 'none';
+            if (modalEventDateRow) modalEventDateRow.style.display = 'flex';
+            if (modalContactRow) modalContactRow.style.display = 'flex';
         } else {
-            if (modalOfficerRow) modalOfficerRow.style.display = 'flex';
+            if (modalEffectiveRow) modalEffectiveRow.style.display = 'flex';
             if (modalPenaltyRow) modalPenaltyRow.style.display = 'flex';
             if (modalReferenceRow) modalReferenceRow.style.display = 'flex';
+            if (modalEventDateRow) modalEventDateRow.style.display = 'none';
+            if (modalContactRow) modalContactRow.style.display = 'none';
         }
 
         if (modalArchiveBtn) {
@@ -416,13 +484,22 @@
                 if (tabCompose) tabCompose.click();
                 
                 // Populate fields
-                if (announcementTemplate) announcementTemplate.value = item.template;
+                var radio = document.querySelector('input[name="template"][value="' + item.template + '"]');
+                if(radio) radio.checked = true;
                 if (recipientGroup) recipientGroup.value = item.recipientGroup;
-                if (announcementLocation) announcementLocation.value = item.location || "";
-                if (announcementEffectiveDate) announcementEffectiveDate.value = item.effectiveDate || "";
-                if (announcementOfficer) announcementOfficer.value = item.officer || "";
-                if (announcementPenalty) announcementPenalty.value = item.penalty || "";
-                if (announcementReference) announcementReference.value = item.referenceNo || "";
+                
+                if (item.template === 'ordinance') {
+                    if (announcementTitle) announcementTitle.value = item.title || "";
+                    if (announcementLocation) announcementLocation.value = item.location || "";
+                    if (announcementEffectiveDate) announcementEffectiveDate.value = item.effectiveDate || "";
+                    if (announcementPenalty) announcementPenalty.value = item.penalty || "";
+                    if (announcementReference) announcementReference.value = item.referenceNo || "";
+                } else {
+                    if (meetingTitle) meetingTitle.value = item.title || "";
+                    if (meetingLocation) meetingLocation.value = item.location || "";
+                    if (meetingDate) meetingDate.value = item.eventDate || "";
+                    if (meetingContact) meetingContact.value = item.contactPerson || "";
+                }
                 if (announcementDetails) announcementDetails.value = item.details || "";
                 
                 applyTemplate();
@@ -494,13 +571,12 @@
         renderAnnouncements();
     });
     // Form inputs triggers
-    announcementTemplate.addEventListener("change", applyTemplate);
-    announcementLocation.addEventListener("input", updatePreview);
-    announcementEffectiveDate.addEventListener("input", updatePreview);
-    announcementOfficer.addEventListener("input", updatePreview);
-    announcementPenalty.addEventListener("input", updatePreview);
-    announcementReference.addEventListener("input", updatePreview);
-    announcementDetails.addEventListener("input", updatePreview);
+    var templateRadios = document.querySelectorAll('input[name="template"]');
+    templateRadios.forEach(r => r.addEventListener("change", applyTemplate));
+    
+    [announcementLocation, announcementEffectiveDate, announcementPenalty, announcementReference, announcementTitle, meetingTitle, meetingDate, meetingLocation, meetingContact, announcementDetails].forEach(function(el) {
+        if(el) el.addEventListener("input", updatePreview);
+    });
     
     // Form submit
     announcementForm.addEventListener("submit", function (event) {
@@ -508,20 +584,23 @@
         var finalMessage = buildMessage();
         var items = readAnnouncements();
         var selectedGroup = recipientGroup.value;
-        // Recipient count resolver
-        var recipientCount = 1248;
-        if (selectedGroup === "north") recipientCount = 312;
-        else if (selectedGroup === "south") recipientCount = 284;
-        else if (selectedGroup === "licensed") recipientCount = 652;
+        var category = getSelectedCategory();
+        var title = category === 'ordinance' ? announcementTitle.value.trim() : meetingTitle.value.trim();
+        var locationText = category === 'ordinance' ? announcementLocation.value.trim() : meetingLocation.value.trim();
+
+        // We will get the real count from the API response
+        var recipientCount = 0;
         var newItem = {
             id: "ann-" + Date.now(),
-            template: announcementTemplate.value,
+            template: category,
             recipientGroup: selectedGroup,
-            location: announcementLocation.value.trim(),
-            effectiveDate: announcementEffectiveDate.value.trim(),
-            officer: announcementOfficer.value.trim(),
-            penalty: announcementPenalty.value.trim(),
-            referenceNo: announcementReference.value.trim(),
+            title: title,
+            location: locationText,
+            effectiveDate: category === 'ordinance' ? announcementEffectiveDate.value.trim() : "",
+            penalty: category === 'ordinance' ? announcementPenalty.value.trim() : "",
+            referenceNo: category === 'ordinance' ? announcementReference.value.trim() : "",
+            eventDate: category === 'meeting' ? meetingDate.value.trim() : "",
+            contactPerson: category === 'meeting' ? meetingContact.value.trim() : "",
             details: announcementDetails.value.trim(),
             message: finalMessage,
             status: "Processing",
@@ -529,33 +608,71 @@
             deliveredCount: recipientCount,
             archived: false
         };
+
+        // Create FormData to send inputs
+        var formData = new FormData();
+        formData.append("Category", newItem.template);
+        formData.append("Message", newItem.message);
+        formData.append("Title", newItem.title);
+        formData.append("RecipientGroup", newItem.recipientGroup);
+        formData.append("Location", newItem.location);
+        formData.append("EffectiveDate", newItem.effectiveDate);
+        formData.append("Penalty", newItem.penalty);
+        formData.append("ReferenceNo", newItem.referenceNo);
+        formData.append("EventDate", newItem.eventDate);
+        formData.append("ContactPerson", newItem.contactPerson);
+
         items.push(newItem);
         saveAnnouncements(items);
         renderAnnouncements();
+
         // Clear input form fields
-        announcementLocation.value = "";
-        announcementEffectiveDate.value = "";
-        announcementOfficer.value = "";
-        announcementPenalty.value = "";
-        announcementReference.value = "";
-        announcementDetails.value = "";
-        
+        announcementForm.reset();
+        applyTemplate();
         updatePreview();
-        // Transition processing to delivered simulation
-        setTimeout(function () {
-            var currentItems = readAnnouncements().map(function (itm) {
-                if (itm.id === newItem.id) {
-                    itm.status = "Delivered";
+        
+        // Call the real API
+        fetch('/api/announcementapi/send', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.queueId) {
+                // Update the local placeholder with real ID and count
+                var currentItems = readAnnouncements();
+                var index = currentItems.findIndex(i => i.id === newItem.id);
+                if (index !== -1) {
+                    currentItems[index].id = "ann-" + data.queueId;
+                    currentItems[index].deliveredCount = data.recipients;
+                    saveAnnouncements(currentItems);
+                    renderAnnouncements();
                 }
-                return itm;
-            });
-            saveAnnouncements(currentItems);
-            renderAnnouncements();
-            // Automatically switch to history tab to see the new announcement
-            if (tabHistory) {
-                tabHistory.click();
+
+                // Listen to SignalR updates
+                connection.invoke("JoinAnnouncementGroup", data.queueId.toString()).catch(function (err) {
+                    console.error(err.toString());
+                });
+
+                // Insert a progress UI into the form area
+                var existingProgress = document.getElementById("liveProgress-" + data.queueId);
+                if (!existingProgress) {
+                    var progressContainer = document.createElement("div");
+                    progressContainer.id = "liveProgress-" + data.queueId;
+                    progressContainer.innerHTML = `
+                        <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:8px; margin-top:20px;">
+                            <h4 style="margin:0 0 8px 0; color:#1e40af;">Live Send Progress</h4>
+                            <p style="margin:0 0 4px 0; font-weight:bold;">Initializing Queue...</p>
+                        </div>
+                    `;
+                    announcementForm.appendChild(progressContainer);
+                }
             }
-        }, 1400);
+        })
+        .catch(err => {
+            console.error("Error sending announcement:", err);
+            alert("Error sending announcement. See console for details.");
+        });
     });
     // Print functionality
     document.getElementById("printLogBtn").addEventListener("click", function () {
