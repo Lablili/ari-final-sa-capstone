@@ -106,9 +106,9 @@
         <!-- Left branding panel -->
         <div class="left-panel">
             <div>
-                <div class="logo-icon">🐟</div>
-                <h1>Hello,<br />Fisheries System!</h1>
-                <p>Manage fisherfolk records, patrol reports, and violations — all in one secure system for the Fisheries Department and Bantay Dagat.</p>
+                <img src="~/logo-bantaydagat.jpg" alt="Bantay Dagat Logo" style="width: 80px; height: 80px; margin-bottom: 30px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2);" />
+                <h1>Hello,<br />BantayDagat!</h1>
+                <p>Broadcast fishing announcements, receive incident reports, coordinate enforcement, and protect marine resources — all via SMS, accessible to everyone.</p>
             </div>
             <div class="footer-text">© 2026 Fisheries Monitoring System. All rights reserved.</div>
         </div>
@@ -137,16 +137,13 @@
                         <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
 
-                    <div class="form-check mt-3">
-                        <input asp-for="RememberMe" class="form-check-input" />
-                        <label asp-for="RememberMe" class="form-check-label small text-muted">Remember me</label>
-                    </div>
+                    <!-- Removed Remember Me to force login every time -->
 
                     <button type="submit" class="btn btn-login">Login Now</button>
                 </form>
 
                 <div class="forgot-link">
-                    Forgot password? <a href="#" class="fw-bold text-dark">Click here</a>
+                    Forgot password? <a href="@Url.Action("ForgotPassword", "Account")" class="fw-bold text-dark">Click here</a>
                 </div>
             </div>
         </div>

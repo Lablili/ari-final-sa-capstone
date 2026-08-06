@@ -1,0 +1,263 @@
+@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Identity
+@using ari_final_sa_capstone.Models
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var sessionRole = Context.Session.GetString("UserRole") ?? "";
+    bool isAdmin = sessionRole.Contains("SuperAdmin") || sessionRole.Contains("BantayDagatAdmin") || sessionRole.Contains("FisheriesAdmin") ||
+                   (User.Identity != null && User.Identity.IsAuthenticated && (User.IsInRole("SuperAdmin") || User.IsInRole("BantayDagatAdmin") || User.IsInRole("FisheriesAdmin")));
+}
+
+@if (isAdmin)
+{
+    <!-- Admin Communication Chat Widget -->
+    <div id="admin-chat-widget" class="admin-chat-widget collapsed">
+        <div class="chat-header" id="chat-header">
+            <div class="header-title">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                Admin Messaging
+                <span id="chat-unread-badge" class="unread-badge" style="display:none;">0</span>
+            </div>
+            <div class="header-controls">
+                <button type="button" id="chat-toggle-btn">
+                    <svg id="chat-toggle-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 15l7-7-7-7"></path></svg>
+                </button>
+            </div>
+        </div>
+        <div class="chat-body" style="display: none;">
+            <div class="chat-search-area" style="padding: 5px 10px; border-bottom: 1px solid #e5e7eb;">
+                <input type="text" id="chat-search-input" placeholder="Search messages..." autocomplete="off" style="width: 100%; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;" />
+            </div>
+            <div class="chat-online-users">
+                <strong>WHO'S ONLINE</strong>
+                <ul id="online-users-list">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
+            <div class="chat-messages-container" id="chat-messages-container">
+                <div id="chat-messages" class="chat-messages">
+                    <!-- Messages populated here -->
+                </div>
+                <div id="chat-typing-indicator" class="typing-indicator" style="display:none;">
+                    <em>Someone is typing...</em>
+                </div>
+            </div>
+            <div class="chat-input-area" style="display:flex; flex-direction:column; gap:5px;">
+                <div class="chat-input-options" style="padding: 0 10px;">
+                    <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer; color: #64748b; font-weight: 600;">
+                        <input type="checkbox" id="chat-alert-toggle" /> Send as Alert (High Priority)
+                    </label>
+                </div>
+                <div style="display: flex; gap: 5px; padding: 0 10px 10px 10px;">
+                    <input type="text" id="chat-message-input" placeholder="Type a message... (👍 allowed)" autocomplete="off" style="flex:1; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" />
+                    <div class="chat-actions" style="display: flex; gap: 4px;">
+                        <button type="button" class="btn-attach" id="chat-attach-btn" title="Attach Incident/Announcement" style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 4px; cursor: pointer;">📎</button>
+                        <button type="button" id="chat-send-btn" class="btn-send" style="padding: 6px 12px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Send</button>
+                    </div>
+                </div>
+                <div id="chat-attachment-preview" style="display:none; font-size: 11px; margin: 0 10px 10px 10px; padding: 6px 8px; background: #e2e8f0; border-radius: 4px; color: #1e293b; align-items: center; justify-content: space-between;">
+                    <span id="chat-attachment-name" style="font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"></span>
+                    <button type="button" id="chat-attachment-clear" style="border:none; background:none; cursor:pointer; color:#ef4444; font-weight:bold; font-size:14px; line-height:1;">×</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attachment Modal Overlay -->
+        <div id="chat-attachment-modal" style="display:none; position:absolute; bottom: 80px; left: 10px; right: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1060; flex-direction: column;">
+            <div style="display:flex; justify-content:space-between; align-items: center; padding: 8px 12px; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; border-radius: 6px 6px 0 0;">
+                <strong style="font-size: 12px; color: #0f172a;">Select Resource to Attach</strong>
+                <button type="button" id="chat-attachment-close" style="border:none;background:none;cursor:pointer;font-weight:bold;font-size:16px;color:#64748b;">&times;</button>
+            </div>
+            <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+                <select id="chat-attachment-type" style="width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px;">
+                    <option value="ALL">All Resources</option>
+                    <option value="ANNOUNCEMENT">Announcements</option>
+                    <option value="INCIDENT">Incident Reports</option>
+                    <option value="FISHERFOLK">Fisherfolk Registry</option>
+                </select>
+            </div>
+            <div id="chat-attachment-list" style="max-height: 180px; overflow-y: auto; padding: 5px; font-size: 12px;">
+                <div style="padding: 10px; text-align: center; color: #64748b;">Loading resources...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Styles for Chat Widget -->
+    <style>
+        .admin-chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            background: #fff;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e5e7eb;
+        }
+        .admin-chat-widget.collapsed {
+            width: 250px;
+        }
+        .chat-header {
+            background: #1e3a8a;
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+        }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        .unread-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 999px;
+            font-weight: bold;
+        }
+        .header-controls button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        .chat-body {
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-online-users {
+            background: #f3f4f6;
+            padding: 8px 15px;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #e5e7eb;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        .chat-online-users ul {
+            list-style: none;
+            padding: 0;
+            margin: 4px 0 0 0;
+        }
+        .chat-online-users li {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-dot.online { background: #2563eb; }
+        .chat-messages-container {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            background: #fafafa;
+        }
+        .chat-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .message-row {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+        }
+        .message-row.sent {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+        .message-row.received {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+        .message-sender {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 2px;
+        }
+        .message-bubble {
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .sent .message-bubble {
+            background: #2563eb;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+        .received .message-bubble {
+            background: #e5e7eb;
+            color: #1f2937;
+            border-bottom-left-radius: 2px;
+        }
+        .message-time {
+            font-size: 0.7rem;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        .chat-input-area {
+            padding: 10px 15px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        #chat-message-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        .chat-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-send {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-attach {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        .typing-indicator {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+    </style>
+
+    <!-- SignalR Client -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script src="~/js/admin-chat.js" asp-append-version="true"></script>
+}

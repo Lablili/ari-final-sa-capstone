@@ -145,7 +145,7 @@
                                     <form asp-action="ToggleActive" method="post" style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@admin.Id" />
-                                        <button type="submit" class="status-toggle-btn @(admin.IsActive ? "active" : "inactive")" title="Click to Toggle Status">
+                                        <button type="submit" class="status-toggle-btn @(admin.IsActive ? "active" : "inactive")" title="Click to Toggle Status" @(admin.Role == "SuperAdmin" ? "disabled" : "")>
                                             @(admin.IsActive ? "Active" : "Disabled")
                                         </button>
                                     </form>
@@ -153,11 +153,14 @@
                                 <td style="text-align: center;">
                                     <div class="action-buttons-group">
                                         <button class="action-btn key-btn" onclick="openResetPasswordModal('@admin.Id', '@admin.FullName')" title="Reset Password">🔑</button>
-                                        <form asp-action="DeleteAdmin" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this admin account?');">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@admin.Id" />
-                                            <button type="submit" class="action-btn delete-btn" title="Delete Account">🗑️</button>
-                                        </form>
+                                        @if (admin.Role != "SuperAdmin")
+                                        {
+                                            <form asp-action="DeleteAdmin" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this admin account?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@admin.Id" />
+                                                <button type="submit" class="action-btn delete-btn" title="Delete Account">🗑️</button>
+                                            </form>
+                                        }
                                     </div>
                                 </td>
                             </tr>
@@ -197,7 +200,7 @@
                         </label>
                         <label class="field-group">
                             <span class="field-label">Hardware Signature</span>
-                            <input class="field-input" type="text" id="gsmSignatureInput" value="SIMCOM_SIM800C_V2.1">
+                            <input class="field-input" type="text" id="gsmSignatureInput" value="SIMCOM_SIM900_V1.0">
                         </label>
                         <div class="form-actions field-span-2">
                             <button class="form-btn form-btn-submit" type="submit">Save Configurations</button>
@@ -790,18 +793,29 @@
                 host: window.location.hostname || 'localhost'
             });
             localStorage.setItem('bantay-dagat-audit-logs', JSON.stringify(logs));
+            loadOverviewData(); // Update real-time
+            loadAuditLogs();    // Update real-time
         }
 
         function clearAuditTrail() {
             if (confirm("Permanently clear system audit trail logs?")) {
                 localStorage.removeItem('bantay-dagat-audit-logs');
-                loadAuditLogs();
+                loadOverviewData(); // Update real-time
+                loadAuditLogs();    // Update real-time
             }
         }
 
         // Initialize lists on load
         document.addEventListener('DOMContentLoaded', function() {
             loadOverviewData();
+            
+            // Listen for changes from other tabs/windows for real-time sync
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'bantay-dagat-audit-logs') {
+                    loadOverviewData();
+                    loadAuditLogs();
+                }
+            });
         });
     </script>
 }

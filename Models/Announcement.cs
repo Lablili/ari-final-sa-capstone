@@ -14,6 +14,9 @@ namespace ari_final_sa_capstone.Models
         [MaxLength(100)]
         public string ACategory { get; set; } = string.Empty;
 
+        [MaxLength(200)]
+        public string ATitle { get; set; } = string.Empty;
+
         [Required]
         [MaxLength(100)]
         public string ARecepientGroup { get; set; } = string.Empty;
@@ -35,6 +38,14 @@ namespace ari_final_sa_capstone.Models
         public string Apenalty { get; set; } = string.Empty;
 
         public string AAddDetails { get; set; } = string.Empty;
+
+        [MaxLength(500)]
+        public string AAttachmentPath { get; set; } = string.Empty;
+
+        [MaxLength(150)]
+        public string AContactPerson { get; set; } = string.Empty;
+
+        public DateTime? AEventDate { get; set; }
 
         // System Required Fields
         [Required]

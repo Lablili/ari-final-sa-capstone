@@ -1,6 +1,7 @@
 @{
     ViewData["Title"] = "Community Reports";
-    var userRole = Context.Session.GetString("UserRole") ?? "";
+    var sessionRole = Context.Session.GetString("UserRole");
+    var userRole = !string.IsNullOrEmpty(sessionRole) ? sessionRole : (User != null && User.Identity.IsAuthenticated ? string.Join(", ", (User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value))) : "");
 }
 
 
@@ -12,7 +13,13 @@
             <div class="topbar-title-area">
                 <h2>Community Reports</h2>
             </div>
-            <div class="topbar-meta">
+            <div class="topbar-meta" style="display:flex; align-items:center; gap: 15px;">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="simulateIncomingReport()" style="display: flex; align-items: center; gap: 4px; padding: 4px 10px; font-weight: 600;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Simulate Incoming SMS
+                </button>
                 <span class="stat-badge" id="newBadge">0 Bag-o</span>
                 <span class="date-indicator">
                     <svg class="date-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
@@ -56,14 +63,14 @@
                         <option value="info">Information</option>
                     </select>
                 </div>
-                <!-- Barangay -->
+                <!-- Priority Level -->
                 <div style="display: flex; align-items: center; gap: 6px;">
-                    <label for="brgyFilter" style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Barangay:</label>
-                    <select id="brgyFilter" class="filter-dropdown" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #1e293b; font-size: 13px; font-weight: 500; outline: none; cursor: pointer;">
-                        <option value="all">All Barangays</option>
-                        <option value="Patao">Patao</option>
-                        <option value="Guiwanon">Guiwanon</option>
-                        <option value="Sulangan">Sulangan</option>
+                    <label for="priorityFilter" style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">Priority:</label>
+                    <select id="priorityFilter" class="filter-dropdown" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #1e293b; font-size: 13px; font-weight: 500; outline: none; cursor: pointer;">
+                        <option value="all">All Priorities</option>
+                        <option value="Critical">Critical</option>
+                        <option value="High">High</option>
+                        <option value="Low">Low</option>
                     </select>
                 </div>
                 <!-- Status -->
@@ -73,7 +80,7 @@
                         <option value="all">All Statuses</option>
                         <option value="new">New</option>
                         <option value="review">In Review</option>
-                        <option value="resolved">Resolved</option>
+                        <option value="archived">Archived (Resolved)</option>
                     </select>
                 </div>
                 <!-- Clear Filters — always visible -->
@@ -98,8 +105,9 @@
             <table class="fisherfolk-table">
                 <thead>
                     <tr>
+                        <th style="width:100px">Priority</th>
                         <th style="width:120px">Category</th>
-                        <th>Sender</th>
+                        <th>Contact</th>
                         <th style="width:280px">Subject</th>
                         <th style="width:90px">Content</th>
                         <th style="width:120px">Date Sent</th>
@@ -142,6 +150,7 @@
                 <div class="blotter" id="blotterBody"></div>
                 <div class="modal-foot">
                     <button class="btn-secondary" onclick="closeBlotter()">Cancel</button>
+                    <button class="btn-secondary" id="btnResetBlotter" onclick="resetBlotter()" style="display:none;">Reset to Default</button>
                     <button class="btn-primary" onclick="window.print()">Print Blotter</button>
                 </div>
             </div>
@@ -152,6 +161,26 @@
 @section Scripts {
     <script>
         window.UserRole = '@userRole';
+        
+        function simulateIncomingReport() {
+            fetch('/api/feedback/simulate', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof loadFeedbackFromDb === 'function') {
+                            loadFeedbackFromDb(); 
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        alert("Failed to simulate report.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error simulating report:", err);
+                    alert("Error simulating report.");
+                });
+        }
     </script>
     <script src="~/js/Feedback.js" asp-append-version="true"></script>
 }

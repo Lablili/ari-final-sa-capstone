@@ -44,6 +44,34 @@ namespace ari_final_sa_capstone.Controllers
             return View(logs);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> GenerateMockSms()
+        {
+            var random = new Random();
+            var types = new[] { "Announcement", "SOS Alert", "Weather Warning", "Registration" };
+            var statuses = new[] { "Delivered", "Delivered", "Delivered", "Failed", "PENDING" };
+            
+            var status = statuses[random.Next(statuses.Length)];
+            
+            var mockLog = new SMSLog
+            {
+                MessageType = types[random.Next(types.Length)],
+                PhoneNumber = $"+639{random.Next(100000000, 999999999)}",
+                Status = status,
+                TimestampSent = DateTime.Now.AddMinutes(-random.Next(0, 30)),
+                RetryCount = status == "Failed" ? random.Next(1, 4) : 0
+            };
+
+            if (status == "Delivered") {
+                mockLog.TimestampReceived = mockLog.TimestampSent.AddSeconds(random.Next(2, 45));
+            }
+
+            _context.SMSLogs.Add(mockLog);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Monitoring");
+        }
+
         public IActionResult DataExport()
         {
             return View();
@@ -83,7 +111,7 @@ namespace ari_final_sa_capstone.Controllers
             {
                 var dateSent = l.TimestampSent.ToString("yyyy-MM-dd HH:mm:ss");
                 var dateRec = l.TimestampReceived?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A";
-                sb.AppendLine($"{l.SmsId},{CsvCell(l.MessageType)},{CsvCell(l.PhoneNumber)},{CsvCell(l.DeliveryStatus)},{CsvCell(dateSent)},{CsvCell(dateRec)}");
+                sb.AppendLine($"{l.SmsId},{CsvCell(l.MessageType)},{CsvCell(l.PhoneNumber)},{CsvCell(l.Status)},{CsvCell(dateSent)},{CsvCell(dateRec)}");
             }
 
             var fileName = $"BantayDagat_SMSLogs_{DateTime.Now:yyyy-MM-dd}.csv";

@@ -3,12 +3,28 @@ using System.Linq;
 using ari_final_sa_capstone.Data;
 using ari_final_sa_capstone.Models;
 using Microsoft.AspNetCore.Identity;
-
+using ari_final_sa_capstone.Hubs;
+using ari_final_sa_capstone.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    var policy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+                     .RequireAuthenticatedUser()
+                     .Build();
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter(policy));
+});
 builder.Services.AddSession(); // Session for UI-only fake auth
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<SmsBackgroundWorker>();
+
+// Register Hosted Services
+builder.Services.AddHostedService<ari_final_sa_capstone.Services.AdminChatArchiverService>();
+
+// Configure and Register Email Sender
+builder.Services.Configure<ari_final_sa_capstone.Models.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
 // Configure EF Core + Identity
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Server=(localdb)\\mssqllocaldb;Database=ari_capstone_db;Trusted_Connection=True;MultipleActiveResultSets=true";
@@ -147,5 +163,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHub<SmsProgressHub>("/smsprogress");
+app.MapHub<AdminChatHub>("/adminChatHub");
 
 app.Run();

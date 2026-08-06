@@ -18,6 +18,10 @@ namespace ari_final_sa_capstone.Data
         public DbSet<ReportSubmission> ReportSubmissions { get; set; }
         public DbSet<SurveyResponse> SurveyResponses { get; set; }
 
+        public DbSet<AdminMessage> AdminMessages { get; set; }
+        public DbSet<AdminMessageAttachment> AdminMessageAttachments { get; set; }
+        public DbSet<AdminChatArchive> AdminChatArchives { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder); // required — this builds all the Identity tables (AspNetUsers, AspNetRoles, etc.)

@@ -45,21 +45,35 @@
 
         @if (isSuperAdmin)
         {
-            <section class="content-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-                <article class="panel">
-                    <div class="panel-header">
-                        <h3>Fisherfolk Registry Breakdown</h3>
+            <div style="margin-top: 30px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
+                <h3 style="color: #1f2937; margin: 0; font-size: 1.25rem;">Analytics & Diagrams</h3>
+            </div>
+            
+            <section class="content-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                <article class="panel" style="border-top: 4px solid #3b82f6;">
+                    <div class="panel-header" style="border-bottom: 1px solid #f3f4f6; padding-bottom: 12px; margin-bottom: 10px;">
+                        <h3 style="font-size: 1rem; color: #4b5563;">Fisherfolk Info</h3>
                     </div>
-                    <div style="padding: 20px; height: 300px; display: flex; justify-content: center; align-items: center;">
+                    <div style="padding: 10px; height: 260px; display: flex; justify-content: center; align-items: center;">
                         <canvas id="fisherfolkChart"></canvas>
                     </div>
                 </article>
-                <article class="panel">
-                    <div class="panel-header">
-                        <h3>System Activity Overview</h3>
+                
+                <article class="panel" style="border-top: 4px solid #10b981;">
+                    <div class="panel-header" style="border-bottom: 1px solid #f3f4f6; padding-bottom: 12px; margin-bottom: 10px;">
+                        <h3 style="font-size: 1rem; color: #4b5563;">Announcements</h3>
                     </div>
-                    <div style="padding: 20px; height: 300px; display: flex; justify-content: center; align-items: center;">
-                        <canvas id="activityChart"></canvas>
+                    <div style="padding: 10px; height: 260px; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="announcementChart"></canvas>
+                    </div>
+                </article>
+
+                <article class="panel" style="border-top: 4px solid #ef4444;">
+                    <div class="panel-header" style="border-bottom: 1px solid #f3f4f6; padding-bottom: 12px; margin-bottom: 10px;">
+                        <h3 style="font-size: 1rem; color: #4b5563;">Community Reports</h3>
+                    </div>
+                    <div style="padding: 10px; height: 260px; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="reportsChart"></canvas>
                     </div>
                 </article>
             </section>
@@ -224,24 +238,6 @@
             <div class="row-bottom">
                 <div class="chart-card">
                     <div class="chart-header">
-                        <h3 class="chart-title">Incident Types</h3>
-                        <span style="color:#94a3b8; font-size:1.2rem;">&middot;&middot;&middot;</span>
-                    </div>
-                    <div style="flex: 1; position: relative; min-height: 250px;">
-                        <canvas id="typeRadarChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Incidents by Status</h3>
-                        <span style="color:#94a3b8; font-size:1.2rem;">&middot;&middot;&middot;</span>
-                    </div>
-                    <div style="flex: 1; position: relative; min-height: 250px; display:flex; justify-content:center; align-items:center;">
-                        <canvas id="statusDoughnutChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
                         <h3 class="chart-title">Registered Fisherfolk</h3>
                         <span style="color:#94a3b8; font-size:1.2rem;">&middot;&middot;&middot;</span>
                     </div>
@@ -326,66 +322,6 @@
                 });
             }
 
-            // 3. Radar Chart
-            const typeLabels = @Html.Raw(ViewBag.IncidentTypesLabels ?? "[]");
-            const typeData = @Html.Raw(ViewBag.IncidentTypesData ?? "[]");
-            if (document.getElementById('typeRadarChart')) {
-                new Chart(document.getElementById('typeRadarChart').getContext('2d'), {
-                    type: 'radar',
-                    data: {
-                        labels: typeLabels.length ? typeLabels : ['Illegal Fishing', 'Distress', 'Encroachment', 'Other'],
-                        datasets: [{
-                            label: 'Types',
-                            data: typeData.length ? typeData : [0,0,0,0],
-                            backgroundColor: 'rgba(15, 118, 110, 0.15)',
-                            borderColor: '#0f766e',
-                            pointBackgroundColor: '#0f766e',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { 
-                            r: { 
-                                ticks: { display: false },
-                                grid: { color: '#e2e8f0' },
-                                angleLines: { color: '#e2e8f0' }
-                            } 
-                        }
-                    }
-                });
-            }
-
-            // 4. Doughnut Chart
-            const statusLabels = @Html.Raw(ViewBag.IncidentStatusLabels ?? "[]");
-            const statusData = @Html.Raw(ViewBag.IncidentStatusData ?? "[]");
-            if (document.getElementById('statusDoughnutChart')) {
-                new Chart(document.getElementById('statusDoughnutChart').getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: statusLabels.length ? statusLabels : ['Open', 'Closed', 'Dismissed'],
-                        datasets: [{
-                            data: statusData.length ? statusData : [1,1,1],
-                            backgroundColor: ['#eab308', '#0f766e', '#94a3b8', '#3b82f6'],
-                            borderWidth: 0,
-                            hoverOffset: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '70%',
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: { usePointStyle: true, padding: 20, font: { family: "'Inter', sans-serif" } }
-                            }
-                        }
-                    }
-                });
-            }
 
             // 5. Gauge Chart
             const totalFisherfolk = @Html.Raw(ViewBag.TotalFisherfolk ?? 0);
@@ -444,28 +380,44 @@
                     options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                // Announcements & Reports Chart (Bar)
+                // Announcements Chart
                 var rawA = localStorage.getItem('bantay-dagat-announcements');
                 var countA = 2;
                 if (rawA) {
                     try { countA = JSON.parse(rawA).length; } catch(e) {}
                 }
+                var ctxA = document.getElementById('announcementChart').getContext('2d');
+                new Chart(ctxA, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Sent', 'Pending'],
+                        datasets: [{
+                            data: [countA, 1], // Demo data for pending
+                            backgroundColor: ['#10b981', '#fbbf24']
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        cutout: '60%'
+                    }
+                });
 
+                // Community Reports Chart
                 var rawR = localStorage.getItem('bantay-dagat-feedback');
                 var countR = 8;
                 if (rawR) {
                     try { countR = JSON.parse(rawR).length; } catch(e) {}
                 }
-
-                var ctxA = document.getElementById('activityChart').getContext('2d');
-                new Chart(ctxA, {
+                var ctxR = document.getElementById('reportsChart').getContext('2d');
+                new Chart(ctxR, {
                     type: 'bar',
                     data: {
-                        labels: ['Announcements Sent', 'Community Reports'],
+                        labels: ['Received'],
                         datasets: [{
-                            label: 'Total Count',
-                            data: [countA, countR],
-                            backgroundColor: ['#10b981', '#ef4444']
+                            label: 'Total Reports',
+                            data: [countR],
+                            backgroundColor: ['#ef4444']
                         }]
                     },
                     options: { 

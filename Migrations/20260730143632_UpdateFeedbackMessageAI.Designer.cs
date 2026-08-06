@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ari_final_sa_capstone.Data;
 
@@ -11,9 +12,11 @@ using ari_final_sa_capstone.Data;
 namespace ari_final_sa_capstone.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260730143632_UpdateFeedbackMessageAI")]
+    partial class UpdateFeedbackMessageAI
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -155,116 +158,6 @@ namespace ari_final_sa_capstone.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ari_final_sa_capstone.Models.AdminChatArchive", b =>
-                {
-                    b.Property<int>("ArchiveID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ArchiveID"));
-
-                    b.Property<string>("ArchiveReason")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("ArchivedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ConversationTopic")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int?>("MessageID")
-                        .HasColumnType("int");
-
-                    b.HasKey("ArchiveID");
-
-                    b.ToTable("AdminChatArchives");
-                });
-
-            modelBuilder.Entity("ari_final_sa_capstone.Models.AdminMessage", b =>
-                {
-                    b.Property<int>("MessageID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MessageID"));
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("MessageContent")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("MessageType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime?>("ReadTimestamp")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ReceiverAdminID")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("SenderAdminID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("SenderRole")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("MessageID");
-
-                    b.HasIndex("ReceiverAdminID");
-
-                    b.HasIndex("SenderAdminID");
-
-                    b.ToTable("AdminMessages");
-                });
-
-            modelBuilder.Entity("ari_final_sa_capstone.Models.AdminMessageAttachment", b =>
-                {
-                    b.Property<int>("AttachmentID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttachmentID"));
-
-                    b.Property<int>("MessageID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ResourceID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ResourceTitle")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("ResourceType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("AttachmentID");
-
-                    b.HasIndex("MessageID");
-
-                    b.ToTable("AdminMessageAttachments");
-                });
-
             modelBuilder.Entity("ari_final_sa_capstone.Models.Announcement", b =>
                 {
                     b.Property<int>("AId")
@@ -277,29 +170,16 @@ namespace ari_final_sa_capstone.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("AAttachmentPath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<string>("ACategory")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("AContactPerson")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
 
                     b.Property<DateTime>("ACreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("ADeliveredCount")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("AEventDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<bool>("AIsArchived")
                         .HasColumnType("bit");
@@ -332,11 +212,6 @@ namespace ari_final_sa_capstone.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("ATitle")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("Adate")
                         .HasColumnType("datetime2");
@@ -683,8 +558,10 @@ namespace ari_final_sa_capstone.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SmsId"));
 
-                    b.Property<int?>("AnnouncementId")
-                        .HasColumnType("int");
+                    b.Property<string>("DeliveryStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int?>("FisherfolkId")
                         .HasColumnType("int");
@@ -698,14 +575,6 @@ namespace ari_final_sa_capstone.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("RetryCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime?>("TimestampReceived")
                         .HasColumnType("datetime2");
@@ -801,39 +670,6 @@ namespace ari_final_sa_capstone.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("ari_final_sa_capstone.Models.AdminMessage", b =>
-                {
-                    b.HasOne("ari_final_sa_capstone.Models.ApplicationUser", "Receiver")
-                        .WithMany()
-                        .HasForeignKey("ReceiverAdminID");
-
-                    b.HasOne("ari_final_sa_capstone.Models.ApplicationUser", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderAdminID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Receiver");
-
-                    b.Navigation("Sender");
-                });
-
-            modelBuilder.Entity("ari_final_sa_capstone.Models.AdminMessageAttachment", b =>
-                {
-                    b.HasOne("ari_final_sa_capstone.Models.AdminMessage", "Message")
-                        .WithMany("Attachments")
-                        .HasForeignKey("MessageID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Message");
-                });
-
-            modelBuilder.Entity("ari_final_sa_capstone.Models.AdminMessage", b =>
-                {
-                    b.Navigation("Attachments");
                 });
 #pragma warning restore 612, 618
         }

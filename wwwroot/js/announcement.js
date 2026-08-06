@@ -774,4 +774,17 @@
             renderAnnouncements();
         }
     }, 30000);
+
+    // Check for view_id in URL to automatically open modal
+    var urlParams = new URLSearchParams(window.location.search);
+    var viewId = urlParams.get('view_id');
+    if (viewId && localStorage.getItem(STORAGE_KEY) === "true") {
+        setTimeout(function() {
+            var fullId = viewId;
+            if (!fullId.startsWith("ann-")) {
+                fullId = "ann-" + viewId;
+            }
+            openAnnouncementModal(fullId);
+        }, 500);
+    }
 })();

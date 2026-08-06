@@ -30,7 +30,7 @@ public class HomeController : Controller
         
         var smsLogs = await _db.SMSLogs.ToListAsync();
         var totalSmsSent = smsLogs.Count;
-        var deliveredSms = smsLogs.Count(s => s.DeliveryStatus == "Delivered");
+        var deliveredSms = smsLogs.Count(s => s.Status == "Delivered");
         var deliveryRate = totalSmsSent > 0 ? (double)deliveredSms / totalSmsSent * 100 : 0;
 
         var fisherfolk = await _db.FisherfolkRegistries.ToListAsync();
@@ -123,10 +123,9 @@ public class HomeController : Controller
             "Report #," +
             "Category / Type of Incident," +
             "Status," +
-            "Sender Name," +
             "Contact Number," +
-            "Barangay," +
-            "Vessel / Boat," +
+            "Priority Level," +
+            "Flagged Place," +
             "Subject," +
             "Date Received," +
             "Time Received," +
@@ -142,10 +141,9 @@ public class HomeController : Controller
                 $"{f.MId}," +
                 $"{CsvCell(f.MCategory)}," +
                 $"{CsvCell(f.Mstatus)}," +
-                $"{CsvCell(f.MSender)}," +
                 $"{CsvCell(f.McontactNumber)}," +
-                $"{CsvCell(f.Mbarangay)}," +
-                $"{CsvCell(f.Mvessel ?? "N/A")}," +
+                $"{CsvCell(f.MPriorityLevel)}," +
+                $"{CsvCell(f.MFlaggedPlace)}," +
                 $"{CsvCell(f.Msubject)}," +
                 $"{CsvCell(dateStr)}," +
                 $"{CsvCell(timeStr)}," +
@@ -270,11 +268,18 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult SMSOperations()
+    {
+        ViewData["Title"] = "SMS Operations";
+        return View();
+    }
+
     public IActionResult Privacy()
     {
         return View();
     }
 
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

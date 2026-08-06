@@ -47,7 +47,8 @@ function displayCurrentDate() {
       reportsEl.textContent = itemsR.length.toLocaleString();
       if (reportsSubEl) {
         var newCount = itemsR.filter(function(x) { return x.status === 'new'; }).length;
-        reportsSubEl.textContent = newCount + " New Reports";
+        var resCount = itemsR.filter(function(x) { return x.status === 'resolved'; }).length;
+        reportsSubEl.textContent = newCount + " New, " + resCount + " Resolved";
         if (newCount > 0) {
           reportsSubEl.className = "stat-subtext negative";
         } else {

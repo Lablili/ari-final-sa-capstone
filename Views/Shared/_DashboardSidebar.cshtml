@@ -24,14 +24,14 @@
 }
 
 <aside class="sidebar">
-    <div class="brand">
-        <h1>Bantay Dagat</h1>
+    <div class="brand" style="text-align: center; padding: 20px 0 10px 0;">
+        <img src="~/logo-bantaydagat.jpg" alt="Bantay Dagat Logo" style="width: 100px; height: 100px; object-fit: contain; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
     </div>
 
     <div class="nav-group">
         <p class="nav-label">MAIN</p>
         <nav class="nav-menu">
-            @if (displayRole != "SuperAdmin")
+            @if (displayRole == "FisheriesAdmin" || displayRole == "BantayDagatAdmin")
             {
                 <a class="@navClass("Index")" asp-controller="Home" asp-action="Index">
                     <span class="nav-icon overview-icon" aria-hidden="true"></span>
@@ -46,7 +46,7 @@
                 </a>
             }
             
-            @if (displayRole != "SuperAdmin")
+            @if (displayRole == "FisheriesAdmin" || displayRole == "BantayDagatAdmin")
             {
                 <a class="@navClass("Feedback")" asp-controller="Home" asp-action="Feedback">
                     <span class="nav-icon report-icon" aria-hidden="true"></span>
@@ -61,9 +61,20 @@
         </nav>
     </div>
 
+    @if (displayRole == "SuperAdmin" || displayRole == "FisheriesAdmin" || displayRole == "BantayDagatAdmin")
+    {
+        <div class="nav-group">
+            <p class="nav-label">COORDINATION</p>
+            <nav class="nav-menu">
+                <a href="javascript:void(0)" class="nav-item" onclick="if(window.toggleAdminChat) { window.toggleAdminChat(); } else { alert('Admin Chat is not available for your session.'); }">
+                    <span class="nav-icon" aria-hidden="true">💬</span>
+                    <span>Admin Comms</span>
+                </a>
+            </nav>
+        </div>
+    }
 
-
-    @if (displayRole != "SuperAdmin")
+    @if (displayRole == "FisheriesAdmin" || displayRole == "BantayDagatAdmin")
     {
         <div class="nav-group">
             <p class="nav-label">COMMUNICATION</p>
@@ -71,6 +82,10 @@
                 <a class="@navClass("Announcement")" asp-controller="Home" asp-action="Announcement">
                     <span class="nav-icon announcement-icon" aria-hidden="true"></span>
                     <span>Announcements</span>
+                </a>
+                <a class="@navClass("SMSOperations")" asp-controller="Home" asp-action="SMSOperations">
+                    <span class="nav-icon report-icon" aria-hidden="true"></span>
+                    <span>SMS Operations</span>
                 </a>
             </nav>
         </div>

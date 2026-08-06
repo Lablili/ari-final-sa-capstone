@@ -20,7 +20,7 @@ namespace ari_final_sa_capstone.Models
 
         [Required]
         [MaxLength(100)]
-        public string Mbarangay { get; set; } = string.Empty;
+        public string MFlaggedPlace { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(50)]
@@ -37,14 +37,15 @@ namespace ari_final_sa_capstone.Models
         public string Mstatus { get; set; } = "new";
 
         [Required]
+        [MaxLength(50)]
+        public string MPriorityLevel { get; set; } = "Low";
+
+        [Required]
         public string Mmessage { get; set; } = string.Empty;
 
         // System Required Fields
         [Required]
         [MaxLength(200)]
         public string Msubject { get; set; } = string.Empty;
-
-        [MaxLength(150)]
-        public string? Mvessel { get; set; }
     }
 }

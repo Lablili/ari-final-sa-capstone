@@ -182,6 +182,12 @@ namespace ari_final_sa_capstone.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            if (await _userManager.IsInRoleAsync(admin, "SuperAdmin"))
+            {
+                TempData["Error"] = "Modifying SuperAdmin account status is not permitted.";
+                return RedirectToAction(nameof(Index));
+            }
+
             admin.IsActive = !admin.IsActive;
             var result = await _userManager.UpdateAsync(admin);
 
@@ -247,6 +253,12 @@ namespace ari_final_sa_capstone.Controllers
             if (admin == null)
             {
                 TempData["Error"] = "Admin account not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (await _userManager.IsInRoleAsync(admin, "SuperAdmin"))
+            {
+                TempData["Error"] = "Deletion of SuperAdmin accounts is not permitted.";
                 return RedirectToAction(nameof(Index));
             }
 

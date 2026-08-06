@@ -12,6 +12,9 @@
     </main>
 
     <script src="~/js/blotter-print.js" asp-append-version="true"></script>
+    
+    @await Html.PartialAsync("_AdminChatWidget")
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

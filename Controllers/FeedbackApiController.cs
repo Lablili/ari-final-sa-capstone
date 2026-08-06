@@ -16,6 +16,35 @@ namespace ari_final_sa_capstone.Controllers
             _db = db;
         }
 
+        [HttpPost("simulate")]
+        public async Task<IActionResult> GenerateMockFeedback()
+        {
+            var random = new Random();
+            var categories = new[] { "sos", "incident", "complaint", "info" };
+            var places = new[] { "Patao", "Guiwanon", "Sulangan", "Purok 1", "Purok 2" };
+            var priorities = new[] { "Low", "Medium", "High", "Critical" };
+            var senders = new[] { "Juan Dela Cruz", "Elpidio Reyes", "Rosa Aquino", "Unknown Sender" };
+
+            var mock = new FeedbackMessage
+            {
+                MSender = senders[random.Next(senders.Length)],
+                MCategory = categories[random.Next(categories.Length)],
+                MFlaggedPlace = places[random.Next(places.Length)],
+                McontactNumber = $"+639{random.Next(100000000, 999999999)}",
+                MdateReceived = DateTime.UtcNow.Date,
+                MtimeReceived = DateTime.UtcNow.TimeOfDay,
+                Mstatus = "new",
+                MPriorityLevel = priorities[random.Next(priorities.Length)],
+                Msubject = "Simulated Hardware SMS Report",
+                Mmessage = "This is a simulated message received from the GSM modem."
+            };
+
+            _db.FeedbackMessages.Add(mock);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
+
         // GET /api/feedback  — return all records as JSON
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -31,8 +60,8 @@ namespace ari_final_sa_capstone.Controllers
                 cat = f.MCategory,
                 sender = f.MSender,
                 contact = f.McontactNumber,
-                brgy = f.Mbarangay,
-                vessel = f.Mvessel ?? "N/A",
+                priority = f.MPriorityLevel,
+                flaggedPlace = f.MFlaggedPlace,
                 time = f.MdateReceived.ToString("yyyy-MM-dd") + " " +
                              f.MtimeReceived.ToString(@"hh\:mm"),
                 status = f.Mstatus,
@@ -67,8 +96,8 @@ namespace ari_final_sa_capstone.Controllers
                     MCategory = dto.Cat ?? "info",
                     MSender = dto.Sender ?? "",
                     McontactNumber = dto.Contact ?? "",
-                    Mbarangay = dto.Brgy ?? "",
-                    Mvessel = dto.Vessel,
+                    MPriorityLevel = AIHelper.DeterminePriority(dto.Msg),
+                    MFlaggedPlace = AIHelper.ExtractFlaggedPlace(dto.Msg),
                     MdateReceived = dateReceived,
                     MtimeReceived = timeReceived,
                     Mstatus = dto.Status ?? "new",
@@ -112,5 +141,46 @@ namespace ari_final_sa_capstone.Controllers
     public class StatusUpdateDto
     {
         public string? Status { get; set; }
+    }
+
+    public static partial class AIHelper
+    {
+        public static string DeterminePriority(string? msg)
+        {
+            if (string.IsNullOrWhiteSpace(msg)) return "Low";
+            var m = msg.ToLower();
+
+            // CRITICAL: Immediate threat to life, sinking, fire, injuries
+            var criticalWords = new[] { 
+                "tabang", "reskyu", "help", "mayday", "sos", "emergency", 
+                "nalunod", "lunod", "bangga", "sunog", "nasunog", 
+                "nawala", "patay", "pusil", "gipusil", "nasamdan" 
+            };
+            
+            if (criticalWords.Any(w => m.Contains(w))) 
+                return "Critical";
+
+            // HIGH: Illegal fishing, environmental damage, severe violations
+            var highWords = new[] { 
+                "dinamita", "iligal", "illegal", "dynamite", "compressor", 
+                "cyanide", "hilo", "kuryente", "bawal", "guba", 
+                "naguba", "nakasulod", "trespassing", "intrusion", "pukot" 
+            };
+            
+            if (highWords.Any(w => m.Contains(w))) 
+                return "High";
+
+            return "Low";
+        }
+
+        public static string ExtractFlaggedPlace(string? msg)
+        {
+            if (string.IsNullOrWhiteSpace(msg)) return "Unknown";
+            var m = msg.ToLower();
+            if (m.Contains("patao")) return "Patao";
+            if (m.Contains("sulangan")) return "Sulangan";
+            if (m.Contains("guiwanon")) return "Guiwanon";
+            return "Unknown";
+        }
     }
 }

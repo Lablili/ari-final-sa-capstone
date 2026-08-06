@@ -13,9 +13,13 @@ namespace ari_final_sa_capstone.Models
 
         public DateTime? TimestampReceived { get; set; }
 
+        public int? AnnouncementId { get; set; }
+
         [Required]
         [MaxLength(50)]
-        public string DeliveryStatus { get; set; } = "Pending"; // E.g., Delivered, Failed, Pending
+        public string Status { get; set; } = "PENDING"; // PENDING, DELIVERED, FAILED
+
+        public int RetryCount { get; set; } = 0;
 
         [Required]
         [MaxLength(50)]

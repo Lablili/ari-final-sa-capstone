@@ -80,7 +80,17 @@ function filtered() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const res = DATA.filter(m => {
     const mc = activeFilter === 'all' || m.cat === activeFilter;
-    const ms = activeStatusFilter === 'all' || m.status === activeStatusFilter;
+    
+    // Auto-archive: Exclude 'resolved' from the default 'all' view
+    let ms = false;
+    if (activeStatusFilter === 'all') {
+      ms = (m.status !== 'resolved');
+    } else if (activeStatusFilter === 'archived') {
+      ms = (m.status === 'resolved');
+    } else {
+      ms = (m.status === activeStatusFilter);
+    }
+    
     const mb = activeBrgyFilter === 'all' || m.brgy === activeBrgyFilter;
     const mq = !q || m.sender.toLowerCase().includes(q) || m.subject.toLowerCase().includes(q) || m.brgy.toLowerCase().includes(q) || m.msg.toLowerCase().includes(q);
     return mc && ms && mb && mq;
@@ -92,10 +102,13 @@ function filtered() {
 
 // ════ RENDER FUNCTIONS ════
 function renderCounts() {
-  document.getElementById('s-total').textContent = DATA.length;
   const nw = DATA.filter(m=>m.status==='new').length;
   const rev = DATA.filter(m=>m.status==='review').length;
   const res = DATA.filter(m=>m.status==='resolved').length;
+  
+  // Update Total to show only active reports (excluding resolved)
+  const totalActive = DATA.length - res;
+  document.getElementById('s-total').textContent = totalActive;
   
   document.getElementById('s-new').textContent = nw;
   document.getElementById('s-review').textContent = rev;
@@ -331,7 +344,44 @@ async function setStatus(id, val) {
   }
 }
 
+let currentBlotterId = null;
+
+function saveBlotterDraft() {
+  if (currentBlotterId) {
+    const content = document.getElementById('blotterBody').innerHTML;
+    localStorage.setItem('blotterDraft_' + currentBlotterId, content);
+    const btn = document.getElementById('btnResetBlotter');
+    if (btn) btn.style.display = 'inline-block';
+  }
+}
+
+function resetBlotter() {
+  if (confirm("Are you sure you want to discard your draft and generate a fresh blotter report?")) {
+    localStorage.removeItem('blotterDraft_' + currentBlotterId);
+    generateDefaultBlotter(currentBlotterId);
+  }
+}
+window.resetBlotter = resetBlotter;
+
 function openBlotter(id) {
+  const m = DATA.find(x=>x.id===id);
+  if (!m) return;
+  currentBlotterId = id;
+  
+  const draft = localStorage.getItem('blotterDraft_' + id);
+  if (draft) {
+    document.getElementById('blotterBody').innerHTML = draft;
+    const btn = document.getElementById('btnResetBlotter');
+    if (btn) btn.style.display = 'inline-block';
+    document.getElementById('blotterOverlay').classList.add('open');
+    return;
+  }
+  
+  generateDefaultBlotter(id);
+  document.getElementById('blotterOverlay').classList.add('open');
+}
+
+function generateDefaultBlotter(id) {
   const m = DATA.find(x=>x.id===id);
   if (!m) return;
   const c = CAT[m.cat];
@@ -420,7 +470,10 @@ function openBlotter(id) {
       </div>
     </div>`;
 
-  document.getElementById('blotterOverlay').classList.add('open');
+    </div>`;
+
+  const btn = document.getElementById('btnResetBlotter');
+  if (btn) btn.style.display = 'none';
 }
 
 function closeBlotter() {
@@ -446,6 +499,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('detailModalOverlay').addEventListener('click', closeDetail);
   document.getElementById('detailModalCloseButton').addEventListener('click', closeDetail);
+  
+  document.getElementById('blotterBody').addEventListener('input', saveBlotterDraft);
 
   displayCurrentDate();
   // Load all feedback from the database

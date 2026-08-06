@@ -1,13 +1,13 @@
 // ════ DATA ════
 let DATA = [
-  { id:1, cat:'sos',      sender:'Juan dela Cruz',      contact:'+63 912 345 6789', brgy:'Patao',              vessel:'Bangka #BD-0042', time:'2026-05-25 06:14', status:'new',      subject:'Kalit nga pagka-dehado sa makina – Mayday',    msg:'Mayday! Nabuslot ang makina. Duol mi mga 3 nautical miles sa amihan-sidlakan sa Patao. 4 ka crew, walay kadaut. Palihug padala dayon og tabang. Ang barko naglutaw paingon sa amihanan-kasadpan.' },
-  { id:2, cat:'sos',      sender:'Roberto Mancao',      contact:'+63 918 876 5432', brgy:'Guiwanon',           vessel:'Bangka #BD-0098', time:'2026-05-24 21:45', status:'review',   subject:'Hangyo og Reskyu – Nag-umol ang Bangka',       msg:'Natumba ang among bangka duol sa baybayon sa Guiwanon. 2 ka mangingisda nagkapilit sa hull. Kinahanglan og dali nga reskyu. Duol sa pulang buoy ang lokasyon.' },
-  { id:3, cat:'incident', sender:'Pedro Santos',         contact:'+63 917 111 2222', brgy:'Sulangan',           vessel:'Bangka #BD-0011', time:'2026-05-25 08:30', status:'new',      subject:'Iligal nga pagpangisda – Paggamit sa dinamita', msg:'Nakit-an namo ang usa ka dako nga motorized banca nga naggamit og dinamita sa daplin sa coral reef duol sa Sulangan sa alas 8:00 sa buntag. Wala kiniy marka ug nidagan paingon sa kasadpan.' },
-  { id:4, cat:'incident', sender:'Maria Flores',         contact:'+63 923 444 5555', brgy:'Patao',              vessel:'N/A',             time:'2026-05-24 14:10', status:'resolved', subject:'Paglapas sa Protektadong Marine Area',         msg:'Nakita ang usa ka speedboat nga walay permiso misulod sa marine sanctuary duol sa Patao. Wala makita ang plaka.' },
-  { id:5, cat:'complaint',sender:'Lito Buenaventura',    contact:'+63 935 777 8888', brgy:'Guiwanon',           vessel:'Bangka #BD-0055', time:'2026-05-23 16:00', status:'review',   subject:'Walay Bantay Dagat sa among Barangay',        msg:'Wala mi makakita og Bantay Dagat patrol sa among lugar sulod sa duha ka semana. Daghang iligal nga pagpangisda duol sa Guiwanon. Nangayo og prayoridad alang sa regular patrol.' },
-  { id:6, cat:'complaint',sender:'Anita Reyes',          contact:'+63 906 321 6547', brgy:'Sulangan',           vessel:'N/A',             time:'2026-05-22 09:15', status:'resolved', subject:'Panaglalis sa Komersyal nga mga Sakayan',    msg:'Nag-operate ang dagkong komersyal nga sakayan hapit sa among municipal fishing ground sa Sulangan, nagbalhin sa gamay nga mangingisda. Nangayo kami og dokumentasyon.' },
-  { id:7, cat:'info',     sender:'Carlos Tan',           contact:'+63 945 654 3210', brgy:'Patao',              vessel:'Bangka #BD-0077', time:'2026-05-21 11:00', status:'resolved', subject:'Follow-up sa Rehistro sa Bangka BD-0077', msg:'Gusto nako mag-follow up sa status sa akong rehistro sa bangka BD-0077. Gisumite nako ang mga requirements sauna nga semana ug wala pa ko madawat nga kumpirmasyon.' },
-  { id:8, cat:'info',     sender:'Emilio Ramos',         contact:'+63 956 888 9999', brgy:'Guiwanon',           vessel:'N/A',             time:'2026-05-20 13:30', status:'review',   subject:'Hangyo sa Patrol Schedule sa Hunyo 2026',    msg:'Maayong adlaw. Nangayo kami sa schedule sa Bantay Dagat patrol para sa Hunyo 2026 alang sa records sa barangay council. Gusto usab namo magkokoordinar para sa coastal clean-up.' },
+  { id:1, cat:'sos',      contact:'+63 912 345 6789', priority:'Critical', flaggedPlace:'Patao',     time:'2026-05-25 06:14', status:'new',      subject:'Kalit nga pagka-dehado sa makina – Mayday',    msg:'Mayday! Nabuslot ang makina. Duol mi mga 3 nautical miles sa amihan-sidlakan sa Patao. 4 ka crew, walay kadaut. Palihug padala dayon og tabang. Ang barko naglutaw paingon sa amihanan-kasadpan.' },
+  { id:2, cat:'sos',      contact:'+63 918 876 5432', priority:'Critical', flaggedPlace:'Guiwanon',  time:'2026-05-24 21:45', status:'review',   subject:'Hangyo og Reskyu – Nag-umol ang Bangka',       msg:'Natumba ang among bangka duol sa baybayon sa Guiwanon. 2 ka mangingisda nagkapilit sa hull. Kinahanglan og dali nga reskyu. Duol sa pulang buoy ang lokasyon.' },
+  { id:3, cat:'incident', contact:'+63 917 111 2222', priority:'High',     flaggedPlace:'Sulangan',  time:'2026-05-25 08:30', status:'new',      subject:'Iligal nga pagpangisda – Paggamit sa dinamita', msg:'Nakit-an namo ang usa ka dako nga motorized banca nga naggamit og dinamita sa daplin sa coral reef duol sa Sulangan sa alas 8:00 sa buntag. Wala kiniy marka ug nidagan paingon sa kasadpan.' },
+  { id:4, cat:'incident', contact:'+63 923 444 5555', priority:'High',     flaggedPlace:'Patao',     time:'2026-05-24 14:10', status:'resolved', subject:'Paglapas sa Protektadong Marine Area',         msg:'Nakita ang usa ka speedboat nga walay permiso misulod sa marine sanctuary duol sa Patao. Wala makita ang plaka.' },
+  { id:5, cat:'complaint',contact:'+63 935 777 8888', priority:'Low',      flaggedPlace:'Guiwanon',  time:'2026-05-23 16:00', status:'review',   subject:'Walay Bantay Dagat sa among Barangay',        msg:'Wala mi makakita og Bantay Dagat patrol sa among lugar sulod sa duha ka semana. Daghang iligal nga pagpangisda duol sa Guiwanon. Nangayo og prayoridad alang sa regular patrol.' },
+  { id:6, cat:'complaint',contact:'+63 906 321 6547', priority:'Low',      flaggedPlace:'Sulangan',  time:'2026-05-22 09:15', status:'resolved', subject:'Panaglalis sa Komersyal nga mga Sakayan',    msg:'Nag-operate ang dagkong komersyal nga sakayan hapit sa among municipal fishing ground sa Sulangan, nagbalhin sa gamay nga mangingisda. Nangayo kami og dokumentasyon.' },
+  { id:7, cat:'info',     contact:'+63 945 654 3210', priority:'Low',      flaggedPlace:'Unknown',   time:'2026-05-21 11:00', status:'resolved', subject:'Follow-up sa Rehistro sa Bangka BD-0077', msg:'Gusto nako mag-follow up sa status sa akong rehistro sa bangka BD-0077. Gisumite nako ang mga requirements sauna nga semana ug wala pa ko madawat nga kumpirmasyon.' },
+  { id:8, cat:'info',     contact:'+63 956 888 9999', priority:'Low',      flaggedPlace:'Unknown',   time:'2026-05-20 13:30', status:'review',   subject:'Hangyo sa Patrol Schedule sa Hunyo 2026',    msg:'Maayong adlaw. Nangayo kami sa schedule sa Bantay Dagat patrol para sa Hunyo 2026 alang sa records sa barangay council. Gusto usab namo magkokoordinar para sa coastal clean-up.' },
 ];
 
 // ════ SELECTORS ════
@@ -24,11 +24,12 @@ const STAT = {
   new:      { cls:'dot-new',      label:'New' },
   review:   { cls:'dot-review',   label:'Review' },
   resolved: { cls:'dot-resolved', label:'Resolved' },
+  archived: { cls:'dot-archived', label:'Archived' },
 };
 
 // ════ STATE ════
 let activeFilter = 'all';
-let activeBrgyFilter = 'all';
+let activePriorityFilter = 'all';
 let activeStatusFilter = 'all';
 let page = 1;
 const PER = 6;
@@ -80,10 +81,10 @@ function filtered() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const res = DATA.filter(m => {
     const mc = activeFilter === 'all' || m.cat === activeFilter;
-    const ms = activeStatusFilter === 'all' || m.status === activeStatusFilter;
-    const mb = activeBrgyFilter === 'all' || m.brgy === activeBrgyFilter;
-    const mq = !q || m.sender.toLowerCase().includes(q) || m.subject.toLowerCase().includes(q) || m.brgy.toLowerCase().includes(q) || m.msg.toLowerCase().includes(q);
-    return mc && ms && mb && mq;
+    const ms = activeStatusFilter === 'all' ? (m.status !== 'archived') : (m.status === activeStatusFilter);
+    const mp = activePriorityFilter === 'all' || m.priority === activePriorityFilter;
+    const mq = !q || m.subject.toLowerCase().includes(q) || (m.flaggedPlace && m.flaggedPlace.toLowerCase().includes(q)) || m.msg.toLowerCase().includes(q) || m.contact.toLowerCase().includes(q);
+    return mc && ms && mp && mq;
   });
   // Sort chronologically (newest first)
   res.sort((a, b) => new Date(b.time) - new Date(a.time));
@@ -95,7 +96,7 @@ function renderCounts() {
   document.getElementById('s-total').textContent = DATA.length;
   const nw = DATA.filter(m=>m.status==='new').length;
   const rev = DATA.filter(m=>m.status==='review').length;
-  const res = DATA.filter(m=>m.status==='resolved').length;
+  const res = DATA.filter(m=>m.status==='resolved' || m.status === 'archived').length;
   
   document.getElementById('s-new').textContent = nw;
   document.getElementById('s-review').textContent = rev;
@@ -108,7 +109,7 @@ function renderCounts() {
   });
 
   // Render status counts contextually based on selected Category filter
-  ['all', 'new', 'review', 'resolved'].forEach(sf => {
+  ['all', 'new', 'review', 'resolved', 'archived'].forEach(sf => {
     const el = document.getElementById('sc-'+sf);
     if (el) {
       const matchingCat = DATA.filter(m => activeFilter === 'all' || m.cat === activeFilter);
@@ -131,7 +132,7 @@ function renderTable() {
   document.getElementById('pgNum').textContent  = `Page ${page} / ${totalPages}`;
   document.getElementById('btnPrev').disabled = page===1;
   document.getElementById('btnNext').disabled = page>=totalPages;
-  document.getElementById('btnClear').style.display = (activeFilter!=='all' || document.getElementById('searchInput').value) ? '' : 'none';
+  document.getElementById('btnClear').style.display = (activeFilter!=='all' || activePriorityFilter!=='all' || activeStatusFilter!=='all' || document.getElementById('searchInput').value) ? '' : 'none';
 
   if (!slice.length) {
     tbody.innerHTML='';
@@ -143,8 +144,9 @@ function renderTable() {
   tbody.innerHTML = slice.map((m,i) => {
     const c = CAT[m.cat], s = STAT[m.status];
     return `<tr class="${c.rowCls}" style="animation-delay:${i*40}ms" onclick="openDetail(${m.id})">
+      <td><span class="cat-badge" style="background:#e2e8f0;color:#0f172a">${m.priority}</span></td>
       <td><span class="cat-badge ${c.cls}">${c.icon}&nbsp;${c.label}</span></td>
-      <td><div class="sender-name">${m.sender}</div><div class="sender-sub">${m.brgy}</div></td>
+      <td><div class="sender-name">${m.contact}</div><div class="sender-sub">${m.flaggedPlace}</div></td>
       <td><div style="font-weight:500">${m.subject}</div><div class="msg-preview">${m.msg}</div></td>
       <td><span class="status-dot"><span class="dot ${s.cls}"></span>${s.label}</span></td>
       <td class="time-cell">${fmtDate(m.time, true)}</td>
@@ -163,14 +165,14 @@ function goPage(d) {
 // ════ FILTER & SEARCH ════
 function clearFilters() {
   activeFilter='all';
-  activeBrgyFilter='all';
+  activePriorityFilter='all';
   activeStatusFilter='all';
   document.getElementById('searchInput').value='';
   const typeDrop = document.getElementById('typeFilter');
-  const brgyDrop = document.getElementById('brgyFilter');
+  const prioDrop = document.getElementById('priorityFilter');
   const statusDrop = document.getElementById('statusFilter');
   if (typeDrop) typeDrop.value = 'all';
-  if (brgyDrop) brgyDrop.value = 'all';
+  if (prioDrop) prioDrop.value = 'all';
   if (statusDrop) statusDrop.value = 'all';
   page=1;
   renderTable();
@@ -189,11 +191,11 @@ function setupFilterHandlers() {
     });
   }
 
-  // Barangay dropdown
-  const brgyDrop = document.getElementById('brgyFilter');
-  if (brgyDrop) {
-    brgyDrop.addEventListener('change', function() {
-      activeBrgyFilter = this.value;
+  // Priority dropdown
+  const prioDrop = document.getElementById('priorityFilter');
+  if (prioDrop) {
+    prioDrop.addEventListener('change', function() {
+      activePriorityFilter = this.value;
       page = 1;
       renderTable();
     });
@@ -229,7 +231,6 @@ function exportFeedbackCSV() {
     'Category / Type of Incident',
     'Status',
     'Date & Time Sent',
-    'Sender Name',
     'Contact Number',
     'Barangay',
     'Vessel / Boat',
@@ -249,10 +250,9 @@ function exportFeedbackCSV() {
       csvCell(cat),
       csvCell(stat),
       csvCell(dateStr),
-      csvCell(m.sender),
       csvCell(m.contact),
-      csvCell(m.brgy),
-      csvCell(m.vessel || 'N/A'),
+      csvCell(m.priority),
+      csvCell(m.flaggedPlace),
       csvCell(m.subject),
       csvCell(m.msg)
     ];
@@ -279,21 +279,46 @@ function openDetail(id) {
 
     let actionButtons = '';
     if (window.UserRole !== 'FisheriesAdmin') {
-      actionButtons = `
-      <button class="btn-secondary" onclick="setStatus(${activeMsg.id},'review')">Mark as Reviewed</button>
-      <button class="btn-secondary" onclick="setStatus(${activeMsg.id},'resolved')">Mark as Resolved</button>
-      <button class="btn-primary" onclick="closeDetail();openBlotter(${activeMsg.id})">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        Generate Blotter
-      </button>`;
+      // Step 1: Reply via SMS is always available as a basic communication tool
+      actionButtons += `<button onclick="replyToReport(${activeMsg.id})" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer;">Reply via SMS</button>`;
+
+      if (activeMsg.status === 'pending' || activeMsg.status === 'new') {
+        if (!activeMsg.isVerified) {
+          actionButtons += `<button onclick="verifyReport(${activeMsg.id})" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #f59e0b; border: 1px solid #f59e0b; color: white; cursor: pointer;">Verify by Call</button>`;
+        } else {
+          actionButtons += `<button onclick="setStatus(${activeMsg.id},'review')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer;">Mark as Reviewed</button>`;
+        }
+      }
+
+      if (activeMsg.status === 'review') {
+        if (!activeMsg.hasBlotter) {
+          actionButtons += `
+          <button onclick="closeDetail();openBlotter(${activeMsg.id})" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #2563eb; border: 1px solid #2563eb; color: white; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Generate Blotter
+          </button>`;
+        } else {
+          actionButtons += `
+          <button onclick="closeDetail();openBlotter(${activeMsg.id})" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer;">View Blotter</button>
+          <button onclick="setStatus(${activeMsg.id},'resolved')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #10b981; border: 1px solid #10b981; color: white; cursor: pointer;">Mark as Resolved</button>`;
+        }
+      }
+
+      if (activeMsg.status === 'resolved') {
+        actionButtons += `
+        <button onclick="closeDetail();openBlotter(${activeMsg.id})" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          View/Print Blotter
+        </button>
+        <button onclick="setStatus(${activeMsg.id},'archived')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #64748b; border: 1px solid #64748b; color: white; cursor: pointer;">Move to Archive</button>`;
+      }
     }
 
     document.getElementById('detailBody').innerHTML = `
     <div class="info-grid">
-      <div class="info-card"><div class="info-l">Sender</div><div class="info-v">${activeMsg.sender}</div></div>
       <div class="info-card"><div class="info-l">Contact</div><div class="info-v">${activeMsg.contact}</div></div>
-      <div class="info-card"><div class="info-l">Barangay</div><div class="info-v">${activeMsg.brgy}</div></div>
-      <div class="info-card"><div class="info-l">Vessel</div><div class="info-v">${activeMsg.vessel}</div></div>
+      <div class="info-card"><div class="info-l">Priority Level</div><div class="info-v">${activeMsg.priority}</div></div>
+      <div class="info-card"><div class="info-l">Flagged Place</div><div class="info-v">${activeMsg.flaggedPlace}</div></div>
       <div class="info-card"><div class="info-l">Date &amp; Time</div><div class="info-v">${fmtDate(activeMsg.time,false)}</div></div>
       <div class="info-card"><div class="info-l">Status</div><div class="info-v"><span class="status-dot"><span class="dot ${s.cls}"></span>${s.label}</span></div></div>
     </div>
@@ -314,6 +339,25 @@ window.closeBlotter = closeBlotter;
 window.goPage = goPage;
 window.clearFilters = clearFilters;
 
+window.verifyReport = function(id) {
+  const m = DATA.find(x=>x.id===id);
+  if(m) {
+    m.isVerified = true;
+    showToast("Report verified via phone call.");
+    openDetail(id); // Re-render modal to show "Mark as Reviewed"
+  }
+};
+
+window.replyToReport = function(id) {
+  const m = DATA.find(x=>x.id===id);
+  if(m) {
+    const msg = prompt(`Send SMS Reply to ${m.contact}:`, "Thank you for reporting to Bantay Dagat. We are looking into this.");
+    if (msg) {
+      showToast("SMS reply sent to " + m.contact);
+    }
+  }
+};
+
 function closeDetail() {
   document.getElementById('detailModal').classList.add('hidden');
 }
@@ -333,13 +377,17 @@ async function setStatus(id, val) {
     openDetail(id);
     renderCounts();
     renderTable();
-    showToast("Status updated to " + (val === 'review' ? 'Reviewed' : 'Resolved') + "!");
+    let statusMsg = "Status updated to Resolved!";
+    if (val === 'review') statusMsg = "Status updated to Reviewed!";
+    if (val === 'archived') statusMsg = "Report successfully moved to Archive!";
+    showToast(statusMsg);
   }
 }
 
 function openBlotter(id) {
   const m = DATA.find(x=>x.id===id);
   if (!m) return;
+  m.hasBlotter = true; // Mark blotter as generated for the workflow sequence
   const c = CAT[m.cat];
   const bNoShort = String(m.id).padStart(2,'0');
   const dateObj = new Date(m.time);
@@ -364,12 +412,7 @@ function openBlotter(id) {
 
       <!-- Right Logo: Bantay Dagat -->
       <div class="blotter-logo" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
-        <svg width="65" height="65" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="46" fill="#f8fafc" stroke="#047857" stroke-width="3"/>
-          <circle cx="50" cy="50" r="38" fill="#065f46" stroke="#eab308" stroke-width="1.5"/>
-          <path d="M50 22 L50 78 M35 45 L65 45 M35 55 L65 55" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
-          <text x="50" y="82" font-size="7" font-weight="bold" fill="#ffffff" text-anchor="middle">BANTAY DAGAT</text>
-        </svg>
+        <img src="/logo-bantaydagat.jpg" alt="Bantay Dagat Logo" style="width: 65px; height: 65px; object-fit: contain;">
       </div>
     </div>
 
@@ -391,10 +434,10 @@ function openBlotter(id) {
     <!-- Grid info (Occurrence and Suspect) -->
     <div class="occurrence-grid" style="display: grid; grid-template-columns: 180px 1fr; gap: 16px; margin-bottom: 20px; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.5; text-align: justify;">
       <div style="font-weight: bold;">Time/Date/Place<br>Of Occurrence</div>
-      <div contenteditable="true" style="outline: none;">--At about ${timeStr} of ${dateStr} at the vicinity municipal waters off Brgy. ${m.brgy}, Bantayan, Cebu.</div>
+      <div contenteditable="true" style="outline: none;">--At about ${timeStr} of ${dateStr} at the vicinity municipal waters off ${m.flaggedPlace}, Bantayan, Cebu.</div>
       
       <div style="font-weight: bold;">Arrested Suspect</div>
-      <div contenteditable="true" style="outline: none;">--${m.sender}, resident of Brgy. ${m.brgy}, Bantayan, Cebu (Vessel: ${m.vessel || 'N/A'}, Contact: ${m.contact || 'N/A'}). [Add other suspects: Name, Age, DOB, address, and vessel role]</div>
+      <div contenteditable="true" style="outline: none;">--Unknown Suspect (Contact: ${m.contact || 'N/A'}). [Add other suspects: Name, Age, DOB, address, and vessel role]</div>
     </div>
 
     <!-- Facts section -->
@@ -478,6 +521,40 @@ async function loadFeedbackFromDb() {
     } else {
       DATA = dbData;
     }
+
+    // Auto-archive logic
+    let modified = false;
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+    const threeYearsAgo = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
+
+    for (let i = 0; i < DATA.length; i++) {
+        let item = DATA[i];
+        if (item.status === 'archived') continue;
+        
+        let itemDate = new Date(item.time);
+        if (isNaN(itemDate.getTime())) continue;
+
+        let shouldArchive = false;
+        if (item.status === 'resolved') {
+            shouldArchive = true;
+        } else if (item.status !== 'resolved' && itemDate < threeYearsAgo) {
+            shouldArchive = true;
+        }
+
+        if (shouldArchive) {
+            item.status = 'archived';
+            modified = true;
+            try {
+                await fetch('/api/feedback/' + item.id + '/status', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'archived' })
+                });
+            } catch(e) {}
+        }
+    }
+
   } catch(e) {
     // If API is unreachable, fall back to the built-in sample data
     console.warn('Feedback API unavailable, using local DATA:', e);

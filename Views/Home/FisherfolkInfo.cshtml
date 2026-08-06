@@ -1,6 +1,7 @@
 @{
     ViewData["Title"] = "Fisherfolk Info";
-    var userRole = Context.Session.GetString("UserRole") ?? "";
+    var sessionRole = Context.Session.GetString("UserRole");
+    var userRole = !string.IsNullOrEmpty(sessionRole) ? sessionRole : (User != null && User.Identity.IsAuthenticated ? string.Join(", ", (User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value))) : "");
 }
 
 
@@ -53,7 +54,7 @@
 
         </section>
 
-        @if (userRole != "BantayDagatAdmin")
+        @if (userRole == "FisheriesAdmin" || userRole == "SuperAdmin")
         {
             <div class="directory-header-section" style="display: flex; gap: 10px;">
                 <button class="btn-primary" id="btnRegisterLocalFisherman" type="button">
@@ -103,7 +104,7 @@
             
             <div class="table-footer" style="padding: 15px 0 5px 0; margin-top: 5px; display: flex; flex-direction: column; gap: 6px;">
                 <span id="activeRecordCount" style="font-size: 14.5px; color: #0f172a; font-weight: 500;">Showing 0 of 0 records</span>
-                @if (userRole != "BantayDagatAdmin")
+                @if (userRole == "FisheriesAdmin" || userRole == "SuperAdmin")
                 {
                     <div>
                         <a href="#" id="btnToggleArchiveFooter" style="font-size: 14.5px; color: #3b82f6; text-decoration: none; font-weight: 500;">
