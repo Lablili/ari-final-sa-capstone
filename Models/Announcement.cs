@@ -8,62 +8,62 @@ namespace ari_final_sa_capstone.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int AId { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [MaxLength(100)]
-        public string ACategory { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
 
         [MaxLength(200)]
-        public string ATitle { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(100)]
-        public string ARecepientGroup { get; set; } = string.Empty;
+        public string RecepientGroup { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(200)]
-        public string ALocation { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
 
         [Required]
-        public DateTime Adate { get; set; } = DateTime.UtcNow;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
 
         [MaxLength(100)]
-        public string AResoNo { get; set; } = string.Empty;
+        public string ResoNo { get; set; } = string.Empty;
 
         [MaxLength(100)]
-        public string AeffectiveDate { get; set; } = string.Empty;
+        public string EffectiveDate { get; set; } = string.Empty;
 
         [MaxLength(500)]
-        public string Apenalty { get; set; } = string.Empty;
+        public string Penalty { get; set; } = string.Empty;
 
-        public string AAddDetails { get; set; } = string.Empty;
+        public string AddDetails { get; set; } = string.Empty;
 
         [MaxLength(500)]
-        public string AAttachmentPath { get; set; } = string.Empty;
+        public string AttachmentPath { get; set; } = string.Empty;
 
         [MaxLength(150)]
-        public string AContactPerson { get; set; } = string.Empty;
+        public string ContactPerson { get; set; } = string.Empty;
 
-        public DateTime? AEventDate { get; set; }
+        public DateTime? EventDate { get; set; }
 
         // System Required Fields
         [Required]
         [MaxLength(150)]
-        public string AOfficer { get; set; } = string.Empty;
+        public string Officer { get; set; } = string.Empty;
 
         [Required]
-        public string AMessage { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(50)]
-        public string AStatus { get; set; } = "Delivered";
+        public string Status { get; set; } = "Delivered";
 
         [Required]
-        public DateTime ACreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public int ADeliveredCount { get; set; }
+        public int DeliveredCount { get; set; }
 
-        public bool AIsArchived { get; set; }
+        public bool IsArchived { get; set; }
     }
 }

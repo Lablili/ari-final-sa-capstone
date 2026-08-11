@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ari_final_sa_capstone.Data;
 
@@ -11,9 +12,11 @@ using ari_final_sa_capstone.Data;
 namespace ari_final_sa_capstone.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260806072425_AddBlockedNumbers")]
+    partial class AddBlockedNumbers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -267,91 +270,91 @@ namespace ari_final_sa_capstone.Migrations
 
             modelBuilder.Entity("ari_final_sa_capstone.Models.Announcement", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("AId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AId"));
 
-                    b.Property<string>("AddDetails")
+                    b.Property<string>("AAddDetails")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("AttachmentPath")
+                    b.Property<string>("AAttachmentPath")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("Category")
+                    b.Property<string>("ACategory")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("ContactPerson")
+                    b.Property<string>("AContactPerson")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("ACreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DeliveredCount")
+                    b.Property<int>("ADeliveredCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("EffectiveDate")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("EventDate")
+                    b.Property<DateTime?>("AEventDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsArchived")
+                    b.Property<bool>("AIsArchived")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Location")
+                    b.Property<string>("ALocation")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("Message")
+                    b.Property<string>("AMessage")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Officer")
+                    b.Property<string>("AOfficer")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("Penalty")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("RecepientGroup")
+                    b.Property<string>("ARecepientGroup")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("ResoNo")
+                    b.Property<string>("AResoNo")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Status")
+                    b.Property<string>("AStatus")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("ATitle")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("Id");
+                    b.Property<DateTime>("Adate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AeffectiveDate")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Apenalty")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("AId");
 
                     b.ToTable("Announcements");
                 });
@@ -477,10 +480,6 @@ namespace ari_final_sa_capstone.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("CreatedByAdmin")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<DateTime>("IncidentDate")
                         .HasColumnType("datetime2");
 
@@ -522,155 +521,148 @@ namespace ari_final_sa_capstone.Migrations
 
             modelBuilder.Entity("ari_final_sa_capstone.Models.FeedbackMessage", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("MId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MId"));
 
-                    b.Property<string>("ActionedByAdmin")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Category")
+                    b.Property<string>("MCategory")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("ContactNumber")
+                    b.Property<string>("MFlaggedPlace")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("MPriorityLevel")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<DateTime>("DateReceived")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FlaggedPlace")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int?>("GroupId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PriorityLevel")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Sender")
+                    b.Property<string>("MSender")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("Status")
+                    b.Property<string>("McontactNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Subject")
+                    b.Property<DateTime>("MdateReceived")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Mmessage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Mstatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Msubject")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<TimeSpan>("TimeReceived")
+                    b.Property<TimeSpan>("MtimeReceived")
                         .HasColumnType("time");
 
-                    b.HasKey("Id");
+                    b.HasKey("MId");
 
                     b.ToTable("FeedbackMessages");
                 });
 
             modelBuilder.Entity("ari_final_sa_capstone.Models.FisherfolkRegistry", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("FrId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FrId"));
 
-                    b.Property<string>("Address")
+                    b.Property<string>("Fraddress")
                         .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
-                    b.Property<int>("Age")
+                    b.Property<int>("Frage")
                         .HasColumnType("int");
 
-                    b.Property<string>("Barangay")
+                    b.Property<string>("Frbarangay")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("Birthdate")
+                    b.Property<DateTime>("Frbirthdate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("BoatNumber")
+                    b.Property<string>("FrboatNumber")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("CaptureMethod")
+                    b.Property<string>("FrcaptureMethod")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("ContactNumber")
+                    b.Property<string>("FrcontactNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Fname")
+                    b.Property<string>("Frfname")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Gender")
+                    b.Property<string>("Frgender")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("FrisActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Lname")
+                    b.Property<string>("Frlname")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Mname")
+                    b.Property<string>("Frmname")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("PermitNumber")
+                    b.Property<string>("FrpermitNumber")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("RegCode")
+                    b.Property<string>("FrregCode")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("RegistrationStatus")
+                    b.Property<string>("FrregistrationStatus")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("VesselName")
+                    b.Property<string>("FrvesselName")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("VesselType")
+                    b.Property<string>("FrvesselType")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.HasKey("Id");
+                    b.HasKey("FrId");
 
                     b.ToTable("FisherfolkRegistries");
                 });

@@ -1,14 +1,10 @@
-@model ari_final_sa_capstone.Models.LoginViewModel
-@{
-    Layout = null; // login page shouldn't use the normal site layout/nav
-}
 
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <title>Login - Fisheries Monitoring System</title>
-    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
         body {
             margin: 0;
@@ -96,7 +92,7 @@
             color: #6b7280;
             margin-top: 15px;
         }
-        @@media (max-width: 768px) {
+        @media (max-width: 768px) {
             .left-panel { display: none; }
         }
     </style>
@@ -119,31 +115,25 @@
                 <h2>Welcome Back!</h2>
                 <p class="subtitle">Log in with your admin account to continue.</p>
 
-                @if (!ViewData.ModelState.IsValid)
-                {
-                    <div class="alert alert-danger py-2">
-                        <div asp-validation-summary="All"></div>
-                    </div>
-                }
 
-                <form asp-controller="Account" asp-action="Login" method="post">
+                <form method="post" action="/Account/Login">
                     <div class="mb-4">
-                        <input asp-for="Email" class="form-control" placeholder="Email address" />
-                        <span asp-validation-for="Email" class="text-danger small"></span>
+                        <input class="form-control" placeholder="Email address" type="email" data-val="true" data-val-email="The Email field is not a valid e-mail address." data-val-required="The Email field is required." id="Email" name="Email" value="" />
+                        <span class="text-danger small field-validation-valid" data-valmsg-for="Email" data-valmsg-replace="true"></span>
                     </div>
 
                     <div class="mb-2">
-                        <input asp-for="Password" type="password" class="form-control" placeholder="Password" />
-                        <span asp-validation-for="Password" class="text-danger small"></span>
+                        <input type="password" class="form-control" placeholder="Password" data-val="true" data-val-required="The Password field is required." id="Password" name="Password" />
+                        <span class="text-danger small field-validation-valid" data-valmsg-for="Password" data-valmsg-replace="true"></span>
                     </div>
 
                     <!-- Removed Remember Me to force login every time -->
 
                     <button type="submit" class="btn btn-login">Login Now</button>
-                </form>
+                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8NY74PhIJkJAiM4kNkNBCjavwtZfOkRd3yRW8OplQSYL4IduIeVdKKX_ofA-gZjZiEfmKVEZq6sd0xux1QNRVg4s2yq-5_cBa6nHXzzPVliL1HWxLlUesZ0ugUeTveKopHikFEn_5umTq8GbO_6y-xg" /></form>
 
                 <div class="forgot-link">
-                    Forgot password? <a href="@Url.Action("ForgotPassword", "Account")" class="fw-bold text-dark">Click here</a>
+                    Forgot password? <a href="/Account/ForgotPassword" class="fw-bold text-dark">Click here</a>
                 </div>
             </div>
         </div>

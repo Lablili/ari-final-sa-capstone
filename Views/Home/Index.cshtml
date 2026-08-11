@@ -50,7 +50,7 @@
             </div>
             
             <section class="content-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
-                <article class="panel" style="border-top: 4px solid #3b82f6;">
+                <article class="panel">
                     <div class="panel-header" style="border-bottom: 1px solid #f3f4f6; padding-bottom: 12px; margin-bottom: 10px;">
                         <h3 style="font-size: 1rem; color: #4b5563;">Fisherfolk Info</h3>
                     </div>
@@ -59,7 +59,7 @@
                     </div>
                 </article>
                 
-                <article class="panel" style="border-top: 4px solid #10b981;">
+                <article class="panel">
                     <div class="panel-header" style="border-bottom: 1px solid #f3f4f6; padding-bottom: 12px; margin-bottom: 10px;">
                         <h3 style="font-size: 1rem; color: #4b5563;">Announcements</h3>
                     </div>
@@ -68,7 +68,7 @@
                     </div>
                 </article>
 
-                <article class="panel" style="border-top: 4px solid #ef4444;">
+                <article class="panel">
                     <div class="panel-header" style="border-bottom: 1px solid #f3f4f6; padding-bottom: 12px; margin-bottom: 10px;">
                         <h3 style="font-size: 1rem; color: #4b5563;">Community Reports</h3>
                     </div>
@@ -195,22 +195,38 @@
                 <div class="metric-card">
                     <div class="metric-title">Total Incidents</div>
                     <h3 class="metric-value">@ViewBag.TotalIncidents</h3>
-                    <div class="metric-subtext"><span class="metric-trend trend-up">&uarr; 4.2%</span> Compared to last month</div>
+                    <div class="metric-subtext">
+                        @if (ViewBag.IncidentsTrend >= 0) { <span class="metric-trend trend-up">&uarr; @ViewBag.IncidentsTrend%</span> } 
+                        else { <span class="metric-trend trend-down">&darr; @Math.Abs(ViewBag.IncidentsTrend)%</span> }
+                        Compared to last month
+                    </div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-title">Avg Response Time</div>
                     <h3 class="metric-value">@ViewBag.AvgResponseTime <span style="font-size:1.2rem; color:#64748b;">min</span></h3>
-                    <div class="metric-subtext"><span class="metric-trend trend-down">&darr; 1.5%</span> Compared to last month</div>
+                    <div class="metric-subtext">
+                        @if (ViewBag.ResponseTimeTrend >= 0) { <span class="metric-trend trend-down">&uarr; @ViewBag.ResponseTimeTrend%</span> } 
+                        else { <span class="metric-trend trend-up">&darr; @Math.Abs(ViewBag.ResponseTimeTrend)%</span> }
+                        Compared to last month
+                    </div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-title">Enforcement Rate</div>
                     <h3 class="metric-value">@ViewBag.EnforcementRate%</h3>
-                    <div class="metric-subtext"><span class="metric-trend trend-up">&uarr; 2.1%</span> Compared to last month</div>
+                    <div class="metric-subtext">
+                        @if (ViewBag.EnforcementTrend >= 0) { <span class="metric-trend trend-up">&uarr; @ViewBag.EnforcementTrend%</span> } 
+                        else { <span class="metric-trend trend-down">&darr; @Math.Abs(ViewBag.EnforcementTrend)%</span> }
+                        Compared to last month
+                    </div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-title">SMS Delivery Ratio</div>
                     <h3 class="metric-value">@ViewBag.DeliveryRate%</h3>
-                    <div class="metric-subtext"><span class="metric-trend trend-up">&uarr; 0.8%</span> Compared to last month</div>
+                    <div class="metric-subtext">
+                        @if (ViewBag.DeliveryTrend >= 0) { <span class="metric-trend trend-up">&uarr; @ViewBag.DeliveryTrend%</span> } 
+                        else { <span class="metric-trend trend-down">&darr; @Math.Abs(ViewBag.DeliveryTrend)%</span> }
+                        Compared to last month
+                    </div>
                 </div>
             </div>
 
@@ -404,29 +420,27 @@
                 });
 
                 // Community Reports Chart
-                var rawR = localStorage.getItem('bantay-dagat-feedback');
-                var countR = 8;
-                if (rawR) {
-                    try { countR = JSON.parse(rawR).length; } catch(e) {}
-                }
-                var ctxR = document.getElementById('reportsChart').getContext('2d');
-                new Chart(ctxR, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Received'],
-                        datasets: [{
-                            label: 'Total Reports',
-                            data: [countR],
-                            backgroundColor: ['#ef4444']
-                        }]
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-                    }
-                });
+                fetch('/api/feedback').then(res => res.json()).then(itemsR => {
+                    var countR = itemsR.length || 0;
+                    var ctxR = document.getElementById('reportsChart').getContext('2d');
+                    new Chart(ctxR, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Received'],
+                            datasets: [{
+                                label: 'Total Reports',
+                                data: [countR],
+                                backgroundColor: ['#ef4444']
+                            }]
+                        },
+                        options: { 
+                            responsive: true, 
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                        }
+                    });
+                }).catch(e => console.error("Error loading community reports chart data:", e));
             });
         </script>
     }

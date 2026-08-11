@@ -40,6 +40,38 @@ public class HomeController : Controller
         var activeUsers = submissions.Select(s => s.FisherfolkId).Distinct().Count();
         var adoptionRate = totalFisherfolk > 0 ? (double)activeUsers / totalFisherfolk * 100 : 0;
 
+        // --- TREND CALCULATION LOGIC ---
+        var now = DateTime.Now;
+        var currentMonthStart = new DateTime(now.Year, now.Month, 1);
+        var lastMonthStart = currentMonthStart.AddMonths(-1);
+        
+        // Blotters
+        var cmBlotters = blotters.Where(b => b.IncidentDate >= currentMonthStart).ToList();
+        var lmBlotters = blotters.Where(b => b.IncidentDate >= lastMonthStart && b.IncidentDate < currentMonthStart).ToList();
+        
+        double GetPctChange(double current, double previous) => previous == 0 ? (current > 0 ? 100 : 0) : ((current - previous) / previous) * 100;
+        
+        var cmIncidents = cmBlotters.Count;
+        var lmIncidents = lmBlotters.Count;
+        ViewBag.IncidentsTrend = Math.Round(GetPctChange(cmIncidents, lmIncidents), 1);
+        
+        var cmRespTime = cmIncidents > 0 ? cmBlotters.Average(b => b.ResponseTimeMinutes) : 0;
+        var lmRespTime = lmIncidents > 0 ? lmBlotters.Average(b => b.ResponseTimeMinutes) : 0;
+        ViewBag.ResponseTimeTrend = Math.Round(GetPctChange(cmRespTime, lmRespTime), 1);
+        
+        var cmEnforcement = cmIncidents > 0 ? ((double)cmBlotters.Count(b => b.Status == "Closed") / cmIncidents) * 100 : 0;
+        var lmEnforcement = lmIncidents > 0 ? ((double)lmBlotters.Count(b => b.Status == "Closed") / lmIncidents) * 100 : 0;
+        ViewBag.EnforcementTrend = Math.Round(GetPctChange(cmEnforcement, lmEnforcement), 1);
+        
+        // SMS
+        var cmSms = smsLogs.Where(s => s.TimestampSent >= currentMonthStart).ToList();
+        var lmSms = smsLogs.Where(s => s.TimestampSent >= lastMonthStart && s.TimestampSent < currentMonthStart).ToList();
+        
+        var cmDeliveryRate = cmSms.Count > 0 ? ((double)cmSms.Count(s => s.Status == "Delivered") / cmSms.Count) * 100 : 0;
+        var lmDeliveryRate = lmSms.Count > 0 ? ((double)lmSms.Count(s => s.Status == "Delivered") / lmSms.Count) * 100 : 0;
+        ViewBag.DeliveryTrend = Math.Round(GetPctChange(cmDeliveryRate, lmDeliveryRate), 1);
+        // -------------------------------
+
         ViewBag.TotalIncidents = totalIncidents;
         ViewBag.AvgResponseTime = Math.Round(avgResponseTime, 2);
         ViewBag.EnforcementRate = totalIncidents > 0 ? Math.Round((double)closedCases / totalIncidents * 100, 2) : 0;
@@ -95,9 +127,9 @@ public class HomeController : Controller
 
         // Live counts from the database
         var all       = await _db.FisherfolkRegistries.CountAsync();
-        var sulangan  = await _db.FisherfolkRegistries.CountAsync(f => f.Frbarangay == "Sulangan");
-        var patao     = await _db.FisherfolkRegistries.CountAsync(f => f.Frbarangay == "Patao");
-        var guiwanon  = await _db.FisherfolkRegistries.CountAsync(f => f.Frbarangay == "Guiwanon");
+        var sulangan  = await _db.FisherfolkRegistries.CountAsync(f => f.Barangay == "Sulangan");
+        var patao     = await _db.FisherfolkRegistries.CountAsync(f => f.Barangay == "Patao");
+        var guiwanon  = await _db.FisherfolkRegistries.CountAsync(f => f.Barangay == "Guiwanon");
 
         ViewBag.CountAll      = all.ToString("N0");
         ViewBag.CountSulangan = sulangan.ToString("N0");
@@ -111,8 +143,8 @@ public class HomeController : Controller
     public async Task<IActionResult> ExportFeedbackCsv()
     {
         var records = await _db.FeedbackMessages
-            .OrderBy(f => f.MdateReceived)
-            .ThenBy(f => f.MtimeReceived)
+            .OrderBy(f => f.DateReceived)
+            .ThenBy(f => f.TimeReceived)
             .ToListAsync();
 
         var sb = new StringBuilder();
@@ -134,20 +166,20 @@ public class HomeController : Controller
 
         foreach (var f in records)
         {
-            var dateStr = f.MdateReceived.ToString("yyyy-MM-dd");
-            var timeStr = f.MtimeReceived.ToString(@"hh\:mm\:ss");
+            var dateStr = f.DateReceived.ToString("yyyy-MM-dd");
+            var timeStr = f.TimeReceived.ToString(@"hh\:mm\:ss");
 
             sb.AppendLine(
-                $"{f.MId}," +
-                $"{CsvCell(f.MCategory)}," +
-                $"{CsvCell(f.Mstatus)}," +
-                $"{CsvCell(f.McontactNumber)}," +
-                $"{CsvCell(f.MPriorityLevel)}," +
-                $"{CsvCell(f.MFlaggedPlace)}," +
-                $"{CsvCell(f.Msubject)}," +
+                $"{f.Id}," +
+                $"{CsvCell(f.Category)}," +
+                $"{CsvCell(f.Status)}," +
+                $"{CsvCell(f.ContactNumber)}," +
+                $"{CsvCell(f.PriorityLevel)}," +
+                $"{CsvCell(f.FlaggedPlace)}," +
+                $"{CsvCell(f.Subject)}," +
                 $"{CsvCell(dateStr)}," +
                 $"{CsvCell(timeStr)}," +
-                $"{CsvCell(f.Mmessage)}"
+                $"{CsvCell(f.Message)}"
             );
         }
 
@@ -167,8 +199,8 @@ public class HomeController : Controller
     public async Task<IActionResult> ExportFisherfolkCsv()
     {
         var records = await _db.FisherfolkRegistries
-            .OrderBy(f => f.Frlname)
-            .ThenBy(f => f.Frfname)
+            .OrderBy(f => f.Lname)
+            .ThenBy(f => f.Fname)
             .ToListAsync();
 
         var sb = new StringBuilder();
@@ -194,24 +226,24 @@ public class HomeController : Controller
 
         foreach (var f in records)
         {
-            var fullName = $"{f.Frfname} {(string.IsNullOrEmpty(f.Frmname) ? "" : f.Frmname + " ")}{f.Frlname}";
-            var dateStr = f.Frbirthdate.ToString("yyyy-MM-dd");
+            var fullName = $"{f.Fname} {(string.IsNullOrEmpty(f.Mname) ? "" : f.Mname + " ")}{f.Lname}";
+            var dateStr = f.Birthdate.ToString("yyyy-MM-dd");
 
             sb.AppendLine(
-                $"{f.FrId}," +
+                $"{f.Id}," +
                 $"{CsvCell(fullName)}," +
-                $"{CsvCell(f.Fraddress)}," +
-                $"{CsvCell(f.Frbarangay)}," +
+                $"{CsvCell(f.Address)}," +
+                $"{CsvCell(f.Barangay)}," +
                 $"{CsvCell(dateStr)}," +
-                $"{f.Frage}," +
-                $"{CsvCell(f.Frgender)}," +
-                $"{CsvCell(f.FrvesselType)}," +
-                $"{CsvCell(f.FrvesselName)}," +
-                $"{CsvCell(f.FrboatNumber)}," +
-                $"{CsvCell(f.FrpermitNumber)}," +
-                $"{CsvCell(f.FrcaptureMethod)}," +
-                $"{CsvCell(f.FrcontactNumber)}," +
-                $"{CsvCell(f.FrregistrationStatus)}"
+                $"{f.Age}," +
+                $"{CsvCell(f.Gender)}," +
+                $"{CsvCell(f.VesselType)}," +
+                $"{CsvCell(f.VesselName)}," +
+                $"{CsvCell(f.BoatNumber)}," +
+                $"{CsvCell(f.PermitNumber)}," +
+                $"{CsvCell(f.CaptureMethod)}," +
+                $"{CsvCell(f.ContactNumber)}," +
+                $"{CsvCell(f.RegistrationStatus)}"
             );
         }
 
@@ -233,37 +265,37 @@ public class HomeController : Controller
             _db.FisherfolkRegistries.AddRange(new List<FisherfolkRegistry>
             {
                 new FisherfolkRegistry {
-                    Frfname = "Juan", Frlname = "Dela Cruz Jr.", Fraddress = "Purok 2, Sitio Proper",
-                    Frbarangay = "Patao", Frbirthdate = new DateTime(1987, 6, 14), Frage = 38,
-                    Frgender = "Male", FrvesselType = "Small Scale", FrvesselName = "M/B Pag-asa",
-                    FrboatNumber = "BTY-PAT-014", FrpermitNumber = "BD-BAN-2026-0014",
-                    FrcaptureMethod = "Pamasol / Panagat", FrcontactNumber = "+63 917 555 1024",
-                    FrregistrationStatus = "Active", FrregCode = "BTY-PAT-014", FrisActive = true
+                    Fname = "Juan", Lname = "Dela Cruz Jr.", Address = "Purok 2, Sitio Proper",
+                    Barangay = "Patao", Birthdate = new DateTime(1987, 6, 14), Age = 38,
+                    Gender = "Male", VesselType = "Small Scale", VesselName = "M/B Pag-asa",
+                    BoatNumber = "BTY-PAT-014", PermitNumber = "BD-BAN-2026-0014",
+                    CaptureMethod = "Pamasol / Panagat", ContactNumber = "+63 917 555 1024",
+                    RegistrationStatus = "Active", RegCode = "BTY-PAT-014", IsActive = true
                 },
                 new FisherfolkRegistry {
-                    Frfname = "Elpidio", Frlname = "Reyes", Fraddress = "Purok 1, Silang",
-                    Frbarangay = "Patao", Frbirthdate = new DateTime(1980, 11, 8), Frage = 45,
-                    Frgender = "Male", FrvesselType = "Medium Scale", FrvesselName = "M/B Sea Hawk",
-                    FrboatNumber = "BTY-PAT-035", FrpermitNumber = "BD-BAN-2026-0215",
-                    FrcaptureMethod = "Motorized Net Fishing", FrcontactNumber = "+63 918 333 4455",
-                    FrregistrationStatus = "For Renewal", FrregCode = "BTY-PAT-035", FrisActive = true
+                    Fname = "Elpidio", Lname = "Reyes", Address = "Purok 1, Silang",
+                    Barangay = "Patao", Birthdate = new DateTime(1980, 11, 8), Age = 45,
+                    Gender = "Male", VesselType = "Medium Scale", VesselName = "M/B Sea Hawk",
+                    BoatNumber = "BTY-PAT-035", PermitNumber = "BD-BAN-2026-0215",
+                    CaptureMethod = "Motorized Net Fishing", ContactNumber = "+63 918 333 4455",
+                    RegistrationStatus = "For Renewal", RegCode = "BTY-PAT-035", IsActive = true
                 },
                 new FisherfolkRegistry {
-                    Frfname = "Rosa", Frlname = "Aquino", Fraddress = "Purok 3, Ligaya",
-                    Frbarangay = "Guiwanon", Frbirthdate = new DateTime(1995, 7, 19), Frage = 30,
-                    Frgender = "Female", FrvesselType = "Small Scale", FrvesselName = "M/B Aurora",
-                    FrboatNumber = "BTY-GUI-042", FrpermitNumber = "BD-BAN-2026-1187",
-                    FrcaptureMethod = "Bubo", FrcontactNumber = "+63 918 234 5678",
-                    FrregistrationStatus = "Pending Verification", FrregCode = "BTY-GUI-042", FrisActive = true
+                    Fname = "Rosa", Lname = "Aquino", Address = "Purok 3, Ligaya",
+                    Barangay = "Guiwanon", Birthdate = new DateTime(1995, 7, 19), Age = 30,
+                    Gender = "Female", VesselType = "Small Scale", VesselName = "M/B Aurora",
+                    BoatNumber = "BTY-GUI-042", PermitNumber = "BD-BAN-2026-1187",
+                    CaptureMethod = "Bubo", ContactNumber = "+63 918 234 5678",
+                    RegistrationStatus = "Pending Verification", RegCode = "BTY-GUI-042", IsActive = true
                 }
             });
             await _db.SaveChangesAsync();
         }
 
         ViewBag.Total         = await all.CountAsync();
-        ViewBag.CountPatao    = await all.CountAsync(f => f.Frbarangay == "Patao");
-        ViewBag.CountGuiwanon = await all.CountAsync(f => f.Frbarangay == "Guiwanon");
-        ViewBag.CountSulangan = await all.CountAsync(f => f.Frbarangay == "Sulangan");
+        ViewBag.CountPatao    = await all.CountAsync(f => f.Barangay == "Patao");
+        ViewBag.CountGuiwanon = await all.CountAsync(f => f.Barangay == "Guiwanon");
+        ViewBag.CountSulangan = await all.CountAsync(f => f.Barangay == "Sulangan");
 
         return View();
     }
@@ -286,3 +318,4 @@ public class HomeController : Controller
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }
+

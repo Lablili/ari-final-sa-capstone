@@ -18,20 +18,20 @@ namespace ari_final_sa_capstone.Controllers
         {
             var records = await _db.FisherfolkRegistries
                 .Select(f => new {
-                    id                 = f.FrId,
-                    completeName       = f.Frfname + " " + (f.Frmname ?? "") + " " + f.Frlname,
-                    address            = f.Fraddress,
-                    barangay           = f.Frbarangay,
-                    birthdate          = f.Frbirthdate.ToString("yyyy-MM-dd"),
-                    age                = f.Frage,
-                    gender             = f.Frgender,
-                    vesselType         = f.FrvesselType,
-                    vesselName         = f.FrvesselName,
-                    boatNumber         = f.FrboatNumber,
-                    permitNumber       = f.FrpermitNumber ?? "",
-                    captureMethod      = f.FrcaptureMethod,
-                    contactNumber      = f.FrcontactNumber,
-                    registrationStatus = f.FrregistrationStatus
+                    id                 = f.Id,
+                    completeName       = f.Fname + " " + (f.Mname ?? "") + " " + f.Lname,
+                    address            = f.Address,
+                    barangay           = f.Barangay,
+                    birthdate          = f.Birthdate.ToString("yyyy-MM-dd"),
+                    age                = f.Age,
+                    gender             = f.Gender,
+                    vesselType         = f.VesselType,
+                    vesselName         = f.VesselName,
+                    boatNumber         = f.BoatNumber,
+                    permitNumber       = f.PermitNumber ?? "",
+                    captureMethod      = f.CaptureMethod,
+                    contactNumber      = f.ContactNumber,
+                    registrationStatus = f.RegistrationStatus
                 })
                 .ToListAsync();
 
@@ -52,28 +52,28 @@ namespace ari_final_sa_capstone.Controllers
 
             var record = new FisherfolkRegistry
             {
-                Frfname             = fname,
-                Frlname             = lname,
-                Frmname             = mname,
-                Fraddress           = dto.Address ?? "",
-                Frbarangay          = dto.Barangay ?? "",
-                Frbirthdate         = DateTime.TryParse(dto.Birthdate, out var bd) ? bd : DateTime.MinValue,
-                Frage               = dto.Age,
-                Frgender            = dto.Gender ?? "",
-                FrvesselType        = dto.VesselType ?? "",
-                FrvesselName        = dto.VesselName ?? "",
-                FrboatNumber        = dto.BoatNumber ?? "",
-                FrpermitNumber      = dto.PermitNumber,
-                FrcaptureMethod     = dto.CaptureMethod ?? "",
-                FrcontactNumber     = dto.ContactNumber ?? "",
-                FrregistrationStatus = dto.RegistrationStatus ?? "Active",
-                FrregCode           = dto.BoatNumber ?? Guid.NewGuid().ToString()[..8].ToUpper(),
-                FrisActive          = true
+                Fname             = fname,
+                Lname             = lname,
+                Mname             = mname,
+                Address           = dto.Address ?? "",
+                Barangay          = dto.Barangay ?? "",
+                Birthdate         = DateTime.TryParse(dto.Birthdate, out var bd) ? bd : DateTime.MinValue,
+                Age               = dto.Age,
+                Gender            = dto.Gender ?? "",
+                VesselType        = dto.VesselType ?? "",
+                VesselName        = dto.VesselName ?? "",
+                BoatNumber        = dto.BoatNumber ?? "",
+                PermitNumber      = dto.PermitNumber,
+                CaptureMethod     = dto.CaptureMethod ?? "",
+                ContactNumber     = dto.ContactNumber ?? "",
+                RegistrationStatus = dto.RegistrationStatus ?? "Active",
+                RegCode           = dto.BoatNumber ?? Guid.NewGuid().ToString()[..8].ToUpper(),
+                IsActive          = true
             };
 
             _db.FisherfolkRegistries.Add(record);
             await _db.SaveChangesAsync();
-            return Ok(new { id = record.FrId });
+            return Ok(new { id = record.Id });
         }
 
         // PUT api/fisherfolk/{id}
@@ -86,22 +86,22 @@ namespace ari_final_sa_capstone.Controllers
             if (record == null) return NotFound();
 
             var nameParts = (dto.CompleteName ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            record.Frfname = nameParts.Length > 0 ? nameParts[0] : "-";
-            record.Frlname = nameParts.Length > 1 ? nameParts[^1] : "-";
-            record.Frmname = nameParts.Length > 2 ? string.Join(" ", nameParts[1..^1]) : null;
+            record.Fname = nameParts.Length > 0 ? nameParts[0] : "-";
+            record.Lname = nameParts.Length > 1 ? nameParts[^1] : "-";
+            record.Mname = nameParts.Length > 2 ? string.Join(" ", nameParts[1..^1]) : null;
 
-            record.Fraddress = dto.Address ?? "";
-            record.Frbarangay = dto.Barangay ?? "";
-            record.Frbirthdate = DateTime.TryParse(dto.Birthdate, out var bd) ? bd : DateTime.MinValue;
-            record.Frage = dto.Age;
-            record.Frgender = dto.Gender ?? "";
-            record.FrvesselType = dto.VesselType ?? "";
-            record.FrvesselName = dto.VesselName ?? "";
-            record.FrboatNumber = dto.BoatNumber ?? "";
-            record.FrpermitNumber = dto.PermitNumber;
-            record.FrcaptureMethod = dto.CaptureMethod ?? "";
-            record.FrcontactNumber = dto.ContactNumber ?? "";
-            record.FrregistrationStatus = dto.RegistrationStatus ?? "Active";
+            record.Address = dto.Address ?? "";
+            record.Barangay = dto.Barangay ?? "";
+            record.Birthdate = DateTime.TryParse(dto.Birthdate, out var bd) ? bd : DateTime.MinValue;
+            record.Age = dto.Age;
+            record.Gender = dto.Gender ?? "";
+            record.VesselType = dto.VesselType ?? "";
+            record.VesselName = dto.VesselName ?? "";
+            record.BoatNumber = dto.BoatNumber ?? "";
+            record.PermitNumber = dto.PermitNumber;
+            record.CaptureMethod = dto.CaptureMethod ?? "";
+            record.ContactNumber = dto.ContactNumber ?? "";
+            record.RegistrationStatus = dto.RegistrationStatus ?? "Active";
 
             await _db.SaveChangesAsync();
             return Ok();
@@ -136,3 +136,4 @@ namespace ari_final_sa_capstone.Controllers
         public string? RegistrationStatus { get; set; }
     }
 }
+

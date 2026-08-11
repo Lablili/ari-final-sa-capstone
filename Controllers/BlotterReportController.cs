@@ -36,6 +36,7 @@ namespace ari_final_sa_capstone.Controllers
         {
             if (ModelState.IsValid)
             {
+                blotterReport.CreatedByAdmin = User.Identity?.Name ?? "Admin";
                 _context.Add(blotterReport);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

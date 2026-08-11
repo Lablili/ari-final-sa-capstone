@@ -1,4 +1,4 @@
-﻿@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap");
 :root {
   --bg: #3c8ef4;
@@ -1821,6 +1821,7 @@ td {
   font-size: 0.75rem;
   font-weight: 600;
   padding: 5px 12px;
+  margin-right: 15px;
   border-radius: 8px;
   cursor: pointer;
   transition: all all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1885,7 +1886,6 @@ td {
   color: #1e293b;
   background: #f8fafc;
   margin-bottom: 18px;
-  border-left: 4px solid #007a78;
 }
 
 .action-bar {

@@ -17,7 +17,7 @@ function displayCurrentDate() {
            d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
   }
 
-  function renderStats() {
+  async function renderStats() {
     // 1. Registered Fisherfolk
     var fisherfolkEl = document.getElementById("stat-fisherfolk");
     var fisherfolkSubEl = document.getElementById("stat-fisherfolk-sub");
@@ -33,27 +33,26 @@ function displayCurrentDate() {
       }
     }
 
-    // 2. Incident Reports
+    // 2. Incident Reports (Community Reports)
     var reportsEl = document.getElementById("stat-reports");
     var reportsSubEl = document.getElementById("stat-reports-sub");
     if (reportsEl) {
-      var rawR = localStorage.getItem('bantay-dagat-feedback');
-      var itemsR = [];
-      if (rawR) {
-        try { itemsR = JSON.parse(rawR); } catch(e) {}
-      } else {
-        itemsR = [{},{},{},{},{},{},{},{}]; // fallback seed size is 8
-      }
-      reportsEl.textContent = itemsR.length.toLocaleString();
-      if (reportsSubEl) {
-        var newCount = itemsR.filter(function(x) { return x.status === 'new'; }).length;
-        var resCount = itemsR.filter(function(x) { return x.status === 'resolved'; }).length;
-        reportsSubEl.textContent = newCount + " New, " + resCount + " Resolved";
-        if (newCount > 0) {
-          reportsSubEl.className = "stat-subtext negative";
-        } else {
-          reportsSubEl.className = "stat-subtext positive";
+      try {
+        var res = await fetch('/api/feedback');
+        var itemsR = res.ok ? await res.json() : [];
+        reportsEl.textContent = itemsR.length.toLocaleString();
+        if (reportsSubEl) {
+          var newCount = itemsR.filter(function(x) { return x.status && x.status.toLowerCase() === 'new'; }).length;
+          var resCount = itemsR.filter(function(x) { return x.status && (x.status.toLowerCase() === 'resolved' || x.status.toLowerCase() === 'archived'); }).length;
+          reportsSubEl.textContent = newCount + " New, " + resCount + " Resolved";
+          if (newCount > 0) {
+            reportsSubEl.className = "stat-subtext negative";
+          } else {
+            reportsSubEl.className = "stat-subtext positive";
+          }
         }
+      } catch (e) {
+        console.error("Error loading community reports for stats", e);
       }
     }
 
@@ -107,31 +106,33 @@ function displayCurrentDate() {
     }).join('\n');
   }
 
-  function renderFeedback(){
+  async function renderFeedback(){
     var el = document.querySelector('.report-list');
     if(!el) return;
-    var raw = localStorage.getItem('bantay-dagat-feedback');
-    var items = [];
-    try{ items = raw ? JSON.parse(raw) : []; }catch(e){ items = []; }
-    if(!items.length){
-      el.innerHTML = '<div class="list-item"><div><p class="item-title">No reports</p></div></div>';
-      return;
+    try {
+      var res = await fetch('/api/feedback');
+      var items = res.ok ? await res.json() : [];
+      if(!items.length){
+        el.innerHTML = '<div class="list-item"><div><p class="item-title">No reports</p></div></div>';
+        return;
+      }
+      items.sort(function(a,b){ return new Date(b.dateSent||0) - new Date(a.dateSent||0); });
+      el.innerHTML = items.slice(0,4).map(function(it){
+        var dateText = it.dateSent ? fmtDate(it.dateSent) : '';
+        var dotClass = 'blue';
+        if(it.priority==='High') dotClass='red';
+        else if(it.priority==='Normal') dotClass='amber';
+        return '<div class="list-item">'+
+          '<span class="list-dot '+dotClass+'"></span>'+
+          '<div>'+
+          '<p class="item-title">'+ escapeHtml(it.content||it.subject||'Report') +'</p>'+
+          '<p class="item-meta">'+ escapeHtml((it.contact? it.contact : '') + (it.flaggedPlace? ' A '+it.flaggedPlace : '')) + ' &middot; ' + escapeHtml(dateText) + '</p>'+
+          '</div>'+
+          '</div>';
+      }).join('\n');
+    } catch (e) {
+      console.error("Error loading feedback list", e);
     }
-    items.sort(function(a,b){ return new Date(b.time||0) - new Date(a.time||0); });
-    el.innerHTML = items.slice(0,4).map(function(it){
-      var dateText = it.time ? fmtDate(it.time) : '';
-      var dotClass = 'blue';
-      if(it.cat==='sos') dotClass='red';
-      else if(it.cat==='incident') dotClass='amber';
-      else if(it.cat==='info') dotClass='green';
-      return '<div class="list-item">'+
-        '<span class="list-dot '+dotClass+'"></span>'+
-        '<div>'+
-        '<p class="item-title">'+ escapeHtml(it.msg||it.message||it.subject||'Report') +'</p>'+
-        '<p class="item-meta">'+ escapeHtml((it.sender? it.sender : '') + (it.brgy? ' · '+it.brgy : '')) + ' &middot; ' + escapeHtml(dateText) + '</p>'+
-        '</div>'+
-        '</div>';
-    }).join('\n');
   }
 
   document.addEventListener('DOMContentLoaded', function(){

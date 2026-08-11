@@ -38,5 +38,8 @@ namespace ari_final_sa_capstone.Models
 
         // Foreign Key to the related SMS Report (optional, if created directly by Admin)
         public int? RelatedReportSubmissionId { get; set; }
+
+        [MaxLength(100)]
+        public string? CreatedByAdmin { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using ari_final_sa_capstone.Data;
 using ari_final_sa_capstone.Models;
@@ -16,27 +17,44 @@ namespace ari_final_sa_capstone.Controllers
             _db = db;
         }
 
+        [AllowAnonymous]
         [HttpPost("simulate")]
         public async Task<IActionResult> GenerateMockFeedback()
         {
             var random = new Random();
-            var categories = new[] { "sos", "incident", "complaint", "info" };
-            var places = new[] { "Patao", "Guiwanon", "Sulangan", "Purok 1", "Purok 2" };
-            var priorities = new[] { "Low", "Medium", "High", "Critical" };
             var senders = new[] { "Juan Dela Cruz", "Elpidio Reyes", "Rosa Aquino", "Unknown Sender" };
+
+            var scenarios = new[]
+            {
+                new { Cat = "incident", Msg = "REPORT: Dynamite fishing spotted approx 2km east of Lipayran Island. Two large blue commercial vessels encroaching our municipal waters. Please send patrol immediately." },
+                new { Cat = "sos", Msg = "SOS! Engine breakdown near Sulangan reef. Boat name 'Maria Rosa'. 3 crew members onboard. Waves are getting big and we are drifting. Need immediate rescue." },
+                new { Cat = "complaint", Msg = "Sir, reporting a damaged artificial reef near Brgy Patao shoreline. Looks like it was hit by a large anchor last night. Please inspect." }
+            };
+
+            var selectedScenario = scenarios[random.Next(scenarios.Length)];
+
+            string contactNumber = $"+639{random.Next(100000000, 999999999)}";
+            var registeredNumbers = await _db.FisherfolkRegistries.Select(r => r.ContactNumber).ToListAsync();
+            if (registeredNumbers.Any() && random.Next(100) < 50)
+            {
+                contactNumber = registeredNumbers[random.Next(registeredNumbers.Count)];
+            }
+
+            var isBlocked = await _db.BlockedNumbers.AnyAsync(b => b.PhoneNumber == contactNumber && (b.BlockedUntil == null || b.BlockedUntil > DateTime.UtcNow));
+            if (isBlocked) return Ok(new { success = true, ignored = true }); // Silent drop
 
             var mock = new FeedbackMessage
             {
-                MSender = senders[random.Next(senders.Length)],
-                MCategory = categories[random.Next(categories.Length)],
-                MFlaggedPlace = places[random.Next(places.Length)],
-                McontactNumber = $"+639{random.Next(100000000, 999999999)}",
-                MdateReceived = DateTime.UtcNow.Date,
-                MtimeReceived = DateTime.UtcNow.TimeOfDay,
-                Mstatus = "new",
-                MPriorityLevel = priorities[random.Next(priorities.Length)],
-                Msubject = "Simulated Hardware SMS Report",
-                Mmessage = "This is a simulated message received from the GSM modem."
+                Category = selectedScenario.Cat,
+                Sender = senders[random.Next(senders.Length)],
+                ContactNumber = contactNumber,
+                DateReceived = DateTime.UtcNow.Date,
+                TimeReceived = DateTime.UtcNow.TimeOfDay,
+                Status = "new",
+                PriorityLevel = AIHelper.DeterminePriority(selectedScenario.Msg),
+                Subject = "Simulated Hardware SMS Report",
+                Message = selectedScenario.Msg,
+                FlaggedPlace = AIHelper.ExtractFlaggedPlace(selectedScenario.Msg)
             };
 
             _db.FeedbackMessages.Add(mock);
@@ -50,23 +68,29 @@ namespace ari_final_sa_capstone.Controllers
         public async Task<IActionResult> GetAll()
         {
             var records = await _db.FeedbackMessages
-                .OrderByDescending(f => f.MdateReceived)
-                .ThenByDescending(f => f.MtimeReceived)
+                .Where(f => f.GroupId == null)
+                .OrderByDescending(f => f.DateReceived)
+                .ThenByDescending(f => f.TimeReceived)
                 .ToListAsync();
+
+            var registeredNumbers = await _db.FisherfolkRegistries.Select(r => r.ContactNumber).ToListAsync();
+            var registeredSet = new HashSet<string>(registeredNumbers);
 
             var result = records.Select(f => new
             {
-                id = f.MId,
-                cat = f.MCategory,
-                sender = f.MSender,
-                contact = f.McontactNumber,
-                priority = f.MPriorityLevel,
-                flaggedPlace = f.MFlaggedPlace,
-                time = f.MdateReceived.ToString("yyyy-MM-dd") + " " +
-                             f.MtimeReceived.ToString(@"hh\:mm"),
-                status = f.Mstatus,
-                subject = f.Msubject,
-                msg = f.Mmessage
+                id = f.Id,
+                cat = f.Category,
+                sender = f.Sender,
+                contact = f.ContactNumber,
+                priority = f.PriorityLevel,
+                flaggedPlace = f.FlaggedPlace,
+                time = f.DateReceived.ToString("yyyy-MM-dd") + " " +
+                             f.TimeReceived.ToString(@"hh\:mm"),
+                status = f.Status,
+                subject = f.Subject,
+                msg = f.Message,
+                actionedByAdmin = f.ActionedByAdmin,
+                isRegistered = registeredSet.Contains(f.ContactNumber)
             });
 
             return Ok(result);
@@ -91,18 +115,21 @@ namespace ari_final_sa_capstone.Controllers
                     timeReceived = parsed.TimeOfDay;
                 }
 
+                var isBlocked = await _db.BlockedNumbers.AnyAsync(b => b.PhoneNumber == dto.Contact && (b.BlockedUntil == null || b.BlockedUntil > DateTime.UtcNow));
+                if (isBlocked) continue; // Silent drop
+
                 var record = new FeedbackMessage
                 {
-                    MCategory = dto.Cat ?? "info",
-                    MSender = dto.Sender ?? "",
-                    McontactNumber = dto.Contact ?? "",
-                    MPriorityLevel = AIHelper.DeterminePriority(dto.Msg),
-                    MFlaggedPlace = AIHelper.ExtractFlaggedPlace(dto.Msg),
-                    MdateReceived = dateReceived,
-                    MtimeReceived = timeReceived,
-                    Mstatus = dto.Status ?? "new",
-                    Msubject = dto.Subject ?? "",
-                    Mmessage = dto.Msg ?? ""
+                    Category = dto.Cat ?? "info",
+                    Sender = dto.Sender ?? "",
+                    ContactNumber = dto.Contact ?? "",
+                    PriorityLevel = AIHelper.DeterminePriority(dto.Msg),
+                    FlaggedPlace = AIHelper.ExtractFlaggedPlace(dto.Msg),
+                    DateReceived = dateReceived,
+                    TimeReceived = timeReceived,
+                    Status = dto.Status ?? "new",
+                    Subject = dto.Subject ?? "",
+                    Message = dto.Msg ?? ""
                 };
 
                 _db.FeedbackMessages.Add(record);
@@ -112,6 +139,71 @@ namespace ari_final_sa_capstone.Controllers
             return Ok(new { saved = items.Count });
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var record = await _db.FeedbackMessages.FindAsync(id);
+            if (record == null) return NotFound("Report not found.");
+
+            // Check if registered
+            var isRegistered = await _db.FisherfolkRegistries.AnyAsync(r => r.ContactNumber == record.ContactNumber);
+
+            return Ok(new
+            {
+                id = record.Id,
+                dateSent = record.DateReceived.ToString("yyyy-MM-dd") + "T" + record.TimeReceived.ToString(@"hh\:mm\:ss"),
+                contact = record.ContactNumber,
+                content = record.Message,
+                status = record.Status,
+                priority = record.PriorityLevel,
+                isRegistered = isRegistered,
+                actionedByAdmin = record.ActionedByAdmin,
+                flaggedPlace = record.FlaggedPlace
+            });
+        }
+
+        // GET /api/feedback/{id}/related  — get related reports
+        [HttpGet("{id}/related")]
+        public async Task<IActionResult> GetRelated(int id)
+        {
+            var target = await _db.FeedbackMessages.FindAsync(id);
+            if (target == null) return NotFound();
+
+            if (string.IsNullOrEmpty(target.FlaggedPlace) || target.FlaggedPlace == "Unknown Location")
+            {
+                return Ok(new List<object>()); // Return empty if no specific location
+            }
+
+            // Define a time window (e.g., same day, or +/- 12 hours)
+            var windowStart = target.DateReceived.AddDays(-1);
+            var windowEnd = target.DateReceived.AddDays(1);
+
+            var related = await _db.FeedbackMessages
+                .Where(f => f.Id != id 
+                         && f.FlaggedPlace == target.FlaggedPlace
+                         && f.DateReceived >= windowStart 
+                         && f.DateReceived <= windowEnd)
+                .OrderByDescending(f => f.DateReceived)
+                .ThenByDescending(f => f.TimeReceived)
+                .ToListAsync();
+
+            var result = related.Select(f => new
+            {
+                id = f.Id,
+                cat = f.Category,
+                sender = f.Sender,
+                contact = f.ContactNumber,
+                priority = f.PriorityLevel,
+                flaggedPlace = f.FlaggedPlace,
+                time = f.DateReceived.ToString("yyyy-MM-dd") + " " + f.TimeReceived.ToString(@"hh\:mm"),
+                status = f.Status,
+                subject = f.Subject,
+                msg = f.Message
+            });
+
+            return Ok(result);
+        }
+
         // PATCH /api/feedback/{id}/status  — update status only
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] StatusUpdateDto dto)
@@ -119,9 +211,90 @@ namespace ari_final_sa_capstone.Controllers
             var record = await _db.FeedbackMessages.FindAsync(id);
             if (record == null) return NotFound();
 
-            record.Mstatus = dto.Status ?? record.Mstatus;
+            record.Status = dto.Status ?? record.Status;
+            record.ActionedByAdmin = User.Identity?.Name ?? "Admin";
             await _db.SaveChangesAsync();
-            return Ok(new { id, status = record.Mstatus });
+            return Ok(new { id, status = record.Status, actionedByAdmin = record.ActionedByAdmin });
+        }
+
+        [HttpPost("bulk-resolve")]
+        public async Task<IActionResult> BulkResolve([FromBody] List<int> ids)
+        {
+            if (ids == null || !ids.Any()) return BadRequest("No IDs provided.");
+
+            var records = await _db.FeedbackMessages.Where(f => ids.Contains(f.Id)).ToListAsync();
+            foreach (var record in records)
+            {
+                record.Status = "archived";
+                record.ActionedByAdmin = User.Identity?.Name ?? "Admin";
+            }
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true, count = records.Count });
+        }
+
+        [HttpPost("{id}/merge")]
+        public async Task<IActionResult> MergeGroup(int id, [FromBody] List<int> childIds)
+        {
+            var primary = await _db.FeedbackMessages.FindAsync(id);
+            if (primary == null) return NotFound("Primary report not found.");
+
+            if (childIds == null || !childIds.Any()) return BadRequest("No child IDs provided.");
+
+            var children = await _db.FeedbackMessages.Where(f => childIds.Contains(f.Id) && f.Id != id).ToListAsync();
+            
+            foreach(var child in children)
+            {
+                child.GroupId = id;
+                child.Status = "archived"; // hide them and consider them resolved through merge
+                child.ActionedByAdmin = User.Identity?.Name ?? "Admin";
+                
+                // Append message to primary
+                primary.Message += $"\n\n--- Additional Report from {child.ContactNumber} ---\n{child.Message}";
+            }
+
+            primary.ActionedByAdmin = User.Identity?.Name ?? "Admin";
+            
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        [HttpPost("block")]
+        public async Task<IActionResult> BlockNumber([FromBody] BlockRequestDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.PhoneNumber)) return BadRequest("Phone number is required.");
+            var block = await _db.BlockedNumbers.FirstOrDefaultAsync(b => b.PhoneNumber == dto.PhoneNumber);
+            if (block == null)
+            {
+                block = new BlockedNumber { PhoneNumber = dto.PhoneNumber, BlockedAt = DateTime.UtcNow };
+                _db.BlockedNumbers.Add(block);
+            }
+            block.Reason = dto.Reason ?? string.Empty;
+            block.BlockedUntil = dto.DurationDays.HasValue && dto.DurationDays > 0 ? DateTime.UtcNow.AddDays(dto.DurationDays.Value) : (DateTime?)null;
+            block.BlockedBy = User.Identity?.Name ?? "Admin";
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        [HttpPost("unblock")]
+        public async Task<IActionResult> UnblockNumber([FromBody] UnblockRequestDto dto)
+        {
+            if (string.IsNullOrEmpty(dto.PhoneNumber)) return BadRequest();
+            var block = await _db.BlockedNumbers.FirstOrDefaultAsync(b => b.PhoneNumber == dto.PhoneNumber);
+            if (block != null)
+            {
+                _db.BlockedNumbers.Remove(block);
+                await _db.SaveChangesAsync();
+            }
+            return Ok(new { success = true });
+        }
+
+        [HttpGet("blocked")]
+        public async Task<IActionResult> GetBlockedNumbers()
+        {
+            var blocked = await _db.BlockedNumbers
+                .OrderByDescending(b => b.BlockedAt)
+                .ToListAsync();
+            return Ok(blocked);
         }
     }
 
@@ -141,6 +314,18 @@ namespace ari_final_sa_capstone.Controllers
     public class StatusUpdateDto
     {
         public string? Status { get; set; }
+    }
+
+    public class BlockRequestDto
+    {
+        public string PhoneNumber { get; set; } = string.Empty;
+        public int? DurationDays { get; set; }
+        public string? Reason { get; set; }
+    }
+
+    public class UnblockRequestDto
+    {
+        public string PhoneNumber { get; set; } = string.Empty;
     }
 
     public static partial class AIHelper
@@ -184,3 +369,4 @@ namespace ari_final_sa_capstone.Controllers
         }
     }
 }
+

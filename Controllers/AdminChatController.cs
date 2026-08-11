@@ -125,12 +125,12 @@ namespace ari_final_sa_capstone.Controllers
             if (type == "ALL" || type == "ANNOUNCEMENT")
             {
                 var announcements = await _db.Announcements
-                    .OrderByDescending(a => a.Adate)
+                    .OrderByDescending(a => a.Date)
                     .Select(a => new {
-                        id = a.AId.ToString(),
+                        id = a.Id.ToString(),
                         type = "ANNOUNCEMENT",
-                        title = $"Announcement: {a.ATitle}",
-                        date = a.Adate
+                        title = $"Announcement: {a.Title}",
+                        date = a.Date
                     })
                     .ToListAsync();
                 resources.AddRange(announcements);
@@ -139,11 +139,11 @@ namespace ari_final_sa_capstone.Controllers
             if (type == "ALL" || type == "FISHERFOLK")
             {
                 var fisherfolks = await _db.FisherfolkRegistries
-                    .OrderByDescending(f => f.FrId)
+                    .OrderByDescending(f => f.Id)
                     .Select(f => new {
-                        id = f.FrId.ToString(),
+                        id = f.Id.ToString(),
                         type = "FISHERFOLK",
-                        title = $"Fisherfolk: {f.Frfname} {f.Frlname}",
+                        title = $"Fisherfolk: {f.Fname} {f.Lname}",
                         date = DateTime.MinValue
                     })
                     .ToListAsync();
@@ -154,3 +154,4 @@ namespace ari_final_sa_capstone.Controllers
         }
     }
 }
+

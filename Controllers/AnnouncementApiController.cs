@@ -48,20 +48,20 @@ namespace ari_final_sa_capstone.Controllers
             // 1. Create the Announcement record
             var announcement = new Announcement
             {
-                ACategory = dto.Category ?? "Custom",
-                ATitle = dto.Title ?? string.Empty,
-                ARecepientGroup = dto.RecipientGroup,
-                ALocation = dto.Location ?? string.Empty,
-                AMessage = dto.Message,
-                AeffectiveDate = dto.EffectiveDate ?? string.Empty,
-                Apenalty = dto.Penalty ?? string.Empty,
-                AResoNo = dto.ReferenceNo ?? string.Empty,
-                AOfficer = dto.Officer ?? string.Empty,
-                AContactPerson = dto.ContactPerson ?? string.Empty,
-                AEventDate = dto.EventDate,
-                AAttachmentPath = attachmentPath,
-                ACreatedAt = DateTime.Now,
-                AStatus = "PENDING"
+                Category = dto.Category ?? "Custom",
+                Title = dto.Title ?? string.Empty,
+                RecepientGroup = dto.RecipientGroup,
+                Location = dto.Location ?? string.Empty,
+                Message = dto.Message,
+                EffectiveDate = dto.EffectiveDate ?? string.Empty,
+                Penalty = dto.Penalty ?? string.Empty,
+                ResoNo = dto.ReferenceNo ?? string.Empty,
+                Officer = dto.Officer ?? string.Empty,
+                ContactPerson = dto.ContactPerson ?? string.Empty,
+                EventDate = dto.EventDate,
+                AttachmentPath = attachmentPath,
+                CreatedAt = DateTime.Now,
+                Status = "PENDING"
             };
 
             _context.Announcements.Add(announcement);
@@ -70,23 +70,23 @@ namespace ari_final_sa_capstone.Controllers
             // 2. Retrieve list of registered fisherfolk phone numbers
             // Filter by RecipientGroup if needed, but for now just all or mock logic.
             // In a real app we'd filter by barangay etc.
-            var recipientsQuery = _context.FisherfolkRegistries.AsQueryable();
+            var recipientsQuery = _context.FisherfolkRegistries.Where(f => f.RegistrationStatus == "Active").AsQueryable();
             if (dto.RecipientGroup == "north")
             {
-                recipientsQuery = recipientsQuery.Where(f => f.Frbarangay == "Sulangan");
+                recipientsQuery = recipientsQuery.Where(f => f.Barangay == "Sulangan");
             }
             else if (dto.RecipientGroup == "south")
             {
-                recipientsQuery = recipientsQuery.Where(f => f.Frbarangay == "Patao");
+                recipientsQuery = recipientsQuery.Where(f => f.Barangay == "Patao");
             }
             else if (dto.RecipientGroup == "licensed")
             {
-                recipientsQuery = recipientsQuery.Where(f => f.Frbarangay == "Guiwanon");
+                recipientsQuery = recipientsQuery.Where(f => f.Barangay == "Guiwanon");
             }
 
             var phoneNumbers = await recipientsQuery
-                .Where(f => !string.IsNullOrEmpty(f.FrcontactNumber))
-                .Select(f => f.FrcontactNumber)
+                .Where(f => !string.IsNullOrEmpty(f.ContactNumber))
+                .Select(f => f.ContactNumber)
                 .Distinct()
                 .ToListAsync();
 
@@ -105,7 +105,7 @@ namespace ari_final_sa_capstone.Controllers
                     PhoneNumber = phone,
                     Status = "PENDING",
                     TimestampSent = DateTime.Now,
-                    AnnouncementId = announcement.AId,
+                    AnnouncementId = announcement.Id,
                     RetryCount = 0
                 });
             }
@@ -115,7 +115,7 @@ namespace ari_final_sa_capstone.Controllers
 
             return Ok(new
             {
-                QueueId = announcement.AId,
+                QueueId = announcement.Id,
                 Message = dto.Message,
                 Recipients = phoneNumbers.Count,
                 Status = "PENDING"
@@ -123,3 +123,4 @@ namespace ari_final_sa_capstone.Controllers
         }
     }
 }
+

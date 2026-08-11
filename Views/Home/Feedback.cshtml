@@ -4,6 +4,11 @@
     var userRole = !string.IsNullOrEmpty(sessionRole) ? sessionRole : (User != null && User.Identity.IsAuthenticated ? string.Join(", ", (User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value))) : "");
 }
 
+<style>
+    .dropdown-content.show {
+        display: block !important;
+    }
+</style>
 
 <div class="dashboard-shell" id="dashboardShell">
     @await Html.PartialAsync("_DashboardSidebar")
@@ -14,12 +19,7 @@
                 <h2>Community Reports</h2>
             </div>
             <div class="topbar-meta" style="display:flex; align-items:center; gap: 15px;">
-                <button type="button" class="btn btn-outline-primary btn-sm" onclick="simulateIncomingReport()" style="display: flex; align-items: center; gap: 4px; padding: 4px 10px; font-weight: 600;">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                    Simulate Incoming SMS
-                </button>
+
                 <span class="stat-badge" id="newBadge">0 Bag-o</span>
                 <span class="date-indicator">
                     <svg class="date-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
@@ -88,10 +88,29 @@
                     <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     Clear
                 </button>
+                <div class="dropdown-wrapper" style="margin-left: auto; position: relative; display: inline-block; z-index: 1000;">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('toolsDropdown').classList.toggle('show')" style="display: flex; align-items: center; gap: 4px; padding: 6px 14px; font-weight: 600; color: #475569; border-color: #cbd5e1; background: #fff; cursor: pointer; border-radius: 6px; font-size: 13px;">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        Tools & Settings
+                    </button>
+                    <div id="toolsDropdown" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 5px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 190px; z-index: 100;">
+                        <button onclick="simulateIncomingReport(); document.getElementById('toolsDropdown').classList.remove('show');" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; border-bottom: 1px solid #f1f5f9; cursor: pointer; color: #1e293b; font-size: 13px; font-weight: 500;">
+                            <svg width="14" height="14" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            Simulate Incoming SMS
+                        </button>
+                        <button onclick="openBlockedNumbersModal(); document.getElementById('toolsDropdown').classList.remove('show');" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; cursor: pointer; color: #ef4444; font-size: 13px; font-weight: 500;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.36 6.64a9 9 0 1 1-12.73 0 9 9 0 0 1 12.73 0z"></path><line x1="5.64" y1="5.64" x2="18.36" y2="18.36"></line></svg>
+                            Manage Blocked Numbers
+                        </button>
+                    </div>
+                </div>
                 <!-- Export CSV (server-side – pulls ALL records from the database) -->
                 <a class="btn-outline" id="btnExportCSV"
                    href="@Url.Action("ExportFeedbackCsv", "Home")"
-                   style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;">
+                   style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                     Export CSV
                 </a>
@@ -111,7 +130,7 @@
                         <th style="width:280px">Subject</th>
                         <th style="width:90px">Content</th>
                         <th style="width:120px">Date Sent</th>
-                        <th style="width:72px"></th>
+                        <th style="width:100px; text-align: right; padding-right: 20px;"></th>
                     </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
@@ -137,6 +156,7 @@
                     <h2>Detalye sa Mensahe</h2>
                     <button class="modal-close" id="detailModalCloseButton" type="button" aria-label="Close">&times;</button>
                 </div>
+                <div id="relatedReportsAlert"></div>
                 <div class="modal-body" id="detailBody"></div>
             </div>
         </div>
@@ -152,6 +172,53 @@
                     <button class="btn-secondary" onclick="closeBlotter()">Cancel</button>
                     <button class="btn-secondary" id="btnResetBlotter" onclick="resetBlotter()" style="display:none;">Reset to Default</button>
                     <button class="btn-primary" onclick="window.print()">Print Blotter</button>
+                </div>
+            </div>
+        </div>
+        <!-- Blocked Numbers Modal -->
+        <div class="modal hidden" id="blockedNumbersModal">
+            <div class="modal-overlay" onclick="closeBlockedNumbersModal()"></div>
+            <div class="modal-content" style="max-width: 600px; padding: 20px;">
+                <div class="modal-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="margin: 0; font-size: 1.25rem;">Blocked Numbers</h2>
+                    <button class="modal-close" onclick="closeBlockedNumbersModal()" type="button" aria-label="Close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                </div>
+                <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table" style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                <th style="padding: 10px; color: #64748b; font-weight: 600;">Phone Number</th>
+                                <th style="padding: 10px; color: #64748b; font-weight: 600;">Reason</th>
+                                <th style="padding: 10px; color: #64748b; font-weight: 600;">Blocked Until</th>
+                                <th style="padding: 10px; color: #64748b; font-weight: 600;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="blockedNumbersTableBody">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                    <div id="blockedNumbersEmpty" style="text-align: center; padding: 20px; color: #64748b; display: none;">
+                        No blocked numbers.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Group Review Modal -->
+        <div class="modal hidden" id="groupReviewModal">
+            <div class="modal-overlay" onclick="closeGroupModal()"></div>
+            <div class="modal-content" style="max-width: 1100px; width: 95%; padding: 20px; background: #f8fafc;">
+                <div class="modal-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                    <h2 style="margin: 0; font-size: 1.25rem;">Group Review: Related Incidents</h2>
+                    <button class="modal-close" onclick="closeGroupModal()" type="button" aria-label="Close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                </div>
+                <div class="modal-body" style="max-height: 60vh; overflow-y: auto; overflow-x: hidden;">
+                    <div id="groupContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
+                        <!-- Cards injected via JS -->
+                    </div>
+                </div>
+                <div style="margin-top: 20px; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+                    <button class="btn btn-secondary" onclick="closeGroupModal()" style="margin-right: 8px;">Cancel</button>
+                    <button class="btn btn-primary" onclick="mergeGroup()">Merge All into Primary Report</button>
                 </div>
             </div>
         </div>

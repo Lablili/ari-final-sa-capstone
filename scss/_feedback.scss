@@ -410,6 +410,7 @@ td {
     font-size: 0.75rem;
     font-weight: 600;
     padding: 5px 12px;
+    margin-right: 15px;
     border-radius: $radius-sm;
     cursor: pointer;
     transition: all $transition;
@@ -474,7 +475,6 @@ td {
     color: $text-main;
     background: $bg-main;
     margin-bottom: 18px;
-    border-left: 4px solid $primary;
 }
 
 .action-bar {

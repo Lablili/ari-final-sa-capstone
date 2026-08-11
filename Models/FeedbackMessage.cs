@@ -8,44 +8,49 @@ namespace ari_final_sa_capstone.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int MId { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [MaxLength(150)]
-        public string MSender { get; set; } = string.Empty;
+        public string Sender { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(100)]
-        public string MCategory { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(100)]
-        public string MFlaggedPlace { get; set; } = string.Empty;
+        public string FlaggedPlace { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(50)]
-        public string McontactNumber { get; set; } = string.Empty;
+        public string ContactNumber { get; set; } = string.Empty;
 
         [Required]
-        public DateTime MdateReceived { get; set; } = DateTime.UtcNow;
+        public DateTime DateReceived { get; set; } = DateTime.UtcNow;
 
         [Required]
-        public TimeSpan MtimeReceived { get; set; } = TimeSpan.Zero;
-
-        [Required]
-        [MaxLength(50)]
-        public string Mstatus { get; set; } = "new";
+        public TimeSpan TimeReceived { get; set; } = TimeSpan.Zero;
 
         [Required]
         [MaxLength(50)]
-        public string MPriorityLevel { get; set; } = "Low";
+        public string Status { get; set; } = "new";
 
         [Required]
-        public string Mmessage { get; set; } = string.Empty;
+        [MaxLength(50)]
+        public string PriorityLevel { get; set; } = "Low";
+
+        [Required]
+        public string Message { get; set; } = string.Empty;
 
         // System Required Fields
         [Required]
         [MaxLength(200)]
-        public string Msubject { get; set; } = string.Empty;
+        public string Subject { get; set; } = string.Empty;
+
+        [MaxLength(100)]
+        public string? ActionedByAdmin { get; set; }
+
+        public int? GroupId { get; set; }
     }
 }

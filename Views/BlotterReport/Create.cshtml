@@ -84,3 +84,42 @@
 
     </main>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const draftKey = 'blotter_create_draft';
+            
+            // Load draft
+            const savedDraft = localStorage.getItem(draftKey);
+            if (savedDraft) {
+                const data = JSON.parse(savedDraft);
+                for (const key in data) {
+                    const input = form.elements[key];
+                    if (input && input.type !== 'submit' && input.type !== 'button') {
+                        input.value = data[key];
+                    }
+                }
+                console.log('Draft loaded from localStorage.');
+            }
+
+            // Auto-save on input
+            form.addEventListener('input', function() {
+                const data = {};
+                for (let i = 0; i < form.elements.length; i++) {
+                    const input = form.elements[i];
+                    if (input.name && input.type !== 'submit' && input.type !== 'button' && input.type !== 'hidden') {
+                        data[input.name] = input.value;
+                    }
+                }
+                localStorage.setItem(draftKey, JSON.stringify(data));
+            });
+
+            // Clear draft on submit
+            form.addEventListener('submit', function() {
+                localStorage.removeItem(draftKey);
+            });
+        });
+    </script>
+}
