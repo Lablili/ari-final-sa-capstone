@@ -88,32 +88,32 @@
                     <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     Clear
                 </button>
-                <div class="dropdown-wrapper" style="margin-left: auto; position: relative; display: inline-block; z-index: 1000;">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('toolsDropdown').classList.toggle('show')" style="display: flex; align-items: center; gap: 4px; padding: 6px 14px; font-weight: 600; color: #475569; border-color: #cbd5e1; background: #fff; cursor: pointer; border-radius: 6px; font-size: 13px;">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                        </svg>
-                        Tools & Settings
-                    </button>
-                    <div id="toolsDropdown" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 5px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 190px; z-index: 100;">
-                        <button onclick="simulateIncomingReport(); document.getElementById('toolsDropdown').classList.remove('show');" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; border-bottom: 1px solid #f1f5f9; cursor: pointer; color: #1e293b; font-size: 13px; font-weight: 500;">
-                            <svg width="14" height="14" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                            Simulate Incoming SMS
-                        </button>
-                        <button onclick="openBlockedNumbersModal(); document.getElementById('toolsDropdown').classList.remove('show');" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; cursor: pointer; color: #ef4444; font-size: 13px; font-weight: 500;">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.36 6.64a9 9 0 1 1-12.73 0 9 9 0 0 1 12.73 0z"></path><line x1="5.64" y1="5.64" x2="18.36" y2="18.36"></line></svg>
-                            Manage Blocked Numbers
-                        </button>
-                    </div>
+                <!-- Actions Dropdown (Native HTML Select) -->
+                <div style="margin-left: auto;">
+                    <select id="nativeActionSelect" 
+                            onchange="handleNativeActionSelect(this)" 
+                            style="padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #1e293b; font-size: 13px; font-weight: 600; cursor: pointer; outline: none;">
+                        <option value="">⚙️ Actions</option>
+                        <option value="simulate">⚡ Simulate Report</option>
+                        <option value="manage_blocked">🚫 Manage Blocked Num</option>
+                        <option value="export">📥 Export CSV</option>
+                    </select>
                 </div>
-                <!-- Export CSV (server-side – pulls ALL records from the database) -->
-                <a class="btn-outline" id="btnExportCSV"
-                   href="@Url.Action("ExportFeedbackCsv", "Home")"
-                   style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                    Export CSV
-                </a>
+                <script>
+                    function handleNativeActionSelect(selectElement) {
+                        var action = selectElement.value;
+                        if (action === 'simulate') {
+                            simulateIncomingReport();
+                        } else if (action === 'manage_blocked') {
+                            document.getElementById('blockedNumbersModal').classList.remove('hidden');
+                            if(typeof loadBlockedNumbers === 'function') loadBlockedNumbers();
+                        } else if (action === 'export') {
+                            window.location.href = '@Url.Action("ExportFeedbackCsv", "Home")';
+                        }
+                        // Reset the select dropdown back to default "Actions"
+                        selectElement.value = '';
+                    }
+                </script>
             </div>
         </div>
 

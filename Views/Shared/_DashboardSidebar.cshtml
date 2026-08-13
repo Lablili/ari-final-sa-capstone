@@ -46,12 +46,15 @@
                 </a>
             }
             
-            @if (displayRole == "FisheriesAdmin" || displayRole == "BantayDagatAdmin")
+            @if (displayRole == "BantayDagatAdmin")
             {
                 <a class="@navClass("Feedback")" asp-controller="Home" asp-action="Feedback">
                     <span class="nav-icon report-icon" aria-hidden="true"></span>
                     <span>Community Reports</span>
                 </a>
+            }
+            @if (displayRole == "FisheriesAdmin" || displayRole == "BantayDagatAdmin")
+            {
                 <a class="@navClass("FisherfolkInfo")" asp-controller="Home" asp-action="FisherfolkInfo">
                     <span class="nav-icon fisherfolk-icon" aria-hidden="true"></span>
                     <span>Fisherfolk Info</span>

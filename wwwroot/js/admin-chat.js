@@ -202,7 +202,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     div.style = "padding: 6px; border-bottom: 1px solid #e2e8f0; cursor: pointer; transition: background 0.2s;";
                     div.onmouseover = () => div.style.background = "#f8fafc";
                     div.onmouseout = () => div.style.background = "transparent";
-                    div.innerHTML = `<strong style="font-size:10px; color:#94a3b8;">${r.type}</strong><br><span style="color:#334155; font-weight:500;">${r.title}</span>`;
+                    div.innerHTML = `
+                          <strong style="font-size:10px; color:#94a3b8; text-transform: uppercase;">${r.type}</strong><br>
+                          <span style="color:#334155; font-weight:600;">${r.title || 'Untitled'}</span>
+                          ${r.body ? `<div style="color:#64748b; font-size:11px; margin-top:2px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${r.body}</div>` : ''}
+                      `;
                     div.onclick = () => {
                         selectedAttachment = r;
                         attachNameSpan.textContent = r.title;

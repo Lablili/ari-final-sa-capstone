@@ -279,7 +279,6 @@
             <section class="panel">
                 <div class="panel-header">
                     <h3>Government System Audit Log</h3>
-                    <button class="btn-outline" onclick="clearAuditTrail()" type="button">Clear Audit Trail</button>
                 </div>
                 <p class="panel-subtitle" style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px;">
                     Tracks logins, registration creations, deactivations, password resets, and changes to records for strict accountability.
@@ -616,50 +615,59 @@
             }
         }
 
-        function refreshSmsLogTables() {
-            var logs = JSON.parse(localStorage.getItem('bantay-dagat-sms-logs') || '[]');
-            var queue = JSON.parse(localStorage.getItem('bantay-dagat-sms-queue') || '[]');
+        async function refreshSmsLogTables() {
+            try {
+                var resLogs = await fetch('/api/SmsLogsApi/sent');
+                var dbLogs = await resLogs.json();
+                
+                // Keep local queue for now if there is no backend API for queue, but try to render dbLogs for sent messages
+                var queue = JSON.parse(localStorage.getItem('bantay-dagat-sms-queue') || '[]');
 
-            // Update stats counter
-            var today = new Date().toLocaleDateString();
-            var todaySentCount = logs.filter(l => l.status === 'Sent' && new Date(l.timestamp).toLocaleDateString() === today).length;
-            document.getElementById('stat-gsm-status').nextElementSibling.textContent = `SMS Sent Today: ${todaySentCount} messages`;
+                // Update stats counter
+                var today = new Date().toLocaleDateString();
+                var todaySentCount = dbLogs.filter(l => l.status === 'Sent' && new Date(l.timestampSent).toLocaleDateString() === today).length;
+                document.getElementById('stat-gsm-status').nextElementSibling.textContent = `SMS Sent Today: ${todaySentCount} messages`;
 
-            // Render Queue
-            var queueBody = document.getElementById('smsQueueTableBody');
-            if (queueBody) {
-                if (!queue.length) {
-                    queueBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Outbound message queue is empty.</td></tr>';
-                } else {
-                    queueBody.innerHTML = queue.map((q, idx) => `
-                        <tr>
-                            <td><code>${q.recipient}</code></td>
-                            <td class="text-truncate" style="max-width: 250px;">${q.message}</td>
-                            <td><span class="badge yellow">Queued</span></td>
-                        </tr>
-                    `).join('');
-                }
-            }
-
-            // Render Logs
-            var logsBody = document.getElementById('smsLogsTableBody');
-            if (logsBody) {
-                if (!logs.length) {
-                    logsBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No SMS transaction logs recorded.</td></tr>';
-                } else {
-                    logsBody.innerHTML = logs.map(l => {
-                        var timeStr = new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        var statusClass = l.status === 'Sent' ? 'text-success' : 'text-danger';
-                        return `
+                // Render Queue
+                var queueBody = document.getElementById('smsQueueTableBody');
+                if (queueBody) {
+                    if (!queue.length) {
+                        queueBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Outbound message queue is empty.</td></tr>';
+                    } else {
+                        queueBody.innerHTML = queue.map((q, idx) => `
                             <tr>
-                                <td><code>${l.recipient}</code></td>
-                                <td style="max-width: 200px; font-size: 0.9rem;" class="text-truncate" title="${l.message}">${l.message}</td>
-                                <td class="font-weight-semibold ${statusClass}">${l.status}</td>
-                                <td style="font-size: 0.85rem;">${timeStr}</td>
+                                <td><code>${q.recipient}</code></td>
+                                <td class="text-truncate" style="max-width: 250px;">${q.message}</td>
+                                <td><span class="badge yellow">Queued</span></td>
                             </tr>
-                        `;
-                    }).join('');
+                        `).join('');
+                    }
                 }
+
+                // Render Logs
+                var logsBody = document.getElementById('smsLogsTableBody');
+                if (logsBody) {
+                    if (!dbLogs.length) {
+                        logsBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No SMS transaction logs recorded.</td></tr>';
+                    } else {
+                        logsBody.innerHTML = dbLogs.map(l => {
+                            var timeStr = new Date(l.timestampSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                            var statusClass = l.status === 'Sent' ? 'text-success' : 'text-danger';
+                            var messagePreview = l.messageContent || l.messageType || "";
+                            var recipient = l.phoneNumber || "-";
+                            return `
+                                <tr>
+                                    <td><code>${recipient}</code></td>
+                                    <td style="max-width: 200px; font-size: 0.9rem;" class="text-truncate" title="${messagePreview}">${messagePreview}</td>
+                                    <td class="font-weight-semibold ${statusClass}">${l.status}</td>
+                                    <td style="font-size: 0.85rem;">${timeStr}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                }
+            } catch(e) {
+                console.error("Failed to fetch SMS logs", e);
             }
         }
 

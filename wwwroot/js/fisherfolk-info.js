@@ -204,6 +204,10 @@
         fisherfolkTableBody.innerHTML = "";
 
         database.forEach(function (record, index) {
+            if (record.registrationStatus === "Inactive") {
+                return;
+            }
+            
             if (currentBarangayFilter !== "all" && record.barangay !== currentBarangayFilter) {
                 return;
             }
@@ -385,37 +389,38 @@
         if (index < 0 || index >= database.length) return;
         var record = database[index];
 
-        if (!confirm("Are you sure you want to delete this fisherfolk record?")) return;
+        if (!confirm("Are you sure you want to archive this fisherfolk record?")) return;
 
-        // Delete from DB if it has an id
+        // Change status to Inactive in DB instead of deleting
         if (record.id) {
+            record.registrationStatus = "Inactive";
             try {
-                await fetch('/api/fisherfolk/' + record.id, { method: 'DELETE' });
+                await fetch('/api/fisherfolk/' + record.id, { 
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(record)
+                });
             } catch (e) { /* ignore */ }
         }
 
-        // Keep in local archive for display
-        var archive = getArchive();
-        archive.push(record);
-        saveArchive(archive);
-
         await loadFromDb();
-        populateArchiveTable();
     }
 
-    function deletePermanently(archiveIndex) {
+    async function deletePermanently(recordId) {
         if (confirm("Are you sure you want to permanently delete this record? This action cannot be undone.")) {
-            var archive = getArchive();
-            if (archiveIndex < 0 || archiveIndex >= archive.length) return;
-
-            archive.splice(archiveIndex, 1);
-            saveArchive(archive);
-            populateArchiveTable();
+            if (recordId) {
+                try {
+                    await fetch('/api/fisherfolk/' + recordId, { method: 'DELETE' });
+                } catch (e) { }
+            }
+            await loadFromDb();
         }
     }
 
     function populateArchiveTable() {
-        var archive = getArchive();
+        var database = getFisherfolkDatabase();
+        var archive = database.filter(function(r) { return r.registrationStatus === "Inactive"; });
+        
         archiveTableBody.innerHTML = "";
         if (archive.length === 0) {
             emptyArchiveState.style.display = "block";
@@ -424,15 +429,8 @@
 
         emptyArchiveState.style.display = "none";
         archive.forEach(function (record, index) {
-            var statusClass = "";
-            var statusText = "";
-            if (record.registrationStatus === "Active" || record.registrationStatus === "Licensed") {
-                statusClass = "status-active";
-                statusText = "Active";
-            } else {
-                statusClass = "status-inactive";
-                statusText = "Inactive";
-            }
+            var statusClass = "status-inactive";
+            var statusText = "Inactive";
 
             var row = document.createElement("tr");
             row.innerHTML =
@@ -450,14 +448,14 @@
                 '<td>' +
                     '<div class="mobile-cell">' +
                         '<svg class="phone-icon" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="14" height="14">' +
-                            '<path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 a 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />' +
+                            '<path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />' +
                         '</svg>' +
                         '<span>' + (record.contactNumber || "-") + '</span>' +
                     '</div>' +
                 '</td>' +
                 '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
                 '<td style="text-align: center;">' +
-                    '<button class="delete-btn" type="button" data-archive-index="' + index + '" title="Permanently Delete">' +
+                    '<button class="delete-btn" type="button" data-archive-id="' + record.id + '" title="Permanently Delete">' +
                         '<svg class="trash-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">' +
                             '<path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />' +
                         '</svg>' +
@@ -467,8 +465,8 @@
             row.addEventListener("click", function (event) {
                 var deleteBtn = event.target.closest(".delete-btn");
                 if (deleteBtn) {
-                    var indexToDelete = parseInt(deleteBtn.getAttribute("data-archive-index"));
-                    deletePermanently(indexToDelete);
+                    var idToDelete = deleteBtn.getAttribute("data-archive-id");
+                    deletePermanently(idToDelete);
                     event.stopPropagation();
                 }
             });
@@ -513,6 +511,14 @@
     fisherfolkForm.addEventListener("submit", async function (event) {
         event.preventDefault();
         syncAge();
+
+        var regStatus = fisherfolkForm.elements["registrationStatus"].value;
+        if (regStatus === "Inactive") {
+            if (!confirm("Setting the status to Inactive will automatically move this record to the Archive. Are you sure you want to continue?")) {
+                return;
+            }
+        }
+
         saveFisherfolkInfo();
         await saveFisherfolkToDatabase();
         registerFormModal.classList.add("hidden");

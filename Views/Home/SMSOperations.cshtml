@@ -105,21 +105,6 @@
                     </tr>
                 </thead>
                 <tbody id="sms-log-tbody">
-                    <!-- Dynamic logs or placeholders -->
-                    <tr>
-                        <td><span class="cat-badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">Delivered</span></td>
-                        <td><strong>+63 912 345 6789</strong></td>
-                        <td><span style="color:#64748b;">Announcement</span></td>
-                        <td style="color:#475569;">Bantay Dagat: Walang pangingisda bukas dahil sa bagyo.</td>
-                        <td style="color:#64748b;">Today, 14:30</td>
-                    </tr>
-                    <tr class="failed-msg">
-                        <td><span class="cat-badge" style="background:#fef2f2; color:#ef4444; border:1px solid #fca5a5;">Failed</span></td>
-                        <td class="failed-num"><strong>+63 998 765 4321</strong></td>
-                        <td><span style="color:#64748b;">Announcement</span></td>
-                        <td style="color:#475569;">Bantay Dagat: Walang pangingisda bukas dahil sa bagyo.</td>
-                        <td style="color:#64748b;">Today, 14:30</td>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -128,65 +113,104 @@
 
 @section Scripts {
     <script>
-        // In the future, this can pull from /api/announcementapi/status or /api/smslogs
-        async function loadSmsStats() {
+        let currentTab = 'sent';
+
+        async function loadSentMessages() {
             try {
-                // Example of dynamically fetching real stats when DB is connected
+                const response = await fetch('/api/SmsLogsApi/sent');
+                const data = await response.json();
+                renderTable(data, 'sent');
             } catch (e) {
-                console.warn('Could not fetch SMS stats', e);
+                console.error('Error fetching sent messages:', e);
             }
+        }
+
+        async function loadReceivedMessages() {
+            try {
+                const response = await fetch('/api/SmsLogsApi/received');
+                const data = await response.json();
+                renderTable(data, 'received');
+            } catch (e) {
+                console.error('Error fetching received messages:', e);
+            }
+        }
+
+        function renderTable(data, tabType) {
+            const tbody = document.getElementById('sms-log-tbody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">No ${tabType} messages found.</td></tr>`;
+                return;
+            }
+
+            data.forEach(msg => {
+                let badgeStyle = '';
+                let statusText = msg.status || (tabType === 'sent' ? 'PENDING' : 'RECEIVED');
+                let rowClass = statusText.toUpperCase() === 'FAILED' ? 'class="failed-msg"' : '';
+                let phoneClass = statusText.toUpperCase() === 'FAILED' ? 'class="failed-num"' : '';
+
+                if (statusText.toUpperCase() === 'DELIVERED') {
+                    badgeStyle = 'background:#f0fdf4; color:#16a34a; border:1px solid #86efac;';
+                } else if (statusText.toUpperCase() === 'FAILED') {
+                    badgeStyle = 'background:#fef2f2; color:#ef4444; border:1px solid #fca5a5;';
+                } else if (statusText.toUpperCase() === 'PENDING') {
+                    badgeStyle = 'background:#fefce8; color:#eab308; border:1px solid #fde047;';
+                } else if (statusText.toUpperCase() === 'READ') {
+                     badgeStyle = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;';
+                } else if (statusText.toUpperCase() === 'UNREAD') {
+                     badgeStyle = 'background:#eff6ff; color:#3b82f6; border:1px solid #bfdbfe;';
+                } else {
+                     badgeStyle = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;';
+                }
+
+                // Format date
+                const dateObj = new Date(msg.timestampSent);
+                const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                const tr = document.createElement('tr');
+                if (rowClass) tr.className = 'failed-msg';
+                
+                tr.innerHTML = `
+                    <td><span class="cat-badge" style="${badgeStyle}">${statusText}</span></td>
+                    <td ${phoneClass}><strong>${msg.phoneNumber || 'N/A'}</strong></td>
+                    <td><span style="color:#64748b;">${msg.messageType || 'Announcement'}</span></td>
+                    <td style="color:#475569; max-width: 350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${msg.messageContent ? msg.messageContent.replace(/"/g, '&quot;') : ''}">${msg.messageContent || ''}</td>
+                    <td style="color:#64748b;">${formattedDate}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
         
         document.addEventListener('DOMContentLoaded', function() {
-            loadSmsStats();
+            // Initially load sent messages
+            loadSentMessages();
 
             const btnSent = document.getElementById('btnSentMessages');
             const btnReceived = document.getElementById('btnReceivedMessages');
-            const tbody = document.getElementById('sms-log-tbody');
             const btnRetry = document.getElementById('btnRetryFailed');
             const btnExport = document.getElementById('btnExportReport');
 
-            const sentMessagesHtml = `
-                <tr>
-                    <td><span class="cat-badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">Delivered</span></td>
-                    <td><strong>+63 912 345 6789</strong></td>
-                    <td><span style="color:#64748b;">Announcement</span></td>
-                    <td style="color:#475569;">Bantay Dagat: Walang pangingisda bukas dahil sa bagyo.</td>
-                    <td style="color:#64748b;">Today, 14:30</td>
-                </tr>
-                <tr class="failed-msg">
-                    <td><span class="cat-badge" style="background:#fef2f2; color:#ef4444; border:1px solid #fca5a5;">Failed</span></td>
-                    <td class="failed-num"><strong>+63 998 765 4321</strong></td>
-                    <td><span style="color:#64748b;">Announcement</span></td>
-                    <td style="color:#475569;">Bantay Dagat: Walang pangingisda bukas dahil sa bagyo.</td>
-                    <td style="color:#64748b;">Today, 14:30</td>
-                </tr>
-            `;
-
-            const receivedMessagesHtml = `
-                <tr>
-                    <td><span class="cat-badge" style="background:#f0fdf4; color:#16a34a; border:1px solid #86efac;">Received</span></td>
-                    <td><strong>+63 912 345 6789</strong></td>
-                    <td><span style="color:#64748b;">Reply</span></td>
-                    <td style="color:#475569;">Salamat sa impormasyon.</td>
-                    <td style="color:#64748b;">Today, 14:35</td>
-                </tr>
-            `;
-
             btnSent.addEventListener('click', function() {
+                if (currentTab === 'sent') return;
+                currentTab = 'sent';
                 btnSent.style.color = '#0f172a';
                 btnSent.style.borderBottom = '2px solid #0f172a';
                 btnReceived.style.color = '#64748b';
                 btnReceived.style.borderBottom = '2px solid transparent';
-                tbody.innerHTML = sentMessagesHtml;
+                document.getElementById('sms-log-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+                loadSentMessages();
             });
 
             btnReceived.addEventListener('click', function() {
+                if (currentTab === 'received') return;
+                currentTab = 'received';
                 btnReceived.style.color = '#0f172a';
                 btnReceived.style.borderBottom = '2px solid #0f172a';
                 btnSent.style.color = '#64748b';
                 btnSent.style.borderBottom = '2px solid transparent';
-                tbody.innerHTML = receivedMessagesHtml;
+                document.getElementById('sms-log-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+                loadReceivedMessages();
             });
 
             btnRetry.addEventListener('click', function() {

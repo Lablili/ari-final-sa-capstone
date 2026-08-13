@@ -33,8 +33,7 @@ public class HomeController : Controller
         var deliveredSms = smsLogs.Count(s => s.Status == "Delivered");
         var deliveryRate = totalSmsSent > 0 ? (double)deliveredSms / totalSmsSent * 100 : 0;
 
-        var fisherfolk = await _db.FisherfolkRegistries.ToListAsync();
-        var totalFisherfolk = fisherfolk.Count;
+        var totalFisherfolk = await _db.FisherfolkRegistries.CountAsync(f => f.RegistrationStatus != "Inactive");
         
         var submissions = await _db.ReportSubmissions.ToListAsync();
         var activeUsers = submissions.Select(s => s.FisherfolkId).Distinct().Count();
@@ -117,6 +116,12 @@ public class HomeController : Controller
 
     public IActionResult Feedback()
     {
+        var sessionRole = HttpContext.Session.GetString("UserRole") ?? User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
+        if (sessionRole == "FisheriesAdmin")
+        {
+            return RedirectToAction("Index");
+        }
+
         ViewData["Title"] = "Community Reports";
         return View();
     }
@@ -126,10 +131,11 @@ public class HomeController : Controller
         ViewData["Title"] = "Announcements";
 
         // Live counts from the database
-        var all       = await _db.FisherfolkRegistries.CountAsync();
-        var sulangan  = await _db.FisherfolkRegistries.CountAsync(f => f.Barangay == "Sulangan");
-        var patao     = await _db.FisherfolkRegistries.CountAsync(f => f.Barangay == "Patao");
-        var guiwanon  = await _db.FisherfolkRegistries.CountAsync(f => f.Barangay == "Guiwanon");
+        var activeFisherfolk = _db.FisherfolkRegistries.Where(f => f.RegistrationStatus != "Inactive");
+        var all       = await activeFisherfolk.CountAsync();
+        var sulangan  = await activeFisherfolk.CountAsync(f => f.Barangay == "Sulangan");
+        var patao     = await activeFisherfolk.CountAsync(f => f.Barangay == "Patao");
+        var guiwanon  = await activeFisherfolk.CountAsync(f => f.Barangay == "Guiwanon");
 
         ViewBag.CountAll      = all.ToString("N0");
         ViewBag.CountSulangan = sulangan.ToString("N0");
@@ -292,10 +298,11 @@ public class HomeController : Controller
             await _db.SaveChangesAsync();
         }
 
-        ViewBag.Total         = await all.CountAsync();
-        ViewBag.CountPatao    = await all.CountAsync(f => f.Barangay == "Patao");
-        ViewBag.CountGuiwanon = await all.CountAsync(f => f.Barangay == "Guiwanon");
-        ViewBag.CountSulangan = await all.CountAsync(f => f.Barangay == "Sulangan");
+        var activeFisherfolk = all.Where(f => f.RegistrationStatus != "Inactive");
+        ViewBag.Total         = await activeFisherfolk.CountAsync();
+        ViewBag.CountPatao    = await activeFisherfolk.CountAsync(f => f.Barangay == "Patao");
+        ViewBag.CountGuiwanon = await activeFisherfolk.CountAsync(f => f.Barangay == "Guiwanon");
+        ViewBag.CountSulangan = await activeFisherfolk.CountAsync(f => f.Barangay == "Sulangan");
 
         return View();
     }

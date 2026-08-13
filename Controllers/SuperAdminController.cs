@@ -20,7 +20,7 @@ namespace ari_final_sa_capstone.Controllers
 
         public async Task<IActionResult> SystemDashboard()
         {
-            ViewBag.TotalFisherfolk = await _context.FisherfolkRegistries.CountAsync();
+            ViewBag.TotalFisherfolk = await _context.FisherfolkRegistries.CountAsync(f => f.RegistrationStatus != "Inactive");
             ViewBag.TotalBlotters = await _context.BlotterReports.CountAsync();
             ViewBag.TotalSmsLogs = await _context.SMSLogs.CountAsync();
             ViewBag.TotalCommunityReports = await _context.ReportSubmissions.CountAsync();

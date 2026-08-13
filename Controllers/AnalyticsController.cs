@@ -28,7 +28,7 @@ namespace ari_final_sa_capstone.Controllers
             var deliveredSms = smsLogs.Count(s => s.Status == "Delivered");
             var deliveryRate = totalSmsSent > 0 ? (double)deliveredSms / totalSmsSent * 100 : 0;
 
-            var fisherfolk = await _context.FisherfolkRegistries.ToListAsync();
+            var fisherfolk = await _context.FisherfolkRegistries.Where(f => f.RegistrationStatus != "Inactive").ToListAsync();
             var totalFisherfolk = fisherfolk.Count;
             
             var submissions = await _context.ReportSubmissions.ToListAsync();

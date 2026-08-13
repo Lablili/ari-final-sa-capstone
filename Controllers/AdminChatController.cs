@@ -116,6 +116,7 @@ namespace ari_final_sa_capstone.Controllers
                         id = b.IncidentId.ToString(),
                         type = "INCIDENT",
                         title = $"Incident: {b.IncidentType} at {b.Location}",
+                        body = b.ReportSource,
                         date = b.IncidentDate
                     })
                     .ToListAsync();
@@ -129,7 +130,8 @@ namespace ari_final_sa_capstone.Controllers
                     .Select(a => new {
                         id = a.Id.ToString(),
                         type = "ANNOUNCEMENT",
-                        title = $"Announcement: {a.Title}",
+                        title = string.IsNullOrEmpty(a.Title) ? $"Announcement: {a.Category}" : $"Announcement: {a.Title}",
+                        body = a.Message,
                         date = a.Date
                     })
                     .ToListAsync();
@@ -144,7 +146,8 @@ namespace ari_final_sa_capstone.Controllers
                         id = f.Id.ToString(),
                         type = "FISHERFOLK",
                         title = $"Fisherfolk: {f.Fname} {f.Lname}",
-                        date = DateTime.MinValue
+                        body = $"Address: {f.Address} | Contact: {f.ContactNumber}",
+                        date = DateTime.UtcNow
                     })
                     .ToListAsync();
                 resources.AddRange(fisherfolks);
