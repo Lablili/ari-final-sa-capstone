@@ -317,10 +317,13 @@ public class HomeController : Controller
         int smsFailedToday = await _db.SMSLogs.CountAsync(s => s.TimestampSent >= today && s.Status == "FAILED");
         int totalToday = smsSentToday + smsFailedToday;
         
+        int smsReceivedToday = await _db.FeedbackMessages.CountAsync(f => f.DateReceived == today);
+        
         double successRate = totalToday == 0 ? 0 : Math.Round((double)smsSentToday / totalToday * 100, 1);
         
         ViewBag.SmsSentToday = smsSentToday;
         ViewBag.SmsFailedToday = smsFailedToday;
+        ViewBag.SmsReceivedToday = smsReceivedToday;
         ViewBag.SuccessRate = successRate.ToString("0.0") + "%";
         
         // GSM Gateway Hardware details
