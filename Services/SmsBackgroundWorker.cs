@@ -21,8 +21,8 @@ namespace ari_final_sa_capstone.Services
         private readonly IHubContext<SmsProgressHub> _hubContext;
 
         // Configuration
-        private const string SerialPortName = "COM3"; // Change based on Arduino
-        private const int BaudRate = 9600;
+        private const string SerialPortName = "COM9"; // Change based on Arduino
+        private const int BaudRate = 115200;
         private SerialPort _serialPort;
         private bool _isMockMode = true;
 
@@ -49,12 +49,30 @@ namespace ari_final_sa_capstone.Services
                 _serialPort = new SerialPort(SerialPortName, BaudRate);
                 _serialPort.DataReceived += SerialPort_DataReceived;
                 _serialPort.Open();
+                
+                // CRITICAL FIX: Opening the serial port forces the Arduino to restart.
+                // We MUST wait 5 seconds for the Arduino to finish running its setup() 
+                // before we allow the background worker to start blasting SMS commands at it!
+                System.Threading.Thread.Sleep(5000);
+                
                 _isMockMode = false;
+                
+                HardwareMonitor.IsConnected = true;
+                HardwareMonitor.StatusMessage = $"Connected to GSM Network via {SerialPortName}";
+                HardwareMonitor.SignalStrength = 85;
+                HardwareMonitor.PortName = SerialPortName;
+
                 _logger.LogInformation($"Successfully connected to Arduino on {SerialPortName}");
             }
             catch (Exception ex)
             {
                 _isMockMode = true;
+                
+                HardwareMonitor.IsConnected = false;
+                HardwareMonitor.StatusMessage = $"Disconnected (Mock Mode). Error: {ex.Message}";
+                HardwareMonitor.SignalStrength = 0;
+                HardwareMonitor.PortName = SerialPortName;
+
                 _logger.LogWarning($"Could not open {SerialPortName}. Running in MOCK MODE. Error: {ex.Message}");
             }
         }
@@ -82,10 +100,15 @@ namespace ari_final_sa_capstone.Services
                 if (!_isMockMode && _serialPort != null && !_serialPort.IsOpen)
                 {
                     _logger.LogWarning("Serial port disconnected. Attempting to reconnect...");
+                    
+                    HardwareMonitor.IsConnected = false;
+                    HardwareMonitor.StatusMessage = "Disconnected. Attempting to reconnect...";
+                    HardwareMonitor.SignalStrength = 0;
+                    
                     InitializeSerialPort();
                 }
 
-                await Task.Delay(2000, stoppingToken);
+                await Task.Delay(5000, stoppingToken);
             }
 
             _logger.LogInformation("SMS Background Worker stopping.");
@@ -113,6 +136,11 @@ namespace ari_final_sa_capstone.Services
                         await ProcessIncomingMessageAsync(senderPhone, messageText);
                     }
                 }
+                else
+                {
+                    // Log the Arduino's debug output directly to Visual Studio so we can see what's happening!
+                    _logger.LogInformation($"[ARDUINO]: {indata}");
+                }
             }
             catch (Exception ex)
             {
@@ -126,34 +154,93 @@ namespace ari_final_sa_capstone.Services
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             // 1. Identify Sender
-            var fisherfolk = await db.Fisherfolks
-                .FirstOrDefaultAsync(f => f.ContactNumber == phoneNumber || f.ContactNumber == "+63" + phoneNumber.TrimStart('0'));
-
-            string senderName = fisherfolk != null ? $"{fisherfolk.FirstName} {fisherfolk.LastName}" : "Unregistered Sender";
-            string barangay = fisherfolk?.Barangay ?? "Unknown";
-
-            // 2. Parse Category from Hardcoded Dictionary
-            string category = DetermineCategory(messageText);
-
-            // 3. Create Blotter / Incident
-            var newIncident = new Blotter
+            string localPhone = phoneNumber.Trim();
+            if (localPhone.StartsWith("+63"))
             {
-                Complainant = senderName,
-                Category = category,
-                Description = messageText,
-                DateOfIncident = DateTime.Now,
-                Status = "Pending",
-                Notes = $"Auto-generated from SMS. Phone: {phoneNumber}, Barangay: {barangay}"
+                localPhone = "0" + localPhone.Substring(3);
+            }
+
+            var fisherfolk = await db.FisherfolkRegistries
+                .FirstOrDefaultAsync(f => f.ContactNumber == phoneNumber || f.ContactNumber == localPhone);
+
+            string senderName = fisherfolk != null ? $"{fisherfolk.Fname} {fisherfolk.Lname}" : "Unregistered Sender";
+            
+            // Extract location from the text message itself
+            string extractedLocation = AIHelper.ExtractFlaggedPlace(messageText);
+            
+            string barangay = extractedLocation;
+            
+            // If no place was mentioned in the text, fallback to the sender's registered barangay
+            if ((string.IsNullOrWhiteSpace(barangay) || barangay == "Unknown") && fisherfolk != null && !string.IsNullOrWhiteSpace(fisherfolk.Barangay)) {
+                barangay = fisherfolk.Barangay;
+            }
+
+            // Strictly enforce only the Barangay name (strip extra words like "River")
+            if (barangay != null)
+            {
+                if (barangay.Contains("Sulangan", StringComparison.OrdinalIgnoreCase)) barangay = "Sulangan";
+                else if (barangay.Contains("Patao", StringComparison.OrdinalIgnoreCase)) barangay = "Patao";
+                else if (barangay.Contains("Guiwanon", StringComparison.OrdinalIgnoreCase)) barangay = "Guiwanon";
+                else barangay = "Unknown";
+            }
+
+            if (string.IsNullOrWhiteSpace(barangay)) {
+                barangay = "Unknown";
+            }
+
+            // 2. Parse Category and map to valid Javascript dictionary keys (sos, incident, complaint)
+            string detectedCategory = DetermineCategory(messageText);
+            string category = "incident"; // Default
+            
+            if (detectedCategory.Contains("Emergency") || detectedCategory.Contains("Rescue"))
+            {
+                category = "sos";
+            }
+            else if (detectedCategory.Contains("Crime") || messageText.Contains("reklamo", StringComparison.OrdinalIgnoreCase))
+            {
+                category = "complaint";
+            }
+
+            // 3. Create Blotter / Incident (Legacy)
+            var newIncident = new BlotterReport
+            {
+                IncidentDate = DateTime.Now,
+                IncidentType = detectedCategory,
+                Location = barangay,
+                ReportSource = $"SMS: {senderName} ({phoneNumber})",
+                ActionsTaken = messageText,
+                Outcome = "Pending",
+                Status = "Open"
             };
 
-            db.Blotters.Add(newIncident);
+            db.BlotterReports.Add(newIncident);
+
+            // 3.5 Create Community Report (FeedbackMessage)
+            string priority = "Medium";
+            if (category == "sos") priority = "Critical";
+            else if (messageText.Contains("Illegal", StringComparison.OrdinalIgnoreCase) || messageText.Contains("dinamita", StringComparison.OrdinalIgnoreCase)) priority = "High";
+
+            var feedback = new FeedbackMessage
+            {
+                Sender = senderName,
+                Category = category,
+                FlaggedPlace = barangay,
+                ContactNumber = localPhone, // Always save in local format (09...) so the frontend recognizes it!
+                DateReceived = DateTime.Now.Date,
+                TimeReceived = DateTime.Now.TimeOfDay,
+                Status = "new",
+                PriorityLevel = priority,
+                Subject = $"SMS: {detectedCategory}",
+                Message = messageText
+            };
+
+            db.FeedbackMessages.Add(feedback);
 
             // 4. Also log to SMS Logs for history
             var smsLog = new SMSLog
             {
                 PhoneNumber = phoneNumber,
                 MessageType = messageText,
-                Direction = "INBOUND",
                 Status = "RECEIVED",
                 TimestampReceived = DateTime.Now
             };
@@ -165,7 +252,7 @@ namespace ari_final_sa_capstone.Services
             // 5. Trigger Dashboard Update via SignalR 
             if (_hubContext != null)
             {
-                await _hubContext.Clients.All.SendAsync("NewIncidentReported", newIncident.BlotterId);
+                await _hubContext.Clients.All.SendAsync("NewIncidentReported", newIncident.IncidentId);
             }
         }
 
@@ -206,7 +293,7 @@ namespace ari_final_sa_capstone.Services
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             var pendingLogs = await db.SMSLogs
-                .Where(s => s.Status == "PENDING" && s.Direction != "INBOUND")
+                .Where(s => s.Status == "PENDING")
                 .OrderBy(s => s.SmsId)
                 .Take(5)
                 .ToListAsync();
@@ -218,7 +305,25 @@ namespace ari_final_sa_capstone.Services
             {
                 try
                 {
-                    bool success = SendSmsViaArduino(log.PhoneNumber, log.MessageType);
+                    string textToSend = log.MessageType;
+                    
+                    // Manually fetch the Announcement message if there is an AnnouncementId
+                    if (log.AnnouncementId.HasValue) 
+                    {
+                        var announcement = await db.Announcements.FindAsync(log.AnnouncementId.Value);
+                        if (announcement != null && !string.IsNullOrEmpty(announcement.Message))
+                        {
+                            textToSend = announcement.Message;
+                        }
+                    }
+
+                    // Prefix with "BANTAY DAGAT: " to act as a Sender ID workaround
+                    if (!textToSend.StartsWith("BANTAY DAGAT:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        textToSend = $"BANTAY DAGAT: {textToSend}";
+                    }
+
+                    bool success = SendSmsViaArduino(log.PhoneNumber, textToSend);
                     
                     if (success)
                     {
@@ -258,8 +363,20 @@ namespace ari_final_sa_capstone.Services
 
             try
             {
-                // Send command to Arduino
-                _serialPort.WriteLine($"SEND:{phoneNumber}:{message}");
+                // Sanitize phone number (remove spaces and dashes)
+                string safePhone = phoneNumber.Replace(" ", "").Replace("-", "");
+
+                // Encode newlines for our Arduino Gateway
+                string encodedMessage = message.Replace("\n", "\\n");
+
+                // Send command to Arduino using the COMMA syntax!
+                string exactCommand = $"SEND,{safePhone},{encodedMessage}";
+                _logger.LogInformation($"[SMS GATEWAY] Sending exactly: {exactCommand}");
+                _serialPort.WriteLine(exactCommand);
+                
+                // Wait 7 seconds for the Arduino to finish texting!
+                System.Threading.Thread.Sleep(7000);
+                
                 return true;
             }
             catch (Exception ex)
@@ -280,6 +397,16 @@ namespace ari_final_sa_capstone.Services
             int pending = logs.Count(s => s.Status == "PENDING");
             int percent = (int)Math.Round((double)(delivered + failed) / total * 100);
             
+            if (percent == 100)
+            {
+                var announcement = await db.Announcements.FindAsync(announcementId);
+                if (announcement != null && announcement.Status != "DELIVERED")
+                {
+                    announcement.Status = "DELIVERED";
+                    await db.SaveChangesAsync();
+                }
+            }
+
             await _hubContext.Clients.Group($"Announcement_{announcementId}").SendAsync("ReceiveProgress", new
             {
                 AnnouncementId = announcementId, Total = total, Delivered = delivered,

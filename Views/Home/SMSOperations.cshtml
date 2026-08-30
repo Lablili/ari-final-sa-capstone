@@ -3,7 +3,7 @@
     var userRole = Context.Session.GetString("UserRole") ?? "";
 }
 
-<div class="dashboard-shell" id="dashboardShell">
+<div class="dashboard-shell" id="dashboardShell" style="height: 100vh; overflow: hidden; display: flex;">
     @await Html.PartialAsync("_DashboardSidebar")
 
     <main class="main-content">
@@ -34,11 +34,11 @@
                     </h3>
                 </div>
                 <ul style="list-style:none; padding:0; margin:0; color:#475569; line-height: 1.8;">
-                    <li style="display:flex; justify-content:space-between;"><span>SMS Sent Today:</span> <strong style="color:#0f172a;" id="sms-sent-today">245</strong></li>
-                    <li style="display:flex; justify-content:space-between;"><span>SMS Received Today:</span> <strong style="color:#0f172a;">18</strong></li>
-                    <li style="display:flex; justify-content:space-between;"><span>Delivery Success Rate:</span> <strong style="color:#0f172a;">98.5%</strong></li>
-                    <li style="display:flex; justify-content:space-between;"><span>Failed Messages:</span> <strong style="color:#0f172a;" id="sms-failed-today">4</strong></li>
-                    <li style="display:flex; justify-content:space-between;"><span>Avg Delivery Time:</span> <strong style="color:#0f172a;">2.3 seconds</strong></li>
+                    <li style="display:flex; justify-content:space-between;"><span>SMS Sent Today:</span> <strong style="color:#0f172a;" id="sms-sent-today">@ViewBag.SmsSentToday</strong></li>
+                    <li style="display:flex; justify-content:space-between;"><span>SMS Received Today:</span> <strong style="color:#0f172a;">0</strong></li>
+                    <li style="display:flex; justify-content:space-between;"><span>Delivery Success Rate:</span> <strong style="color:#0f172a;">@ViewBag.SuccessRate</strong></li>
+                    <li style="display:flex; justify-content:space-between;"><span>Failed Messages:</span> <strong style="color:#0f172a;" id="sms-failed-today">@ViewBag.SmsFailedToday</strong></li>
+                    <li style="display:flex; justify-content:space-between;"><span>Avg Delivery Time:</span> <strong style="color:#0f172a;">~2-7 seconds</strong></li>
                 </ul>
             </div>
 
@@ -51,21 +51,28 @@
                     </h3>
                 </div>
                 <ul style="list-style:none; padding:0; margin:0; color:#475569; line-height: 1.8;">
-                    <li style="display:flex; justify-content:space-between;"><span>Current Balance:</span> <strong style="color:#0f172a;">8,450 credits</strong></li>
-                    <li style="display:flex; justify-content:space-between;"><span>Used This Month:</span> <strong style="color:#0f172a;">1,550 credits</strong></li>
-                    <li style="display:flex; justify-content:space-between;"><span>Remaining Budget:</span> <strong style="color:#0f172a;">₱2,100</strong></li>
+                    <li style="display:flex; justify-content:space-between;"><span>Current Balance:</span> <strong style="color:#0f172a;">Unlimited</strong></li>
+                    <li style="display:flex; justify-content:space-between;"><span>Used This Month:</span> <strong style="color:#0f172a;">-</strong></li>
+                    <li style="display:flex; justify-content:space-between;"><span>Remaining Budget:</span> <strong style="color:#0f172a;">-</strong></li>
                 </ul>
                 <div style="margin-top: 15px; padding: 8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; color:#475569; display:flex; align-items:center; gap:6px;">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    <strong>Alert:</strong> Low credit - refill recommended
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <strong>Hardware Gateway Active</strong> 
                 </div>
             </div>
 
-            <!-- GSM Modem Status -->
+            <!-- GSM Gateway Status -->
             <div class="panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: center; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <p style="color: #64748b; font-size: 1.1rem; margin-bottom: 8px;">GSM Gateway Status</p>
-                <h3 id="stat-gsm-status" style="color: #22c55e; font-size: 3.2rem; font-weight: 700; margin: 5px 0;">Online</h3>
-                <p id="stat-gsm-sub" style="color: #64748b; font-size: 1rem; margin: 0;">Signal: 92% (COM3)</p>
+                @if (ViewBag.HardwareStatus == "Online")
+                {
+                    <h3 id="stat-gsm-status" style="color: #22c55e; font-size: 3.2rem; font-weight: 700; margin: 5px 0;">Online</h3>
+                }
+                else
+                {
+                    <h3 id="stat-gsm-status" style="color: #ef4444; font-size: 3.2rem; font-weight: 700; margin: 5px 0;">Offline</h3>
+                }
+                <p id="stat-gsm-sub" style="color: #64748b; font-size: 1rem; margin: 0;">@ViewBag.HardwareMessage</p>
             </div>
         </div>
 

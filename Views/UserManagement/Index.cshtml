@@ -47,11 +47,6 @@
                 <p class="stat-subtext positive">Active: @Model.Admins.Count(a => a.IsActive)</p>
             </article>
             <article class="stat-card">
-                <p class="stat-title">GSM Gateway Status</p>
-                <h3 id="stat-gsm-status" class="status-online">Online</h3>
-                <p class="stat-subtext" id="stat-gsm-sub">Signal: 92% (COM3)</p>
-            </article>
-            <article class="stat-card">
                 <p class="stat-title">Database Status</p>
                 @if (Model.Diagnostics.DbConnectionOk)
                 {
@@ -75,7 +70,6 @@
         <div class="log-tabs-panel admin-tabs">
             <div class="tabs-main">
                 <button class="tab-button active" onclick="switchAdminTab('adminsTab', this)" type="button">Manage Admins (@Model.Admins.Count)</button>
-                <button class="tab-button" onclick="switchAdminTab('gsmTab', this)" type="button">GSM SMS Gateway</button>
                 <button class="tab-button" onclick="switchAdminTab('auditTab', this)" type="button">System Audit Log</button>
                 <button class="tab-button" onclick="switchAdminTab('diagnosticsTab', this)" type="button">⚙️ DB Diagnostics</button>
             </div>
@@ -170,109 +164,7 @@
             </div>
         </div>
 
-        <!-- ==================== TAB 3: GSM GATEWAY SETTINGS ==================== -->
-        <div class="admin-tab-content" id="gsmTab">
-            <div class="content-grid">
-                <!-- Gateway settings form -->
-                <section class="panel">
-                    <div class="panel-header">
-                        <h3>GSM Hardware Configuration</h3>
-                    </div>
-                    <form class="fisherfolk-form" id="gsmGatewayForm" onsubmit="saveGsmConfiguration(event)">
-                        <label class="field-group">
-                            <span class="field-label">Modem Serial Connection</span>
-                            <select class="field-input" id="gsmPortSelect">
-                                <option value="COM3" selected>COM3 (USB-to-UART Adapter)</option>
-                                <option value="COM1">COM1 (Motherboard DB9)</option>
-                                <option value="/dev/ttyUSB0">/dev/ttyUSB0 (Linux Gateway)</option>
-                            </select>
-                        </label>
-                        <label class="field-group">
-                            <span class="field-label">Gateway Mode</span>
-                            <select class="field-input" id="gsmModeSelect" onchange="toggleGsmModemState()">
-                                <option value="online" selected>Online (Normal Operations)</option>
-                                <option value="offline">Offline (Simulate Disconnected Modem)</option>
-                            </select>
-                        </label>
-                        <label class="field-group">
-                            <span class="field-label">GSM Signal Strength</span>
-                            <input class="field-input" type="text" id="gsmSignalInput" value="Good (-75 dBm)" readonly>
-                        </label>
-                        <label class="field-group">
-                            <span class="field-label">Hardware Signature</span>
-                            <input class="field-input" type="text" id="gsmSignatureInput" value="SIMCOM_SIM900_V1.0">
-                        </label>
-                        <div class="form-actions field-span-2">
-                            <button class="form-btn form-btn-submit" type="submit">Save Configurations</button>
-                            <button class="form-btn form-btn-reset" onclick="triggerGsmHardReset()" type="button">Hard Reset Modem</button>
-                        </div>
-                    </form>
 
-                    <!-- Test SMS panel -->
-                    <div class="test-sms-subpanel" style="margin-top: 30px; border-top: 1px solid var(--border-soft); padding-top: 20px;">
-                        <h4 style="margin-bottom: 12px; color: var(--text);">Send Test SMS Message</h4>
-                        <form class="fisherfolk-form" id="testSmsForm" onsubmit="sendTestSmsMessage(event)">
-                            <label class="field-group">
-                                <span class="field-label">Recipient GSM Number</span>
-                                <input class="field-input" type="text" id="testSmsRecipient" placeholder="e.g. 0917 842 3156" required>
-                            </label>
-                            <label class="field-group">
-                                <span class="field-label">SMS Message Content</span>
-                                <textarea class="field-input" id="testSmsMessage" placeholder="Type test message text here..." required style="height: 60px; min-height: 60px;"></textarea>
-                            </label>
-                            <div class="form-actions" style="margin-top: 10px;">
-                                <button class="form-btn form-btn-submit" type="submit" style="background-color: var(--accent);">Send Broadcast Test</button>
-                            </div>
-                        </form>
-                    </div>
-                </section>
-
-                <!-- SMS Logs and queues -->
-                <section class="panel">
-                    <div class="panel-header">
-                        <h3>Outbound SMS Broadcast Queue</h3>
-                        <button class="btn-outline" onclick="processSmsQueue()" type="button">Flush Queue</button>
-                    </div>
-                    <div class="database-container" style="max-height: 180px; min-height: 120px; overflow-y: auto;">
-                        <table class="fisherfolk-table table-narrow">
-                            <thead>
-                                <tr>
-                                    <th>Recipient</th>
-                                    <th>Message Preview</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="smsQueueTableBody">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="panel-header" style="margin-top: 24px;">
-                        <h3>GSM Delivery History Logs</h3>
-                        <div class="action-buttons-group">
-                            <button class="btn-outline" onclick="retryFailedSmsLogs()" type="button">Retry Failed</button>
-                            <button class="btn-outline" onclick="clearSmsLogs()" type="button">Clear Logs</button>
-                        </div>
-                    </div>
-                    <div class="database-container" style="max-height: 250px; overflow-y: auto;">
-                        <table class="fisherfolk-table table-narrow">
-                            <thead>
-                                <tr>
-                                    <th>Recipient</th>
-                                    <th>Message Details</th>
-                                    <th>Status</th>
-                                    <th>Time</th>
-                                </tr>
-                            </thead>
-                            <tbody id="smsLogsTableBody">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
-        </div>
 
         <!-- ==================== TAB 4: SYSTEM AUDIT LOG ==================== -->
         <div class="admin-tab-content" id="auditTab">
@@ -467,8 +359,6 @@
             // Refresh data for the specific tab
             if (tabId === 'adminsTab') {
                 loadOverviewData();
-            } else if (tabId === 'gsmTab') {
-                loadGsmTab();
             } else if (tabId === 'auditTab') {
                 loadAuditLogs();
             }
@@ -551,213 +441,7 @@
             }
         }
 
-        // ==========================================
-        // GSM GATEWAY MANAGEMENT & SMS OPERATIONS
-        // ==========================================
-        function loadGsmTab() {
-            // Load status configuration
-            var port = localStorage.getItem('gsm-gateway-port') || 'COM3';
-            var mode = localStorage.getItem('gsm-gateway-mode') || 'online';
-            var signature = localStorage.getItem('gsm-gateway-signature') || 'Gikan sa Bantay Dagat Bantayan';
 
-            document.getElementById('gsmPortSelect').value = port;
-            document.getElementById('gsmModeSelect').value = mode;
-            document.getElementById('gsmSignatureInput').value = signature;
-
-            toggleGsmModemState();
-            refreshSmsLogTables();
-        }
-
-        function toggleGsmModemState() {
-            var mode = document.getElementById('gsmModeSelect').value;
-            localStorage.setItem('gsm-gateway-mode', mode);
-            
-            var statusEl = document.getElementById('stat-gsm-status');
-            var subEl = document.getElementById('stat-gsm-sub');
-            var signalInput = document.getElementById('gsmSignalInput');
-
-            if (mode === 'online') {
-                statusEl.textContent = "Online";
-                statusEl.className = "status-online";
-                subEl.textContent = `Signal: 92% (${document.getElementById('gsmPortSelect').value})`;
-                signalInput.value = "Good (-75 dBm)";
-            } else {
-                statusEl.textContent = "Offline";
-                statusEl.className = "status-offline";
-                subEl.textContent = "Modem Disconnected";
-                signalInput.value = "N/A (Disconnected)";
-            }
-        }
-
-        function saveGsmConfiguration(e) {
-            e.preventDefault();
-            var port = document.getElementById('gsmPortSelect').value;
-            var signature = document.getElementById('gsmSignatureInput').value;
-            
-            localStorage.setItem('gsm-gateway-port', port);
-            localStorage.setItem('gsm-gateway-signature', signature);
-            toggleGsmModemState();
-
-            // Log audit event
-            logAuditEvent(`Updated GSM Gateway Settings (Port: ${port})`);
-            alert("GSM settings updated successfully!");
-        }
-
-        function triggerGsmHardReset() {
-            if (confirm("Resetting the GSM gateway hardware may terminate active SMS broadcasts. Continue?")) {
-                var sig = document.getElementById('gsmSignalInput');
-                sig.value = "Resetting Gateway...";
-                logAuditEvent("Initiated GSM Gateway modem hardware reset");
-                setTimeout(() => {
-                    sig.value = "Good (-75 dBm)";
-                    alert("GSM Gateway modem hard reset complete! Online.");
-                }, 1500);
-            }
-        }
-
-        async function refreshSmsLogTables() {
-            try {
-                var resLogs = await fetch('/api/SmsLogsApi/sent');
-                var dbLogs = await resLogs.json();
-                
-                // Keep local queue for now if there is no backend API for queue, but try to render dbLogs for sent messages
-                var queue = JSON.parse(localStorage.getItem('bantay-dagat-sms-queue') || '[]');
-
-                // Update stats counter
-                var today = new Date().toLocaleDateString();
-                var todaySentCount = dbLogs.filter(l => l.status === 'Sent' && new Date(l.timestampSent).toLocaleDateString() === today).length;
-                document.getElementById('stat-gsm-status').nextElementSibling.textContent = `SMS Sent Today: ${todaySentCount} messages`;
-
-                // Render Queue
-                var queueBody = document.getElementById('smsQueueTableBody');
-                if (queueBody) {
-                    if (!queue.length) {
-                        queueBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Outbound message queue is empty.</td></tr>';
-                    } else {
-                        queueBody.innerHTML = queue.map((q, idx) => `
-                            <tr>
-                                <td><code>${q.recipient}</code></td>
-                                <td class="text-truncate" style="max-width: 250px;">${q.message}</td>
-                                <td><span class="badge yellow">Queued</span></td>
-                            </tr>
-                        `).join('');
-                    }
-                }
-
-                // Render Logs
-                var logsBody = document.getElementById('smsLogsTableBody');
-                if (logsBody) {
-                    if (!dbLogs.length) {
-                        logsBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No SMS transaction logs recorded.</td></tr>';
-                    } else {
-                        logsBody.innerHTML = dbLogs.map(l => {
-                            var timeStr = new Date(l.timestampSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                            var statusClass = l.status === 'Sent' ? 'text-success' : 'text-danger';
-                            var messagePreview = l.messageContent || l.messageType || "";
-                            var recipient = l.phoneNumber || "-";
-                            return `
-                                <tr>
-                                    <td><code>${recipient}</code></td>
-                                    <td style="max-width: 200px; font-size: 0.9rem;" class="text-truncate" title="${messagePreview}">${messagePreview}</td>
-                                    <td class="font-weight-semibold ${statusClass}">${l.status}</td>
-                                    <td style="font-size: 0.85rem;">${timeStr}</td>
-                                </tr>
-                            `;
-                        }).join('');
-                    }
-                }
-            } catch(e) {
-                console.error("Failed to fetch SMS logs", e);
-            }
-        }
-
-        function sendTestSmsMessage(e) {
-            e.preventDefault();
-            var recipient = document.getElementById('testSmsRecipient').value;
-            var message = document.getElementById('testSmsMessage').value;
-            var signature = localStorage.getItem('gsm-gateway-signature') || 'Gikan sa Bantay Dagat Bantayan';
-            
-            var fullMsg = message + "\n\n[" + signature + "]";
-            var mode = localStorage.getItem('gsm-gateway-mode') || 'online';
-
-            var queue = JSON.parse(localStorage.getItem('bantay-dagat-sms-queue') || '[]');
-            queue.push({
-                recipient: recipient,
-                message: fullMsg,
-                timestamp: new Date().toISOString()
-            });
-            localStorage.setItem('bantay-dagat-sms-queue', JSON.stringify(queue));
-            refreshSmsLogTables();
-
-            document.getElementById('testSmsRecipient').value = '';
-            document.getElementById('testSmsMessage').value = '';
-
-            // Simulate automatic gateway processing
-            setTimeout(processSmsQueue, 1000);
-        }
-
-        function processSmsQueue() {
-            var queue = JSON.parse(localStorage.getItem('bantay-dagat-sms-queue') || '[]');
-            if (!queue.length) return;
-
-            var logs = JSON.parse(localStorage.getItem('bantay-dagat-sms-logs') || '[]');
-            var mode = localStorage.getItem('gsm-gateway-mode') || 'online';
-
-            // Process item
-            var msg = queue.shift();
-            
-            if (mode === 'online') {
-                msg.status = 'Sent';
-            } else {
-                msg.status = 'Failed (Gateway Offline)';
-            }
-            msg.timestamp = new Date().toISOString();
-
-            logs.unshift(msg);
-            localStorage.setItem('bantay-dagat-sms-queue', JSON.stringify(queue));
-            localStorage.setItem('bantay-dagat-sms-logs', JSON.stringify(logs));
-            
-            refreshSmsLogTables();
-            
-            if (mode !== 'online') {
-                alert("Outbound SMS failed. The GSM modem connection is Offline.");
-            }
-        }
-
-        function retryFailedSmsLogs() {
-            var logs = JSON.parse(localStorage.getItem('bantay-dagat-sms-logs') || '[]');
-            var mode = localStorage.getItem('gsm-gateway-mode') || 'online';
-
-            if (mode !== 'online') {
-                alert("Cannot retry SMS sending. The GSM modem connection is currently Offline.");
-                return;
-            }
-
-            var failedLogs = logs.filter(l => l.status.indexOf('Failed') === 0);
-            if (!failedLogs.length) {
-                alert("No failed SMS messages to retry.");
-                return;
-            }
-
-            logs.forEach(l => {
-                if (l.status.indexOf('Failed') === 0) {
-                    l.status = 'Sent';
-                    l.timestamp = new Date().toISOString();
-                }
-            });
-
-            localStorage.setItem('bantay-dagat-sms-logs', JSON.stringify(logs));
-            logAuditEvent(`Retried and successfully sent ${failedLogs.length} failed SMS broadcasts`);
-            refreshSmsLogTables();
-            alert(`Resent ${failedLogs.length} failed messages!`);
-        }
-
-        function clearSmsLogs() {
-            if (confirm("Delete all SMS history logs? This cannot be undone.")) {
-                localStorage.removeItem('bantay-dagat-sms-logs');
-                refreshSmsLogTables();
-            }
-        }
 
         // ==========================================
         // AUDIT LOG MANAGEMENT

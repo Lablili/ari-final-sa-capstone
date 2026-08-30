@@ -489,7 +489,8 @@ body {
 /* Dashboard Shell Layout */
 .dashboard-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   position: relative;
 }
 .dashboard-shell.hidden {
@@ -574,6 +575,7 @@ body {
   padding: 24px;
   flex-shrink: 0;
   border-right: 1px solid #1e293b;
+  overflow-y: auto;
 }
 
 .brand {

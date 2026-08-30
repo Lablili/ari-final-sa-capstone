@@ -5,7 +5,7 @@
 SoftwareSerial sim900(7, 8); 
 
 // The public tunnel URL we created earlier
-const String API_URL = "https://c91a3fb63c3af2.lhr.life/api/feedback";
+const String API_URL = "https://expletive-glamour-liberty.ngrok-free.dev/api/feedback";
 
 void setup() {
   // Start serial monitor for debugging
@@ -29,7 +29,9 @@ void setup() {
 }
 
 void loop() {
-  // 1. Wait for incoming SMS from sim900 serial
+  // -------------------------------------------------------------
+  // 1. INBOUND: Wait for incoming SMS from sim900 (Fisherman -> System)
+  // -------------------------------------------------------------
   if (sim900.available()) {
     String incomingData = sim900.readString();
     Serial.println("Raw Data Received:");
@@ -44,11 +46,53 @@ void loop() {
       Serial.println("Message: " + messageContent);
       
       if(phoneNumber != "" && messageContent != "") {
-          // 3. Send the data to your C# API via GPRS
+          // Send the data to your C# API via GPRS
           sendDataToAPI(phoneNumber, messageContent);
       }
     }
   }
+
+  // -------------------------------------------------------------
+  // 2. OUTBOUND: Listen for commands from the C# laptop via USB
+  // -------------------------------------------------------------
+  if (Serial.available()) {
+    String command = Serial.readStringUntil('\n');
+    command.trim();
+    
+    // The C# app sends commands like: SEND:+639123456789:Hello there
+    if (command.startsWith("SEND:")) {
+      // Find the colons to split the string
+      int firstColon = command.indexOf(':');
+      int secondColon = command.indexOf(':', firstColon + 1);
+      
+      if (firstColon > -1 && secondColon > -1) {
+        String outPhone = command.substring(firstColon + 1, secondColon);
+        String outMsg = command.substring(secondColon + 1);
+        
+        Serial.println("System requested Outbound SMS.");
+        sendSMSOutbound(outPhone, outMsg);
+      }
+    } else {
+      // Allow raw AT commands for debugging
+      sim900.println(command); 
+    }
+  }
+}
+
+// Function to actually send the outbound SMS
+void sendSMSOutbound(String phone, String msg) {
+  sim900.print("AT+CMGS=\"");
+  sim900.print(phone);
+  sim900.println("\""); 
+  delay(1000);
+  
+  sim900.print(msg); 
+  delay(100);
+  
+  sim900.write(26); // Send CTRL+Z
+  delay(3000);
+  
+  Serial.println("Outbound SMS sent to: " + phone);
 }
 
 String extractPhoneNumber(String rawData) {

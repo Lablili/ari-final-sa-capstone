@@ -22,17 +22,17 @@ namespace ari_final_sa_capstone.Controllers
 
         public class CreateAnnouncementDto
         {
-            public string Category { get; set; } = string.Empty;
-            public string Title { get; set; } = string.Empty;
-            public string Message { get; set; } = string.Empty;
-            public string RecipientGroup { get; set; } = string.Empty;
-            public string Location { get; set; } = string.Empty;
-            public string EffectiveDate { get; set; } = string.Empty;
-            public string Penalty { get; set; } = string.Empty;
-            public string ReferenceNo { get; set; } = string.Empty;
-            public string Officer { get; set; } = string.Empty;
-            public string ContactPerson { get; set; } = string.Empty;
-            public DateTime? EventDate { get; set; }
+            public string? Category { get; set; }
+            public string? Title { get; set; }
+            public string? Message { get; set; }
+            public string? RecipientGroup { get; set; }
+            public string? Location { get; set; }
+            public string? EffectiveDate { get; set; }
+            public string? Penalty { get; set; }
+            public string? ReferenceNo { get; set; }
+            public string? Officer { get; set; }
+            public string? ContactPerson { get; set; }
+            public string? EventDate { get; set; }
         }
 
         [HttpPost("send")]
@@ -45,20 +45,36 @@ namespace ari_final_sa_capstone.Controllers
 
             string attachmentPath = string.Empty;
 
+            // The Javascript frontend already formats the message perfectly and limits it to 160 characters.
+            // We just need to take it directly, and replace any line breaks just in case.
+            string formattedMessage = dto.Message.Replace("\r", " ").Replace("\n", " ");
+            
+            // Just double checking we don't exceed the 160 char SMS limit or the SIM900 will throw ERROR
+            if (formattedMessage.Length > 160)
+            {
+                formattedMessage = formattedMessage.Substring(0, 160);
+            }
+
+            DateTime? parsedEventDate = null;
+            if (!string.IsNullOrWhiteSpace(dto.EventDate) && DateTime.TryParse(dto.EventDate, out var dt))
+            {
+                parsedEventDate = dt;
+            }
+
             // 1. Create the Announcement record
             var announcement = new Announcement
             {
                 Category = dto.Category ?? "Custom",
                 Title = dto.Title ?? string.Empty,
-                RecepientGroup = dto.RecipientGroup,
+                RecepientGroup = dto.RecipientGroup ?? string.Empty,
                 Location = dto.Location ?? string.Empty,
-                Message = dto.Message,
+                Message = formattedMessage,
                 EffectiveDate = dto.EffectiveDate ?? string.Empty,
                 Penalty = dto.Penalty ?? string.Empty,
                 ResoNo = dto.ReferenceNo ?? string.Empty,
                 Officer = dto.Officer ?? string.Empty,
                 ContactPerson = dto.ContactPerson ?? string.Empty,
-                EventDate = dto.EventDate,
+                EventDate = parsedEventDate,
                 AttachmentPath = attachmentPath,
                 CreatedAt = DateTime.Now,
                 Status = "PENDING"
@@ -67,28 +83,32 @@ namespace ari_final_sa_capstone.Controllers
             _context.Announcements.Add(announcement);
             await _context.SaveChangesAsync();
 
-            // 2. Retrieve list of registered fisherfolk phone numbers
-            // Filter by RecipientGroup if needed, but for now just all or mock logic.
-            // In a real app we'd filter by barangay etc.
-            var recipientsQuery = _context.FisherfolkRegistries.Where(f => f.RegistrationStatus == "Active").AsQueryable();
-            if (dto.RecipientGroup == "north")
+            // 2. Retrieve list of registered fisherfolk phone numbers based on group
+            List<string> phoneNumbers;
+            if (dto.RecipientGroup == "all")
             {
-                recipientsQuery = recipientsQuery.Where(f => f.Barangay == "Sulangan");
+                phoneNumbers = await _context.FisherfolkRegistries
+                    .Select(f => f.ContactNumber)
+                    .ToListAsync();
             }
-            else if (dto.RecipientGroup == "south")
+            else
             {
-                recipientsQuery = recipientsQuery.Where(f => f.Barangay == "Patao");
+                string targetBarangay = dto.RecipientGroup switch
+                {
+                    "north" => "Sulangan",
+                    "south" => "Patao",
+                    "licensed" => "Guiwanon",
+                    _ => dto.RecipientGroup
+                };
+                
+                phoneNumbers = await _context.FisherfolkRegistries
+                    .Where(f => f.Barangay == targetBarangay)
+                    .Select(f => f.ContactNumber)
+                    .ToListAsync();
             }
-            else if (dto.RecipientGroup == "licensed")
-            {
-                recipientsQuery = recipientsQuery.Where(f => f.Barangay == "Guiwanon");
-            }
-
-            var phoneNumbers = await recipientsQuery
-                .Where(f => !string.IsNullOrEmpty(f.ContactNumber))
-                .Select(f => f.ContactNumber)
-                .Distinct()
-                .ToListAsync();
+            
+            // Clean up the phone numbers (remove nulls, empty strings)
+            phoneNumbers = phoneNumbers.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct().ToList();
 
             if (!phoneNumbers.Any())
             {
@@ -120,6 +140,34 @@ namespace ari_final_sa_capstone.Controllers
                 Recipients = phoneNumbers.Count,
                 Status = "PENDING"
             });
+        }
+        [HttpGet("history")]
+        public async Task<IActionResult> GetHistory()
+        {
+            var announcements = await _context.Announcements
+                .OrderByDescending(a => a.CreatedAt)
+                .Select(a => new
+                {
+                    id = "ann-" + a.Id,
+                    template = a.Category == "Ordinance/Resolution" ? "ordinance" : (a.Category == "Meeting/Events" ? "meeting" : "custom"),
+                    recipientGroup = a.RecepientGroup,
+                    title = a.Title,
+                    location = a.Location,
+                    effectiveDate = a.EffectiveDate,
+                    penalty = a.Penalty,
+                    referenceNo = a.ResoNo,
+                    eventDate = a.EventDate.HasValue ? a.EventDate.Value.ToString("yyyy-MM-ddTHH:mm") : "",
+                    contactPerson = a.ContactPerson,
+                    details = a.Message,
+                    message = a.Message,
+                    status = a.Status == "PENDING" ? "Processing" : (a.Status == "DELIVERED" ? "Delivered" : a.Status),
+                    createdAt = a.CreatedAt.ToString("o"),
+                    deliveredCount = _context.SMSLogs.Count(s => s.AnnouncementId == a.Id && s.Status == "DELIVERED"),
+                    archived = false
+                })
+                .ToListAsync();
+
+            return Ok(announcements);
         }
     }
 }

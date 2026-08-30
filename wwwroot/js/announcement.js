@@ -19,6 +19,17 @@
                 </div>
             `;
         }
+
+        // Fix: Update local browser memory so the table says DELIVERED!
+        if (data.percent === 100) {
+            var items = readAnnouncements();
+            var index = items.findIndex(i => i.id === "ann-" + data.announcementId);
+            if (index !== -1 && items[index].status !== "Delivered") {
+                items[index].status = "Delivered";
+                saveAnnouncements(items);
+                renderAnnouncements();
+            }
+        }
     });
 
     connection.start().catch(function (err) {
@@ -76,8 +87,8 @@
     }
     // Template Messages
     var templates = {
-        "ordinance": "Bantay Dagat Notice: Ordinance/Resolution -",
-        "meeting": "Bantay Dagat Notice: Meeting/Event -"
+        "ordinance": "[ORDINANCE]",
+        "meeting": "[EVENT]"
     };
     var templateLabels = {
         "ordinance": "Ordinance/Resolution",
@@ -118,6 +129,18 @@
             currentDateDisplay.textContent = today.toLocaleDateString('en-US', options);
         }
     }
+    // Sync with real database on load
+    fetch('/api/announcementapi/history')
+        .then(r => r.json())
+        .then(data => {
+            if (data && Array.isArray(data)) {
+                // Merge real db with local state, or just replace
+                localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, JSON.stringify(data));
+                renderAnnouncements();
+            }
+        })
+        .catch(err => console.error("Could not sync history", err));
+
     function autoArchiveAnnouncements(items) {
         var modified = false;
         var sixMonthsAgo = new Date();
@@ -174,14 +197,15 @@
             var days = Math.floor(seconds / 86400);
             return days + (days === 1 ? " day ago" : " days ago");
         }
-        if (seconds >= 3600) {
-            var hours = Math.floor(seconds / 3600);
-            return hours + (hours === 1 ? " hour ago" : " hours ago");
-        }
-        if (seconds >= 60) {
-            var minutes = Math.floor(seconds / 60);
-            return minutes + (minutes === 1 ? " minute ago" : " minutes ago");
-        }
+        if (!dateString) return "N/A";
+        var date = new Date(dateString);
+        var now = new Date();
+        var diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) return diffInSeconds + "s ago";
+        if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + "m ago";
+        if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + "h ago";
+        if (diffInSeconds < 2592000) return Math.floor(diffInSeconds / 86400) + "d ago";
         return "Just now";
     }
     // Build the dynamic preview SMS
@@ -205,10 +229,10 @@
             var penaltyText = announcementPenalty.value.trim();
 
             if (title) finalMessage += " " + title + ".";
-            if (referenceNo) finalMessage += " Ref: " + referenceNo + ".";
-            if (locationText) finalMessage += " Area: " + locationText + ".";
-            if (effectiveDate) finalMessage += " Effective: " + effectiveDate + ".";
-            if (penaltyText) finalMessage += " Penalty: " + penaltyText + ".";
+            if (referenceNo) finalMessage += " Ref:" + referenceNo + ".";
+            if (locationText) finalMessage += " Loc:" + locationText + ".";
+            if (effectiveDate) finalMessage += " Date:" + effectiveDate + ".";
+            if (penaltyText) finalMessage += " Pen:" + penaltyText + ".";
         } else {
             var title = meetingTitle.value.trim();
             var eventDate = meetingDate.value.trim();
@@ -216,13 +240,13 @@
             var contactText = meetingContact.value.trim();
 
             if (title) finalMessage += " " + title + ".";
-            if (eventDate) finalMessage += " Date: " + eventDate + ".";
-            if (locationText) finalMessage += " Area: " + locationText + ".";
-            if (contactText) finalMessage += " Contact: " + contactText + ".";
+            if (eventDate) finalMessage += " Date:" + eventDate + ".";
+            if (locationText) finalMessage += " Loc:" + locationText + ".";
+            if (contactText) finalMessage += " Call:" + contactText + ".";
         }
 
         if (detailsText) {
-            finalMessage += " Details: " + detailsText;
+            finalMessage += " Msg: " + detailsText;
         }
         var finalString = finalMessage.trim() || "Compose an announcement to preview the outgoing SMS.";
         if (finalString !== "Compose an announcement to preview the outgoing SMS." && finalString.length > 160) {
@@ -581,12 +605,29 @@
     // Form submit
     announcementForm.addEventListener("submit", function (event) {
         event.preventDefault();
+        
+        var category = getSelectedCategory();
+        if (!category) {
+            alert("Please select a Category (Ordinance/Resolution or Meeting/Events).");
+            return;
+        }
+
+        var title = category === 'ordinance' ? announcementTitle.value.trim() : meetingTitle.value.trim();
+        var locationText = category === 'ordinance' ? announcementLocation.value.trim() : meetingLocation.value.trim();
+        var detailsText = announcementDetails.value.trim();
+
+        if (!title || !locationText || !detailsText) {
+            alert("Please fill in the Title, Location, and Additional Details before sending.");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to send this announcement? This action cannot be undone and will send SMS messages to the selected fisherfolk.")) {
+            return;
+        }
+
         var finalMessage = buildMessage();
         var items = readAnnouncements();
         var selectedGroup = recipientGroup.value;
-        var category = getSelectedCategory();
-        var title = category === 'ordinance' ? announcementTitle.value.trim() : meetingTitle.value.trim();
-        var locationText = category === 'ordinance' ? announcementLocation.value.trim() : meetingLocation.value.trim();
 
         // We will get the real count from the API response
         var recipientCount = 0;
@@ -619,7 +660,9 @@
         formData.append("EffectiveDate", newItem.effectiveDate);
         formData.append("Penalty", newItem.penalty);
         formData.append("ReferenceNo", newItem.referenceNo);
-        formData.append("EventDate", newItem.eventDate);
+        if (newItem.eventDate) {
+            formData.append("EventDate", newItem.eventDate);
+        }
         formData.append("ContactPerson", newItem.contactPerson);
 
         items.push(newItem);
@@ -667,11 +710,20 @@
                     `;
                     announcementForm.appendChild(progressContainer);
                 }
+            } else {
+                throw new Error(data.title || "Server rejected the request.");
             }
         })
         .catch(err => {
             console.error("Error sending announcement:", err);
-            alert("Error sending announcement. See console for details.");
+            
+            // REMOVE the fake item from local storage since the server rejected it!
+            var currentItems = readAnnouncements();
+            currentItems = currentItems.filter(i => i.id !== newItem.id);
+            saveAnnouncements(currentItems);
+            renderAnnouncements();
+            
+            alert("Error sending announcement. The server rejected the request. Please make sure you are not missing any fields.");
         });
     });
     // Print functionality

@@ -571,7 +571,13 @@ window.openGroupReview = async function (id) {
       const relRes = await fetch(`/api/feedback/${id}/related`);
       const relatedReports = relRes.ok ? await relRes.json() : [];
 
-      const group = [baseReport, ...relatedReports];
+      const mappedRelated = relatedReports.map(r => ({
+          ...r,
+          dateSent: r.time ? r.time.replace(" ", "T") : r.dateSent,
+          content: r.msg || r.content
+      }));
+
+      const group = [baseReport, ...mappedRelated];
       window.currentGroupIds = group.map(g => g.id);
       window.primaryGroupId = id;
       renderGroupModal(group);
@@ -833,20 +839,23 @@ async function loadFeedbackFromDb() {
     const res = await fetch("/api/feedback");
     if (!res.ok) throw new Error("API error");
     const dbData = await res.json();
+    
+    // Clean up flaggedPlace to ensure it's strictly a valid barangay name
+    // and fix old subjects if the person registered AFTER sending the SMS
+    dbData.forEach(item => {
+        if (item.flaggedPlace) {
+            let p = item.flaggedPlace.toLowerCase();
+            if (p.includes("sulangan")) item.flaggedPlace = "Sulangan";
+            else if (p.includes("patao")) item.flaggedPlace = "Patao";
+            else if (p.includes("guiwanon")) item.flaggedPlace = "Guiwanon";
+        }
+        
+        if (item.isRegistered && item.subject && item.subject.includes("Unregistered Sender")) {
+            item.subject = "SMS Report from Registered Sender";
+        }
+    });
 
-    if (dbData.length === 0) {
-      // DB is empty — seed it with the built-in sample DATA
-      await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(DATA),
-      });
-      // Re-fetch so IDs are DB-assigned
-      const res2 = await fetch("/api/feedback");
-      DATA = await res2.json();
-    } else {
-      DATA = dbData;
-    }
+    DATA = dbData;
 
     // Auto-archive logic
     let modified = false;

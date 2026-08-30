@@ -23,7 +23,7 @@
     var displayRole = !string.IsNullOrEmpty(sessionRole) ? sessionRole : (User != null && User.Identity.IsAuthenticated ? string.Join(", ", (User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value))) : "");
 }
 
-<aside class="sidebar">
+<aside class="sidebar" style="height: 100vh; overflow-y: auto; margin: 0; border-radius: 0;">
     <div class="brand">
         <h1>Bantay Dagat</h1>
     </div>

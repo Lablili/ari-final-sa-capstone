@@ -307,9 +307,40 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult SMSOperations()
+    public async Task<IActionResult> SMSOperations()
     {
         ViewData["Title"] = "SMS Operations";
+        
+        var today = DateTime.Today;
+        
+        int smsSentToday = await _db.SMSLogs.CountAsync(s => s.TimestampSent >= today && s.Status == "DELIVERED");
+        int smsFailedToday = await _db.SMSLogs.CountAsync(s => s.TimestampSent >= today && s.Status == "FAILED");
+        int totalToday = smsSentToday + smsFailedToday;
+        
+        double successRate = totalToday == 0 ? 0 : Math.Round((double)smsSentToday / totalToday * 100, 1);
+        
+        ViewBag.SmsSentToday = smsSentToday;
+        ViewBag.SmsFailedToday = smsFailedToday;
+        ViewBag.SuccessRate = successRate.ToString("0.0") + "%";
+        
+        // GSM Gateway Hardware details
+        ViewBag.HardwareStatus = ari_final_sa_capstone.Services.HardwareMonitor.IsConnected ? "Online" : "Offline";
+        ViewBag.HardwareMessage = ari_final_sa_capstone.Services.HardwareMonitor.StatusMessage;
+        
+        var recentLogs = await (from s in _db.SMSLogs
+                                join a in _db.Announcements on s.AnnouncementId equals a.Id into aGroup
+                                from a in aGroup.DefaultIfEmpty()
+                                orderby s.TimestampSent descending
+                                select new {
+                                    Status = s.Status,
+                                    PhoneNumber = s.PhoneNumber,
+                                    Type = s.MessageType,
+                                    MessageContent = a != null ? a.Message : (s.MessageType == "Feedback" ? "User Feedback" : "-"),
+                                    Time = s.TimestampSent
+                                }).Take(20).ToListAsync();
+                                
+        ViewBag.RecentLogs = recentLogs;
+
         return View();
     }
 

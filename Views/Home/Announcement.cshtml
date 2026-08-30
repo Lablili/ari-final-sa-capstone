@@ -4,7 +4,7 @@
 
 
 
-<div class="dashboard-shell" id="dashboardShell">
+<div class="dashboard-shell" id="dashboardShell" style="height: 100vh; overflow: hidden; display: flex;">
     @await Html.PartialAsync("_DashboardSidebar")
 
     <main class="main-content">
@@ -122,8 +122,8 @@
                     </div>
 
                     <div class="form-field-wrapper form-span-full" style="margin-top: 24px;">
-                        <label class="form-label-with-icon" for="announcementDetails">Additional Details (Max 160 characters)</label>
-                        <textarea class="form-textarea-styled" id="announcementDetails" name="details" maxlength="160"></textarea>
+                        <label class="form-label-with-icon" for="announcementDetails">Additional Details </label>
+                        <textarea class="form-textarea-styled" id="announcementDetails" name="details" ></textarea>
                     </div>
                 </div>
 

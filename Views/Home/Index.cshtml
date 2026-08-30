@@ -28,7 +28,7 @@
         <section class="stats-grid">
             <article class="stat-card">
                 <p class="stat-title">Registered Fisherfolk</p>
-                <h3 id="stat-fisherfolk">0</h3>
+                <h3 id="stat-fisherfolk">@ViewBag.TotalFisherfolk</h3>
                 <p class="stat-subtext positive" id="stat-fisherfolk-sub">Active Registry</p>
             </article>
             <article class="stat-card">
@@ -38,8 +38,8 @@
             </article>
             <article class="stat-card">
                 <p class="stat-title">Daily Announcements</p>
-                <h3 id="stat-announcements">0</h3>
-                <p class="stat-subtext" id="stat-announcements-sub">via GSM/SMS</p>
+                <h3 id="stat-announcements">@ViewBag.DeliveryRate%</h3>
+                <p class="stat-subtext" id="stat-announcements-sub">Overall Delivery Rate</p>
             </article>
         </section>
 
