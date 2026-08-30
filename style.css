@@ -89,12 +89,12 @@
 }
 
 .nav-group {
-  padding-top: 18px;
+  padding-top: 10px;
 }
 
 .nav-label {
   margin: 0;
-  padding: 0 22px 10px;
+  padding: 0 22px 6px;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -110,11 +110,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 12px 8px;
-  padding: 14px 16px;
-  font-size: 1rem;
+  margin: 0 12px 4px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
   border: 1px solid transparent;
-  border-radius: 16px;
+  border-radius: 12px;
   color: rgba(255, 255, 255, 0.92);
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }

@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using ari_final_sa_capstone.Data;
 using ari_final_sa_capstone.Hubs;
 using ari_final_sa_capstone.Models;
+using ari_final_sa_capstone.Controllers;
 
 namespace ari_final_sa_capstone.Services
 {
