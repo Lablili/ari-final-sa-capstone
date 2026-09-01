@@ -1,21 +1,28 @@
 #include <SoftwareSerial.h>
 
 // Initialize SoftwareSerial for SIM900 (RX=7, TX=8)
-// Make sure to cross-connect: Arduino Pin 7 to SIM900 TX, Arduino Pin 8 to SIM900 RX
 SoftwareSerial sim900(7, 8); 
 
 // The public tunnel URL we created earlier
 const String API_URL = "https://expletive-glamour-liberty.ngrok-free.dev/api/feedback";
 
 void setup() {
-  // Start serial monitor for debugging
-  Serial.begin(9600);
+  // Start serial monitor for debugging (115200 matches C# perfectly!)
+  Serial.begin(115200);
   
   // Start serial communication with the SIM900 module
   sim900.begin(9600);
   
   Serial.println("Initializing SIM900...");
-  delay(3000);
+  delay(2000);
+
+  Serial.println("Syncing Baud Rate with SIM900...");
+  for (int i = 0; i < 5; i++) {
+    sim900.println("AT");
+    delay(500);
+  }
+  sim900.println("AT+IPR=9600"); // Lock the speed
+  delay(500);
   
   // Set SMS to text mode
   sim900.println("AT+CMGF=1"); 
@@ -24,6 +31,8 @@ void setup() {
   // Configure module to route incoming SMS directly to serial
   sim900.println("AT+CNMI=2,2,0,0,0"); 
   delay(1000);
+  
+  while(sim900.available()) sim900.read();
   
   Serial.println("System Ready. Waiting for SMS...");
 }
@@ -59,15 +68,15 @@ void loop() {
     String command = Serial.readStringUntil('\n');
     command.trim();
     
-    // The C# app sends commands like: SEND:+639123456789:Hello there
-    if (command.startsWith("SEND:")) {
-      // Find the colons to split the string
-      int firstColon = command.indexOf(':');
-      int secondColon = command.indexOf(':', firstColon + 1);
+    // The C# app sends commands like: SEND,09123456789,Hello there
+    if (command.startsWith("SEND,")) {
+      // Find the commas to split the string
+      int firstComma = command.indexOf(',');
+      int secondComma = command.indexOf(',', firstComma + 1);
       
-      if (firstColon > -1 && secondColon > -1) {
-        String outPhone = command.substring(firstColon + 1, secondColon);
-        String outMsg = command.substring(secondColon + 1);
+      if (firstComma > -1 && secondComma > -1) {
+        String outPhone = command.substring(firstComma + 1, secondComma);
+        String outMsg = command.substring(secondComma + 1);
         
         Serial.println("System requested Outbound SMS.");
         sendSMSOutbound(outPhone, outMsg);
@@ -81,18 +90,68 @@ void loop() {
 
 // Function to actually send the outbound SMS
 void sendSMSOutbound(String phone, String msg) {
+  // Strip hidden C# carriage returns that break the Ctrl+Z command!
+  msg.replace("\r", "");
+  msg.replace("\n", "");
+
+  // Clear memory
+  while(sim900.available()) sim900.read(); 
+
+  // Force Echo OFF before we do anything!
+  sim900.println("ATE0"); 
+  delay(500);
+  while(sim900.available()) sim900.read();
+
+  sim900.println("AT+CMGF=1");
+  delay(500);
+  while(sim900.available()) sim900.read();
+
   sim900.print("AT+CMGS=\"");
   sim900.print(phone);
   sim900.println("\""); 
   delay(1000);
   
+  while(sim900.available()) sim900.read();
+  
+  Serial.print("[GSM-DEBUG] > ");
+  Serial.println(msg);
+  
+  // Send the clean text using print (NOT println)
   sim900.print(msg); 
-  delay(100);
+  delay(500);
   
-  sim900.write(26); // Send CTRL+Z
-  delay(3000);
+  // Clear any echoing before sending Ctrl+Z
+  while(sim900.available()) sim900.read();
+
+  // Send CTRL+Z using print (NOT println)
+  sim900.print((char)26); 
+  Serial.println("-> Handed off to Cell Tower. Waiting for SIM900...");
   
-  Serial.println("Outbound SMS sent to: " + phone);
+  unsigned long startTime = millis();
+  bool success = false;
+  bool finished = false;
+  String response = "";
+
+  while (millis() - startTime < 20000 && !finished) {
+    if (sim900.available()) {
+      char c = sim900.read();
+      response += c;
+      if (response.indexOf("OK") != -1) {
+        success = true;
+        finished = true;
+      }
+      if (response.indexOf("ERROR") != -1) {
+        success = false;
+        finished = true;
+      }
+    }
+  }
+
+  if (success) {
+    Serial.println("SENT:" + phone);
+  } else {
+    Serial.println("FAILED:" + phone);
+  }
 }
 
 String extractPhoneNumber(String rawData) {

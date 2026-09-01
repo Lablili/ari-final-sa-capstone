@@ -14,8 +14,8 @@
             progressDiv.innerHTML = `
                 <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:8px; margin-top:20px;">
                     <h4 style="margin:0 0 8px 0; color:#1e40af;">Live Send Progress</h4>
-                    <p style="margin:0 0 4px 0; font-weight:bold;">Sending: ${data.delivered + data.failed}/${data.total} (${data.percent}%)</p>
-                    <p style="margin:0; font-size:0.9rem; color:#4b5563;">Delivered: <span style="color:#059669">${data.delivered}</span> | Pending: <span style="color:#d97706">${data.pending}</span> | Failed: <span style="color:#dc2626">${data.failed}</span></p>
+                    <p style="margin:0 0 4px 0; font-weight:bold;">Progress: ${data.delivered + data.failed}/${data.total} (${data.percent}%)</p>
+                    <p style="margin:0; font-size:0.9rem; color:#4b5563;">Delivered: <span style="color:#059669">${data.delivered}</span> | Sending: <span style="color:#2563eb">${data.sending}</span> | Pending: <span style="color:#d97706">${data.pending}</span> | Failed: <span style="color:#dc2626">${data.failed}</span></p>
                 </div>
             `;
         }

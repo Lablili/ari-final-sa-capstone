@@ -291,18 +291,27 @@ function renderTable() {
            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Unregistered
          </span>`;
 
-      return `<tr class="${c.rowCls}" style="animation-delay:${i * 40}ms" onclick="openDetail(${m.id})">
-      <td><span class="cat-badge" style="background:#e2e8f0;color:#0f172a">${m.priority}</span></td>
+      const viewedSet = new Set(JSON.parse(localStorage.getItem('viewedMsgIds') || '[]'));
+      const isActuallyNew = m.status === 'new' && !viewedSet.has(m.id);
+      
+      const fw = isActuallyNew ? 'font-weight: 800; color: #000000;' : 'font-weight: 500; color: #64748b;';
+      const rowStyle = isActuallyNew ? 'background: #f8fafc;' : 'background: #ffffff;';
+
+      return `<tr class="${c.rowCls}" style="animation-delay:${i * 40}ms; ${rowStyle}" onclick="openDetail(${m.id})">
+      <td><span class="cat-badge" style="background:#e2e8f0;color:#0f172a;">${m.priority}</span></td>
       <td><span class="cat-badge ${c.cls}">${c.icon}&nbsp;${c.label}</span></td>
-      <td><div class="sender-name">${m.contact}<br>${regTag}</div><div class="sender-sub" style="margin-top: 6px;">${m.flaggedPlace}</div></td>
-      <td><div style="font-weight:500">${m.subject}</div><div class="msg-preview">${m.msg}</div></td>
-      <td><span class="status-dot"><span class="dot ${s.cls}"></span>${s.label}</span></td>
-      <td class="time-cell">${fmtDate(m.time, true)}</td>
+      <td><div class="sender-name" style="${fw}">${m.contact}<br>${regTag}</div><div class="sender-sub" style="margin-top: 6px; ${fw}">${m.flaggedPlace}</div></td>
+      <td><div style="${fw} font-size: 15px;">${m.subject}</div><div class="msg-preview" style="${fw}">${m.msg}</div></td>
+      <td><span class="status-dot" style="${fw}"><span class="dot ${s.cls}"></span>${s.label}</span></td>
+      <td class="time-cell" style="${fw}">${fmtDate(m.time, true)}</td>
       <td style="text-align: right; padding-right: 20px;"><button class="btn-view" onclick="event.stopPropagation();openDetail(${m.id})">View <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></td>
     </tr>`;
     })
     .join("");
 }
+
+// 🔄 Auto-Refresh every 5 seconds
+setInterval(loadFeedbackFromDb, 5000);
 
 // ════ PAGINATION ════
 function goPage(d) {
@@ -436,6 +445,17 @@ function exportFeedbackCSV() {
 function openDetail(id) {
   activeMsg = DATA.find((m) => m.id === id);
   if (!activeMsg) return;
+
+  // Save to localStorage so we remember they looked at it, and re-render to fade the row!
+  if (activeMsg.status === 'new') {
+    let viewed = JSON.parse(localStorage.getItem('viewedMsgIds') || '[]');
+    if (!viewed.includes(id)) {
+      viewed.push(id);
+      localStorage.setItem('viewedMsgIds', JSON.stringify(viewed));
+      renderTable(); // Instantly turns it grey without changing db status
+    }
+  }
+
   const c = CAT[activeMsg.cat],
     s = STAT[activeMsg.status];
 
@@ -448,6 +468,9 @@ function openDetail(id) {
 
     // Block Sender button
     actionButtons += `<button onclick="promptBlockSender('${activeMsg.contact}')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #fee2e2; border: 1px solid #ef4444; color: #ef4444; cursor: pointer;">Block Sender</button>`;
+
+    // Quick Archive Button (Always available to dismiss spam instantly)
+    actionButtons += `<button onclick="setStatus(${activeMsg.id},'archived')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #f1f5f9; border: 1px solid #94a3b8; color: #475569; cursor: pointer;">Move to Archive</button>`;
 
     if (activeMsg.status === "pending" || activeMsg.status === "new") {
       if (!activeMsg.isVerified && !activeMsg.isRegistered) {

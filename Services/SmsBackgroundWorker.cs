@@ -137,6 +137,18 @@ namespace ari_final_sa_capstone.Services
                         await ProcessIncomingMessageAsync(senderPhone, messageText);
                     }
                 }
+                else if (indata.StartsWith("SENT:"))
+                {
+                    string phone = indata.Substring(5).Trim();
+                    await UpdateSmsStatusAsync(phone, "DELIVERED");
+                    _logger.LogInformation($"[SMS GATEWAY] Confirmed DELIVERED to {phone}");
+                }
+                else if (indata.StartsWith("FAILED:"))
+                {
+                    string phone = indata.Substring(7).Trim();
+                    await UpdateSmsStatusAsync(phone, "FAILED");
+                    _logger.LogWarning($"[SMS GATEWAY] FAILED to send to {phone}");
+                }
                 else
                 {
                     // Log the Arduino's debug output directly to Visual Studio so we can see what's happening!
@@ -146,6 +158,39 @@ namespace ari_final_sa_capstone.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error reading from serial port");
+            }
+        }
+
+        private async Task UpdateSmsStatusAsync(string phoneNumber, string newStatus)
+        {
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                
+                // Find the most recent SENDING record for this phone
+                var log = await db.SMSLogs
+                    .Where(s => s.PhoneNumber == phoneNumber && s.Status == "SENDING")
+                    .OrderByDescending(s => s.TimestampReceived)
+                    .FirstOrDefaultAsync();
+
+                if (log != null)
+                {
+                    if (newStatus == "FAILED")
+                    {
+                        log.RetryCount++;
+                        log.Status = log.RetryCount >= 3 ? "FAILED" : "PENDING"; // Retry if less than 3
+                    }
+                    else
+                    {
+                        log.Status = newStatus;
+                    }
+                    await db.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Database error updating SMS status for {phoneNumber}");
             }
         }
 
@@ -217,7 +262,7 @@ namespace ari_final_sa_capstone.Services
             db.BlotterReports.Add(newIncident);
 
             // 3.5 Create Community Report (FeedbackMessage)
-            string priority = "Medium";
+            string priority = "Low";
             if (category == "sos") priority = "Critical";
             else if (messageText.Contains("Illegal", StringComparison.OrdinalIgnoreCase) || messageText.Contains("dinamita", StringComparison.OrdinalIgnoreCase)) priority = "High";
 
@@ -328,7 +373,7 @@ namespace ari_final_sa_capstone.Services
                     
                     if (success)
                     {
-                        log.Status = "DELIVERED";
+                        log.Status = "SENDING";
                         log.TimestampReceived = DateTime.Now;
                     }
                     else
@@ -375,8 +420,8 @@ namespace ari_final_sa_capstone.Services
                 _logger.LogInformation($"[SMS GATEWAY] Sending exactly: {exactCommand}");
                 _serialPort.WriteLine(exactCommand);
                 
-                // Wait 12 seconds for the Arduino to finish texting (allows for multipart 160+ char messages)
-                System.Threading.Thread.Sleep(12000);
+                // Wait 20 seconds for the Arduino/SIM900 to finish texting over the 2G network!
+                System.Threading.Thread.Sleep(20000);
                 
                 return true;
             }
@@ -396,6 +441,9 @@ namespace ari_final_sa_capstone.Services
             int delivered = logs.Count(s => s.Status == "DELIVERED");
             int failed = logs.Count(s => s.Status == "FAILED");
             int pending = logs.Count(s => s.Status == "PENDING");
+            int sending = logs.Count(s => s.Status == "SENDING");
+            
+            // Percentage of completely finished texts
             int percent = (int)Math.Round((double)(delivered + failed) / total * 100);
             
             if (percent == 100)
@@ -411,7 +459,7 @@ namespace ari_final_sa_capstone.Services
             await _hubContext.Clients.Group($"Announcement_{announcementId}").SendAsync("ReceiveProgress", new
             {
                 AnnouncementId = announcementId, Total = total, Delivered = delivered,
-                Failed = failed, Pending = pending, Percent = percent
+                Failed = failed, Pending = pending, Sending = sending, Percent = percent
             });
         }
     }

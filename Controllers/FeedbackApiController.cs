@@ -169,7 +169,7 @@ namespace ari_final_sa_capstone.Controllers
             var target = await _db.FeedbackMessages.FindAsync(id);
             if (target == null) return NotFound();
 
-            if (string.IsNullOrEmpty(target.FlaggedPlace) || target.FlaggedPlace == "Unknown Location")
+            if (string.IsNullOrEmpty(target.FlaggedPlace) || target.FlaggedPlace.Contains("Unknown", StringComparison.OrdinalIgnoreCase))
             {
                 return Ok(new List<object>()); // Return empty if no specific location
             }
