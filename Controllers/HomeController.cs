@@ -23,89 +23,84 @@ public class HomeController : Controller
     {
         ViewData["Title"] = "Overview";
 
-        var blotters = await _db.BlotterReports.ToListAsync();
-        var totalIncidents = blotters.Count;
-        var avgResponseTime = totalIncidents > 0 ? blotters.Average(b => b.ResponseTimeMinutes) : 0;
-        var closedCases = blotters.Count(b => b.Status == "Closed");
+        var feedbacks = await _db.FeedbackMessages.ToListAsync();
+        var totalIncidents = feedbacks.Count;
+        var avgResponseTime = 0; // Not tracked in FeedbackMessages
+        var closedCases = feedbacks.Count(f => f.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase) || f.Status.Equals("closed", StringComparison.OrdinalIgnoreCase));
         
         var smsLogs = await _db.SMSLogs.ToListAsync();
         var totalSmsSent = smsLogs.Count;
-        var deliveredSms = smsLogs.Count(s => s.Status == "Delivered");
+        var deliveredSms = smsLogs.Count(s => s.Status == "DELIVERED");
         var deliveryRate = totalSmsSent > 0 ? (double)deliveredSms / totalSmsSent * 100 : 0;
 
         var totalFisherfolk = await _db.FisherfolkRegistries.CountAsync(f => f.RegistrationStatus != "Inactive");
         
-        var submissions = await _db.ReportSubmissions.ToListAsync();
-        var activeUsers = submissions.Select(s => s.FisherfolkId).Distinct().Count();
-        var adoptionRate = totalFisherfolk > 0 ? (double)activeUsers / totalFisherfolk * 100 : 0;
-
         // --- TREND CALCULATION LOGIC ---
         var now = DateTime.Now;
         var currentMonthStart = new DateTime(now.Year, now.Month, 1);
         var lastMonthStart = currentMonthStart.AddMonths(-1);
         
-        // Blotters
-        var cmBlotters = blotters.Where(b => b.IncidentDate >= currentMonthStart).ToList();
-        var lmBlotters = blotters.Where(b => b.IncidentDate >= lastMonthStart && b.IncidentDate < currentMonthStart).ToList();
+        // Feedbacks
+        var cmFeedbacks = feedbacks.Where(f => f.DateReceived >= currentMonthStart).ToList();
+        var lmFeedbacks = feedbacks.Where(f => f.DateReceived >= lastMonthStart && f.DateReceived < currentMonthStart).ToList();
         
         double GetPctChange(double current, double previous) => previous == 0 ? (current > 0 ? 100 : 0) : ((current - previous) / previous) * 100;
         
-        var cmIncidents = cmBlotters.Count;
-        var lmIncidents = lmBlotters.Count;
+        var cmIncidents = cmFeedbacks.Count;
+        var lmIncidents = lmFeedbacks.Count;
         ViewBag.IncidentsTrend = Math.Round(GetPctChange(cmIncidents, lmIncidents), 1);
         
-        var cmRespTime = cmIncidents > 0 ? cmBlotters.Average(b => b.ResponseTimeMinutes) : 0;
-        var lmRespTime = lmIncidents > 0 ? lmBlotters.Average(b => b.ResponseTimeMinutes) : 0;
-        ViewBag.ResponseTimeTrend = Math.Round(GetPctChange(cmRespTime, lmRespTime), 1);
+        ViewBag.ResponseTimeTrend = 0;
         
-        var cmEnforcement = cmIncidents > 0 ? ((double)cmBlotters.Count(b => b.Status == "Closed") / cmIncidents) * 100 : 0;
-        var lmEnforcement = lmIncidents > 0 ? ((double)lmBlotters.Count(b => b.Status == "Closed") / lmIncidents) * 100 : 0;
+        var cmEnforcement = cmIncidents > 0 ? ((double)cmFeedbacks.Count(f => f.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase)) / cmIncidents) * 100 : 0;
+        var lmEnforcement = lmIncidents > 0 ? ((double)lmFeedbacks.Count(f => f.Status.Equals("resolved", StringComparison.OrdinalIgnoreCase)) / lmIncidents) * 100 : 0;
         ViewBag.EnforcementTrend = Math.Round(GetPctChange(cmEnforcement, lmEnforcement), 1);
         
         // SMS
         var cmSms = smsLogs.Where(s => s.TimestampSent >= currentMonthStart).ToList();
         var lmSms = smsLogs.Where(s => s.TimestampSent >= lastMonthStart && s.TimestampSent < currentMonthStart).ToList();
         
-        var cmDeliveryRate = cmSms.Count > 0 ? ((double)cmSms.Count(s => s.Status == "Delivered") / cmSms.Count) * 100 : 0;
-        var lmDeliveryRate = lmSms.Count > 0 ? ((double)lmSms.Count(s => s.Status == "Delivered") / lmSms.Count) * 100 : 0;
+        var cmDeliveryRate = cmSms.Count > 0 ? ((double)cmSms.Count(s => s.Status == "DELIVERED") / cmSms.Count) * 100 : 0;
+        var lmDeliveryRate = lmSms.Count > 0 ? ((double)lmSms.Count(s => s.Status == "DELIVERED") / lmSms.Count) * 100 : 0;
         ViewBag.DeliveryTrend = Math.Round(GetPctChange(cmDeliveryRate, lmDeliveryRate), 1);
         // -------------------------------
 
         ViewBag.TotalIncidents = totalIncidents;
-        ViewBag.AvgResponseTime = Math.Round(avgResponseTime, 2);
+        ViewBag.AvgResponseTime = avgResponseTime;
         ViewBag.EnforcementRate = totalIncidents > 0 ? Math.Round((double)closedCases / totalIncidents * 100, 2) : 0;
         
         ViewBag.DeliveryRate = Math.Round(deliveryRate, 2);
-        ViewBag.AdoptionRate = Math.Round(adoptionRate, 2);
+        ViewBag.AdoptionRate = 0; // Placeholder
         ViewBag.TotalFisherfolk = totalFisherfolk;
 
         var last12Months = Enumerable.Range(0, 12).Select(i => DateTime.Now.AddMonths(-11 + i)).ToList();
         var incidentsOverTime = last12Months.Select(m => new {
             Month = m.ToString("MMM yyyy"),
-            Count = blotters.Count(b => b.IncidentDate.Year == m.Year && b.IncidentDate.Month == m.Month)
+            Count = feedbacks.Count(f => f.DateReceived.Year == m.Year && f.DateReceived.Month == m.Month)
         }).ToList();
         
         ViewBag.TimeLabels = System.Text.Json.JsonSerializer.Serialize(incidentsOverTime.Select(x => x.Month));
         ViewBag.TimeData = System.Text.Json.JsonSerializer.Serialize(incidentsOverTime.Select(x => x.Count));
 
-        var barangays = new[] { "Patao", "Guiwanon", "Sulangan", "Other" };
-        var byBarangay = blotters.GroupBy(b => 
-            barangays.Contains(b.Location) ? b.Location : "Other"
+        var barangays = new[] { "Patao", "Guiwanon", "Sulangan" };
+        var byBarangay = feedbacks.GroupBy(f => 
+            barangays.Any(b => f.FlaggedPlace.Contains(b, StringComparison.OrdinalIgnoreCase)) ? 
+            barangays.First(b => f.FlaggedPlace.Contains(b, StringComparison.OrdinalIgnoreCase)) : "Other"
         ).Select(g => new { Barangay = g.Key, Count = g.Count() }).ToList();
         
-        var bgyLabels = barangays.ToList();
+        var bgyLabels = new[] { "Patao", "Guiwanon", "Sulangan", "Other" }.ToList();
         var bgyData = bgyLabels.Select(b => byBarangay.FirstOrDefault(x => x.Barangay == b)?.Count ?? 0).ToList();
         
         ViewBag.BarangayLabels = System.Text.Json.JsonSerializer.Serialize(bgyLabels);
         ViewBag.BarangayData = System.Text.Json.JsonSerializer.Serialize(bgyData);
 
-        var incidentTypes = blotters.GroupBy(b => b.IncidentType)
-                                    .Select(g => new { Type = g.Key, Count = g.Count() })
-                                    .ToList();
+        var incidentTypes = feedbacks.GroupBy(f => string.IsNullOrWhiteSpace(f.Category) ? "Uncategorized" : f.Category)
+                                     .Select(g => new { Type = g.Key, Count = g.Count() })
+                                     .ToList();
         ViewBag.IncidentTypesLabels = System.Text.Json.JsonSerializer.Serialize(incidentTypes.Select(x => x.Type));
         ViewBag.IncidentTypesData = System.Text.Json.JsonSerializer.Serialize(incidentTypes.Select(x => x.Count));
 
-        var incidentStatus = blotters.GroupBy(b => b.Status)
+        var incidentStatus = feedbacks.GroupBy(f => string.IsNullOrWhiteSpace(f.Status) ? "new" : f.Status)
                                      .Select(g => new { Status = g.Key, Count = g.Count() })
                                      .ToList();
         ViewBag.IncidentStatusLabels = System.Text.Json.JsonSerializer.Serialize(incidentStatus.Select(x => x.Status));
