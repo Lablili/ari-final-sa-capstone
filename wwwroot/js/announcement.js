@@ -249,14 +249,35 @@
             finalMessage += " Msg: " + detailsText;
         }
         var finalString = finalMessage.trim() || "Compose an announcement to preview the outgoing SMS.";
-        if (finalString !== "Compose an announcement to preview the outgoing SMS." && finalString.length > 160) {
-            finalString = finalString.substring(0, 160);
-        }
         return finalString;
     }
+
+    var charCountElement = document.getElementById("charCount");
+    var charCountContainer = document.getElementById("charCountContainer");
+
     function updatePreview() {
         if (announcementPreview) {
-            announcementPreview.textContent = buildMessage();
+            var msg = buildMessage();
+            announcementPreview.textContent = msg;
+            
+            if (msg !== "Compose an announcement to preview the outgoing SMS.") {
+                // The C# backend adds "BANTAY DAGAT: " (14 chars)
+                var totalLength = msg.length + 14; 
+                if (charCountElement) {
+                    charCountElement.textContent = totalLength;
+                    if (totalLength > 160) {
+                        charCountElement.style.color = "#dc2626"; // Red
+                        charCountContainer.innerHTML = "<span id='charCount' style='color:#dc2626;'>" + totalLength + "</span> / 160 characters <br><small style='color:#dc2626; font-weight:normal;'>Warning: Over 160 chars will be sent as 2 SMS messages.</small>";
+                    } else {
+                        charCountElement.style.color = "#16a34a"; // Green
+                        charCountContainer.innerHTML = "<span id='charCount' style='color:#16a34a;'>" + totalLength + "</span> / 160 characters";
+                    }
+                }
+            } else {
+                if (charCountContainer) {
+                    charCountContainer.innerHTML = "<span id='charCount'>0</span> / 160 characters";
+                }
+            }
         }
     }
     // Reset categories inputs

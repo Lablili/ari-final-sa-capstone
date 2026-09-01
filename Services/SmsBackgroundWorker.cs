@@ -375,8 +375,8 @@ namespace ari_final_sa_capstone.Services
                 _logger.LogInformation($"[SMS GATEWAY] Sending exactly: {exactCommand}");
                 _serialPort.WriteLine(exactCommand);
                 
-                // Wait 7 seconds for the Arduino to finish texting!
-                System.Threading.Thread.Sleep(7000);
+                // Wait 12 seconds for the Arduino to finish texting (allows for multipart 160+ char messages)
+                System.Threading.Thread.Sleep(12000);
                 
                 return true;
             }
