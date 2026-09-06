@@ -232,6 +232,17 @@ namespace ari_final_sa_capstone.Controllers
             return Ok(new { success = true, count = records.Count });
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var record = await _db.FeedbackMessages.FindAsync(id);
+            if (record == null) return NotFound("Report not found.");
+
+            _db.FeedbackMessages.Remove(record);
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
         [HttpPost("{id}/merge")]
         public async Task<IActionResult> MergeGroup(int id, [FromBody] List<int> childIds)
         {

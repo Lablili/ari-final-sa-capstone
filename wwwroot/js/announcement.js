@@ -63,6 +63,23 @@
     var meetingLocation = document.getElementById("meetingLocation");
     var meetingContact = document.getElementById("meetingContact");
     
+    // Set min dates to prevent selecting past dates
+    var todayDate = new Date();
+    var yyyy = todayDate.getFullYear();
+    var mm = String(todayDate.getMonth() + 1).padStart(2, '0');
+    var dd = String(todayDate.getDate()).padStart(2, '0');
+    var todayStr = yyyy + '-' + mm + '-' + dd;
+    
+    if (announcementEffectiveDate) {
+        announcementEffectiveDate.setAttribute('min', todayStr);
+    }
+    
+    if (meetingDate) {
+        var todayTime = new Date();
+        todayTime.setMinutes(todayTime.getMinutes() - todayTime.getTimezoneOffset());
+        meetingDate.setAttribute('min', todayTime.toISOString().slice(0, 16));
+    }
+
     var ordinanceFields = document.getElementById("ordinanceFields");
     var meetingFields = document.getElementById("meetingFields");
 
@@ -143,13 +160,13 @@
 
     function autoArchiveAnnouncements(items) {
         var modified = false;
-        var sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        var oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
         items.forEach(function(item) {
             if (!item.archived && item.createdAt) {
                 var createdDate = new Date(item.createdAt);
-                if (createdDate < sixMonthsAgo) {
+                if (createdDate < oneMonthAgo) {
                     item.archived = true;
                     modified = true;
                 }
@@ -505,20 +522,32 @@
         if (modalArchiveBtn) {
             modalArchiveBtn.textContent = item.archived ? 'Restore' : 'Archive';
             modalArchiveBtn.onclick = function () {
-                var all = readAnnouncements().map(function (itm) { if (itm.id === id) itm.archived = !itm.archived; return itm; });
-                saveAnnouncements(all);
-                closeModal();
-                renderAnnouncements();
+                var dbId = id.replace('ann-', '');
+                fetch('/api/announcementapi/archive/' + dbId, { method: 'POST' })
+                    .then(r => r.json())
+                    .then(data => {
+                        var all = readAnnouncements().map(function (itm) { if (itm.id === id) itm.archived = data.isArchived; return itm; });
+                        saveAnnouncements(all);
+                        closeModal();
+                        renderAnnouncements();
+                    })
+                    .catch(e => console.error(e));
             };
         }
         
         if (modalDeleteBtn) {
+            modalDeleteBtn.style.display = 'none'; // Permanently hide the delete button
             modalDeleteBtn.onclick = function () {
                 if (!confirm('Permanently delete this announcement?')) return;
-                var remaining = readAnnouncements().filter(function (itm) { return itm.id !== id; });
-                saveAnnouncements(remaining);
-                closeModal();
-                renderAnnouncements();
+                var dbId = id.replace('ann-', '');
+                fetch('/api/announcementapi/' + dbId, { method: 'DELETE' })
+                    .then(r => {
+                        var remaining = readAnnouncements().filter(function (itm) { return itm.id !== id; });
+                        saveAnnouncements(remaining);
+                        closeModal();
+                        renderAnnouncements();
+                    })
+                    .catch(e => console.error(e));
             };
         }
 
@@ -675,6 +704,7 @@
         var formData = new FormData();
         formData.append("Category", newItem.template);
         formData.append("Message", newItem.message);
+        formData.append("Details", newItem.details);
         formData.append("Title", newItem.title);
         formData.append("RecipientGroup", newItem.recipientGroup);
         formData.append("Location", newItem.location);

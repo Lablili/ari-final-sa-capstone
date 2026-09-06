@@ -502,6 +502,10 @@ function openDetail(id) {
             View/Print Blotter
           </button>`;
       }
+      // Add Restore button for archived reports
+      actionButtons += `
+        <button onclick="setStatus(${activeMsg.id}, 'new')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: white; border: 1px solid #10b981; color: #10b981; cursor: pointer; margin-left: auto;">Restore</button>
+      `;
     }
   }
 
@@ -560,6 +564,23 @@ window.openBlotter = openBlotter;
 window.closeBlotter = closeBlotter;
 window.goPage = goPage;
 window.clearFilters = clearFilters;
+
+window.deleteReport = async function(id) {
+  if (!confirm("Are you sure you want to PERMANENTLY DELETE this report? This cannot be undone.")) return;
+  
+  try {
+    const res = await fetch("/api/feedback/" + id, { method: "DELETE" });
+    if (res.ok) {
+      showToast("Report permanently deleted.");
+      closeDetail();
+      loadFeedbackFromDb();
+    } else {
+      alert("Failed to delete the report.");
+    }
+  } catch (e) {
+    alert("Error deleting report: " + e);
+  }
+};
 
 window.verifyReport = function (id) {
   const m = DATA.find((x) => x.id === id);
@@ -674,6 +695,7 @@ async function setStatus(id, val) {
     renderTable();
     let statusMsg = "Status updated to Resolved!";
     if (val === "review") statusMsg = "Status updated to Reviewed!";
+    if (val === "new") statusMsg = "Report successfully restored to active list!";
     if (val === "archived")
       statusMsg = "Report successfully resolved and moved to Archive!";
     showToast(statusMsg);
@@ -883,14 +905,9 @@ async function loadFeedbackFromDb() {
     // Auto-archive logic
     let modified = false;
     const now = new Date();
-    const sixMonthsAgo = new Date(
+    const twoMonthsAgo = new Date(
       now.getFullYear(),
-      now.getMonth() - 6,
-      now.getDate(),
-    );
-    const threeYearsAgo = new Date(
-      now.getFullYear() - 3,
-      now.getMonth(),
+      now.getMonth() - 2,
       now.getDate(),
     );
 
@@ -904,7 +921,7 @@ async function loadFeedbackFromDb() {
       let shouldArchive = false;
       if (item.status === "resolved") {
         shouldArchive = true;
-      } else if (item.status !== "resolved" && itemDate < threeYearsAgo) {
+      } else if (item.status !== "resolved" && itemDate < twoMonthsAgo) {
         shouldArchive = true;
       }
 

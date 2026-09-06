@@ -47,7 +47,18 @@ namespace ari_final_sa_capstone.Services
         {
             try
             {
-                _serialPort = new SerialPort(SerialPortName, BaudRate);
+                string portToUse = SerialPortName;
+                string[] availablePorts = SerialPort.GetPortNames();
+                
+                // If COM9 is not plugged in, let's try to auto-detect the Arduino!
+                if (!availablePorts.Contains(SerialPortName) && availablePorts.Length > 0)
+                {
+                    // Usually the Arduino is the last COM port added to the system
+                    portToUse = availablePorts.Last();
+                    _logger.LogWarning($"Default {SerialPortName} not found! Auto-detecting and trying {portToUse} instead...");
+                }
+
+                _serialPort = new SerialPort(portToUse, BaudRate);
                 _serialPort.DataReceived += SerialPort_DataReceived;
                 _serialPort.Open();
                 
@@ -59,11 +70,11 @@ namespace ari_final_sa_capstone.Services
                 _isMockMode = false;
                 
                 HardwareMonitor.IsConnected = true;
-                HardwareMonitor.StatusMessage = $"Connected to GSM Network via {SerialPortName}";
+                HardwareMonitor.StatusMessage = $"Connected to GSM Network via {portToUse}";
                 HardwareMonitor.SignalStrength = 85;
-                HardwareMonitor.PortName = SerialPortName;
+                HardwareMonitor.PortName = portToUse;
 
-                _logger.LogInformation($"Successfully connected to Arduino on {SerialPortName}");
+                _logger.LogInformation($"Successfully connected to Arduino on {portToUse}");
             }
             catch (Exception ex)
             {
@@ -72,9 +83,9 @@ namespace ari_final_sa_capstone.Services
                 HardwareMonitor.IsConnected = false;
                 HardwareMonitor.StatusMessage = $"Disconnected (Mock Mode). Error: {ex.Message}";
                 HardwareMonitor.SignalStrength = 0;
-                HardwareMonitor.PortName = SerialPortName;
+                HardwareMonitor.PortName = "N/A";
 
-                _logger.LogWarning($"Could not open {SerialPortName}. Running in MOCK MODE. Error: {ex.Message}");
+                _logger.LogWarning($"Could not open COM port. Running in MOCK MODE. Error: {ex.Message}");
             }
         }
 
@@ -97,10 +108,11 @@ namespace ari_final_sa_capstone.Services
             {
                 await ProcessSmsQueueAsync();
                 
-                // Attempt to reconnect if not in mock mode but port got closed
-                if (!_isMockMode && _serialPort != null && !_serialPort.IsOpen)
+                // Attempt to reconnect if port got closed or if we started in mock mode but want to find a port
+                if ((!_isMockMode && _serialPort != null && !_serialPort.IsOpen) || 
+                    (_isMockMode && SerialPort.GetPortNames().Length > 0))
                 {
-                    _logger.LogWarning("Serial port disconnected. Attempting to reconnect...");
+                    _logger.LogWarning("Serial port disconnected or in Mock Mode. Attempting to connect...");
                     
                     HardwareMonitor.IsConnected = false;
                     HardwareMonitor.StatusMessage = "Disconnected. Attempting to reconnect...";
@@ -118,41 +130,83 @@ namespace ari_final_sa_capstone.Services
         // ==========================================
         // 1. LISTENING FOR INCOMING TEXTS
         // ==========================================
+        private string _lastSenderPhone = "";
+        private string _serialBuffer = "";
+        private readonly object _serialLock = new object();
+        
         private async void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
             {
                 SerialPort sp = (SerialPort)sender;
-                string indata = sp.ReadLine().Trim();
-
-                // Expecting Arduino to print: RECEIVE:09123456789:The message here
-                if (indata.StartsWith("RECEIVE:"))
+                string newBytes = sp.ReadExisting();
+                
+                lock (_serialLock)
                 {
-                    var parts = indata.Split(new[] { ':' }, 3);
-                    if (parts.Length == 3)
+                    _serialBuffer += newBytes;
+                }
+
+                // Process complete lines
+                while (true)
+                {
+                    string lineToProcess = null;
+                    
+                    lock (_serialLock)
                     {
-                        string senderPhone = parts[1].Trim();
-                        string messageText = parts[2].Trim();
-
-                        await ProcessIncomingMessageAsync(senderPhone, messageText);
+                        int newlineIdx = _serialBuffer.IndexOf('\n');
+                        if (newlineIdx >= 0)
+                        {
+                            lineToProcess = _serialBuffer.Substring(0, newlineIdx).Trim();
+                            _serialBuffer = _serialBuffer.Substring(newlineIdx + 1);
+                        }
                     }
-                }
-                else if (indata.StartsWith("SENT:"))
-                {
-                    string phone = indata.Substring(5).Trim();
-                    await UpdateSmsStatusAsync(phone, "DELIVERED");
-                    _logger.LogInformation($"[SMS GATEWAY] Confirmed DELIVERED to {phone}");
-                }
-                else if (indata.StartsWith("FAILED:"))
-                {
-                    string phone = indata.Substring(7).Trim();
-                    await UpdateSmsStatusAsync(phone, "FAILED");
-                    _logger.LogWarning($"[SMS GATEWAY] FAILED to send to {phone}");
-                }
-                else
-                {
-                    // Log the Arduino's debug output directly to Visual Studio so we can see what's happening!
-                    _logger.LogInformation($"[ARDUINO]: {indata}");
+
+                    if (lineToProcess == null) break;
+
+                    string indata = lineToProcess;
+
+                    // The Arduino actually prints "Phone: +639..." followed by "Message: text..."
+                    if (indata.StartsWith("Phone: "))
+                    {
+                        _lastSenderPhone = indata.Substring(7).Trim();
+                    }
+                    else if (indata.StartsWith("Message: "))
+                    {
+                        string messageText = indata.Substring(9).Trim();
+                        if (!string.IsNullOrEmpty(_lastSenderPhone))
+                        {
+                            await ProcessIncomingMessageAsync(_lastSenderPhone, messageText);
+                            _lastSenderPhone = ""; // Reset after processing
+                        }
+                    }
+                    else if (indata.StartsWith("RECEIVE:")) // Keeping this just in case they update the Arduino code later
+                    {
+                        var parts = indata.Split(new[] { ':' }, 3);
+                        if (parts.Length == 3)
+                        {
+                            string senderPhone = parts[1].Trim();
+                            string messageText = parts[2].Trim();
+
+                            await ProcessIncomingMessageAsync(senderPhone, messageText);
+                        }
+                    }
+                    else if (indata.StartsWith("SENT:"))
+                    {
+                        string phone = indata.Substring(5).Trim();
+                        await UpdateSmsStatusAsync(phone, "DELIVERED");
+                        _logger.LogInformation($"[SMS GATEWAY] Confirmed DELIVERED to {phone}");
+                    }
+                    else if (indata.StartsWith("FAILED:"))
+                    {
+                        string phone = indata.Substring(7).Trim();
+                        await UpdateSmsStatusAsync(phone, "FAILED");
+                        _logger.LogWarning($"[SMS GATEWAY] FAILED to send to {phone}");
+                    }
+                    else if (!string.IsNullOrWhiteSpace(indata))
+                    {
+                        // Log the Arduino's debug output directly to Visual Studio so we can see what's happening!
+                        _logger.LogInformation($"[ARDUINO]: {indata}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -186,6 +240,11 @@ namespace ari_final_sa_capstone.Services
                         log.Status = newStatus;
                     }
                     await db.SaveChangesAsync();
+
+                    if (log.AnnouncementId.HasValue)
+                    {
+                        await BroadcastProgressAsync(db, log.AnnouncementId.Value);
+                    }
                 }
             }
             catch (Exception ex)
@@ -262,9 +321,24 @@ namespace ari_final_sa_capstone.Services
             db.BlotterReports.Add(newIncident);
 
             // 3.5 Create Community Report (FeedbackMessage)
-            string priority = "Low";
-            if (category == "sos") priority = "Critical";
-            else if (messageText.Contains("Illegal", StringComparison.OrdinalIgnoreCase) || messageText.Contains("dinamita", StringComparison.OrdinalIgnoreCase)) priority = "High";
+            string priority = "Medium"; 
+
+            if (detectedCategory == "General Concern")
+            {
+                priority = "Low";
+            }
+
+            // Upgrade to High or Critical based on specific severe keywords / categories
+            if (category == "sos") 
+            {
+                priority = "Critical";
+            }
+            else if (messageText.Contains("Illegal", StringComparison.OrdinalIgnoreCase) || 
+                     messageText.Contains("dinamita", StringComparison.OrdinalIgnoreCase) ||
+                     messageText.Contains("dynamite", StringComparison.OrdinalIgnoreCase)) 
+            {
+                priority = "High";
+            }
 
             var feedback = new FeedbackMessage
             {
@@ -286,7 +360,8 @@ namespace ari_final_sa_capstone.Services
             var smsLog = new SMSLog
             {
                 PhoneNumber = phoneNumber,
-                MessageType = messageText,
+                // MessageType has a MaxLength of 50 in the database, so we must truncate it!
+                MessageType = messageText.Length > 50 ? messageText.Substring(0, 50) : messageText,
                 Status = "RECEIVED",
                 TimestampReceived = DateTime.Now
             };
@@ -369,17 +444,29 @@ namespace ari_final_sa_capstone.Services
                         textToSend = $"BANTAY DAGAT: {textToSend}";
                     }
 
-                    bool success = SendSmsViaArduino(log.PhoneNumber, textToSend);
-                    
-                    if (success)
+                    // Fix: Set status to SENDING *before* we block, so DataReceived can find it!
+                    log.Status = "SENDING";
+                    log.TimestampReceived = DateTime.Now;
+                    await db.SaveChangesAsync();
+
+                    if (log.AnnouncementId.HasValue)
                     {
-                        log.Status = "SENDING";
-                        log.TimestampReceived = DateTime.Now;
+                        await BroadcastProgressAsync(db, log.AnnouncementId.Value);
                     }
-                    else
+
+                    bool success = await SendSmsViaArduinoAsync(log.PhoneNumber, textToSend);
+                    
+                    if (!success)
                     {
                         log.RetryCount++;
                         if (log.RetryCount >= 3) log.Status = "FAILED";
+                        else log.Status = "PENDING";
+                        await db.SaveChangesAsync();
+                        
+                        if (log.AnnouncementId.HasValue)
+                        {
+                            await BroadcastProgressAsync(db, log.AnnouncementId.Value);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -387,18 +474,13 @@ namespace ari_final_sa_capstone.Services
                     _logger.LogError(ex, $"Error sending SMS to {log.PhoneNumber}");
                     log.RetryCount++;
                     if (log.RetryCount >= 3) log.Status = "FAILED";
-                }
-
-                await db.SaveChangesAsync();
-
-                if (log.AnnouncementId.HasValue)
-                {
-                    await BroadcastProgressAsync(db, log.AnnouncementId.Value);
+                    else log.Status = "PENDING";
+                    await db.SaveChangesAsync();
                 }
             }
         }
 
-        private bool SendSmsViaArduino(string phoneNumber, string message)
+        private async Task<bool> SendSmsViaArduinoAsync(string phoneNumber, string message)
         {
             if (_isMockMode || _serialPort == null || !_serialPort.IsOpen)
             {
@@ -416,12 +498,21 @@ namespace ari_final_sa_capstone.Services
                 string encodedMessage = message.Replace("\n", "\\n");
 
                 // Send command to Arduino using the COMMA syntax!
-                string exactCommand = $"SEND,{safePhone},{encodedMessage}";
-                _logger.LogInformation($"[SMS GATEWAY] Sending exactly: {exactCommand}");
-                _serialPort.WriteLine(exactCommand);
+                string exactCommand = $"SEND,{safePhone},{encodedMessage}\n";
+                _logger.LogInformation($"[SMS GATEWAY] Sending exactly: {exactCommand.Trim()}");
+                
+                // CRITICAL FIX: The Arduino UNO only has a 64-byte hardware serial buffer.
+                // If we blast a 160-character string at once, it will overflow and truncate the message!
+                // We must trickle-feed the string slowly so the Arduino has time to process it.
+                foreach (char c in exactCommand)
+                {
+                    _serialPort.Write(c.ToString());
+                    await Task.Delay(10); // 10ms per char = ~1.5 seconds for a full SMS
+                }
                 
                 // Wait 20 seconds for the Arduino/SIM900 to finish texting over the 2G network!
-                System.Threading.Thread.Sleep(20000);
+                // Using Task.Delay instead of Thread.Sleep so we don't block the worker thread completely
+                await Task.Delay(20000);
                 
                 return true;
             }

@@ -166,11 +166,14 @@ String extractPhoneNumber(String rawData) {
 
 String extractMessage(String rawData) {
   // The message body is on the next line after the +CMT header
-  int firstNewLine = rawData.indexOf('\n');
-  if (firstNewLine > -1) {
-    String msg = rawData.substring(firstNewLine + 1);
-    msg.trim(); // Remove leading/trailing whitespace
-    return msg;
+  int cmtIndex = rawData.indexOf("+CMT:");
+  if (cmtIndex > -1) {
+    int newLineAfterCmt = rawData.indexOf('\n', cmtIndex);
+    if (newLineAfterCmt > -1) {
+      String msg = rawData.substring(newLineAfterCmt + 1);
+      msg.trim(); // Remove leading/trailing whitespace
+      return msg;
+    }
   }
   return "";
 }

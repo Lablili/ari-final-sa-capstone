@@ -25,6 +25,7 @@ namespace ari_final_sa_capstone.Controllers
             public string? Category { get; set; }
             public string? Title { get; set; }
             public string? Message { get; set; }
+            public string? Details { get; set; }
             public string? RecipientGroup { get; set; }
             public string? Location { get; set; }
             public string? EffectiveDate { get; set; }
@@ -69,6 +70,7 @@ namespace ari_final_sa_capstone.Controllers
                 RecepientGroup = dto.RecipientGroup ?? string.Empty,
                 Location = dto.Location ?? string.Empty,
                 Message = formattedMessage,
+                AddDetails = dto.Details ?? string.Empty,
                 EffectiveDate = dto.EffectiveDate ?? string.Empty,
                 Penalty = dto.Penalty ?? string.Empty,
                 ResoNo = dto.ReferenceNo ?? string.Empty,
@@ -149,7 +151,7 @@ namespace ari_final_sa_capstone.Controllers
                 .Select(a => new
                 {
                     id = "ann-" + a.Id,
-                    template = a.Category == "Ordinance/Resolution" ? "ordinance" : (a.Category == "Meeting/Events" ? "meeting" : "custom"),
+                    template = (a.Category == "Ordinance/Resolution" || a.Category.ToLower() == "ordinance") ? "ordinance" : ((a.Category == "Meeting/Events" || a.Category.ToLower() == "meeting") ? "meeting" : "custom"),
                     recipientGroup = a.RecepientGroup,
                     title = a.Title,
                     location = a.Location,
@@ -158,17 +160,50 @@ namespace ari_final_sa_capstone.Controllers
                     referenceNo = a.ResoNo,
                     eventDate = a.EventDate.HasValue ? a.EventDate.Value.ToString("yyyy-MM-ddTHH:mm") : "",
                     contactPerson = a.ContactPerson,
-                    details = a.Message,
+                    details = string.IsNullOrWhiteSpace(a.AddDetails) ? string.Empty : a.AddDetails,
                     message = a.Message,
                     status = a.Status == "PENDING" ? "Processing" : (a.Status == "DELIVERED" ? "Delivered" : a.Status),
                     createdAt = a.CreatedAt.ToString("o"),
                     deliveredCount = _context.SMSLogs.Count(s => s.AnnouncementId == a.Id && s.Status == "DELIVERED"),
-                    archived = false
+                    archived = a.IsArchived
                 })
                 .ToListAsync();
 
             return Ok(announcements);
         }
+
+        [HttpPost("archive/{id}")]
+        public async Task<IActionResult> ToggleArchive(int id)
+        {
+            var announcement = await _context.Announcements.FindAsync(id);
+            if (announcement == null)
+            {
+                return NotFound();
+            }
+
+            announcement.IsArchived = !announcement.IsArchived;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true, isArchived = announcement.IsArchived });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAnnouncement(int id)
+        {
+            var announcement = await _context.Announcements.FindAsync(id);
+            if (announcement == null)
+            {
+                return NotFound();
+            }
+
+            // Optional: delete related SMS logs if you have cascade delete off
+            var relatedLogs = _context.SMSLogs.Where(s => s.AnnouncementId == id);
+            _context.SMSLogs.RemoveRange(relatedLogs);
+
+            _context.Announcements.Remove(announcement);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
     }
 }
-
