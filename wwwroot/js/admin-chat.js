@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         let rId = null, rType = null, rTitle = null;
         if (selectedAttachment) {
-            rId = selectedAttachment.id;
+            rId = parseInt(selectedAttachment.id, 10);
             rType = selectedAttachment.type;
             rTitle = selectedAttachment.title;
         }
@@ -144,17 +144,30 @@ document.addEventListener("DOMContentLoaded", function () {
         
         let attachmentsHtml = '';
         if (msg.attachments && msg.attachments.length > 0) {
-            attachmentsHtml = msg.attachments.map(a => 
-                `<div style="margin-top: 5px; font-size: 11px; padding: 4px; background: rgba(0,0,0,0.05); border-radius: 4px; display:inline-block;">
-                    📎 <a href="#" onclick="window.openAttachedResource('${a.resourceType}', '${a.resourceId}'); return false;" style="text-decoration:none; color:#2563eb; font-weight:600;">${a.resourceTitle}</a>
-                 </div>`
-            ).join('');
+            attachmentsHtml = msg.attachments.map(a => {
+                const type = a.resourceType || a.ResourceType;
+                const id = a.resourceId || a.resourceID || a.ResourceID;
+                const title = a.resourceTitle || a.ResourceTitle;
+                return `<div style="margin-top: 5px; font-size: 11px; padding: 4px; background: rgba(0,0,0,0.05); border-radius: 4px; display:inline-block;">
+                    📎 <a href="#" onclick="window.openAttachedResource('${type}', '${id}'); return false;" style="text-decoration:none; color:#2563eb; font-weight:600;">${title}</a>
+                 </div>`;
+            }).join('');
+        }
+        
+        let contentHtml = '';
+        if (msg.content) {
+            contentHtml = escapeHtml(msg.content);
+            // Optionally, add basic URL matching if not added globally, but we'll use linkify which we'll add
+            var urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            contentHtml = contentHtml.replace(urlRegex, function(url) {
+                return '<a href="' + url + '" target="_blank" style="color: inherit; text-decoration: underline;">' + url + '</a>';
+            });
         }
         
         row.innerHTML = `
             ${!isSelf ? `<div class="message-sender">${msg.senderRole} (${msg.senderName})</div>` : ''}
             <div class="message-bubble">
-                ${msg.content ? escapeHtml(msg.content) : ''}
+                ${contentHtml}
                 ${attachmentsHtml}
             </div>
             <div class="message-time">${new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>

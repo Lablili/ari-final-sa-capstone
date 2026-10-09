@@ -43,7 +43,7 @@ namespace ari_final_sa_capstone.Controllers
             if (user != null)
             {
                 // Force isPersistent to false so it requires login every time the browser is restarted.
-                var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, isPersistent: false, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, isPersistent: false, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
                     var roles = await _userManager.GetRolesAsync(user);
@@ -62,6 +62,11 @@ namespace ari_final_sa_capstone.Controllers
 
                     // Default: redirect to public overview
                     return RedirectToAction("Index", "Home");
+                }
+                if (result.IsLockedOut)
+                {
+                    ModelState.AddModelError(string.Empty, "Your account has been locked due to too many failed login attempts. Please try again in 5 minutes.");
+                    return View(model);
                 }
             }
 

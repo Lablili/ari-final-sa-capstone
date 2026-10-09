@@ -84,6 +84,19 @@ namespace ari_final_sa_capstone.Data
                     await userManager.AddToRoleAsync(fisherfolk, "FisheriesAdmin");
                 }
             }
+
+            // ENFORCE LOCKOUT FOR EXISTING USERS
+            // Since the lockout policy was added after these users were created,
+            // we need to manually enable lockout for them in the database.
+            var allAdmins = new[] { super, bantay, fisherfolk };
+            foreach (var admin in allAdmins)
+            {
+                if (admin != null && !admin.LockoutEnabled)
+                {
+                    admin.LockoutEnabled = true;
+                    await userManager.UpdateAsync(admin);
+                }
+            }
         }
     }
 }
