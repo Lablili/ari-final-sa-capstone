@@ -304,7 +304,9 @@ function renderTable() {
       <td><div style="${fw} font-size: 15px;">${m.subject}</div><div class="msg-preview" style="${fw}">${m.msg}</div></td>
       <td><span class="status-dot" style="${fw}"><span class="dot ${s.cls}"></span>${s.label}</span></td>
       <td class="time-cell" style="${fw}">${fmtDate(m.time, true)}</td>
-      <td style="text-align: right; padding-right: 20px;"><button class="btn-view" onclick="event.stopPropagation();openDetail(${m.id})">View <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button></td>
+      <td style="text-align: right; padding-right: 20px; white-space: nowrap;">
+        <button class="btn-view" onclick="event.stopPropagation();openDetail(${m.id})">View <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </td>
     </tr>`;
     })
     .join("");
@@ -375,6 +377,15 @@ function setupFilterHandlers() {
     renderTable();
   });
 }
+
+window.filterByCard = function (statusVal) {
+  activeStatusFilter = statusVal;
+  const statusDrop = document.getElementById("statusFilter");
+  if (statusDrop) statusDrop.value = statusVal;
+  page = 1;
+  renderTable();
+  renderCounts();
+};
 
 // ════ EXPORT CSV ════
 function csvCell(val) {
@@ -461,52 +472,69 @@ function openDetail(id) {
 
   document.getElementById("detailModal").classList.remove("hidden");
 
-  let actionButtons = "";
+  let leftActions = "";
+  let rightActions = "";
+
+  // Official Blotter Form button is the hero action on the left
+  leftActions += `
+    <button onclick="closeDetail();openBlotter(${activeMsg.id})" class="btn-tb-primary" style="padding: 7px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; background: #2563eb; border: 1px solid #2563eb; color: #ffffff; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(37,99,235,0.2); white-space: nowrap;" title="Open Official Bantay Dagat Blotter Form">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      View / Print Blotter Paper
+    </button>`;
+
   if (window.UserRole !== "FisheriesAdmin") {
-    // Step 1: Reply via SMS is always available as a basic communication tool
-    actionButtons += `<button onclick="replyToReport(${activeMsg.id})" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer;">Reply via SMS</button>`;
-
-    // Block Sender button
-    actionButtons += `<button onclick="promptBlockSender('${activeMsg.contact}')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #fee2e2; border: 1px solid #ef4444; color: #ef4444; cursor: pointer;">Block Sender</button>`;
-
-    // Quick Archive Button (Always available to dismiss spam instantly)
-    actionButtons += `<button onclick="setStatus(${activeMsg.id},'archived')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #f1f5f9; border: 1px solid #94a3b8; color: #475569; cursor: pointer;">Move to Archive</button>`;
+    // Reply SMS
+    leftActions += `
+      <button onclick="replyToReport(${activeMsg.id})" class="btn-tb-secondary" style="padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;" title="Reply to sender via SMS">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Reply SMS
+      </button>`;
 
     if (activeMsg.status === "pending" || activeMsg.status === "new") {
       if (!activeMsg.isVerified && !activeMsg.isRegistered) {
-        actionButtons += `<button onclick="verifyReport(${activeMsg.id})" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #f59e0b; border: 1px solid #f59e0b; color: white; cursor: pointer;">Verify by Call</button>`;
+        leftActions += `
+          <button onclick="verifyReport(${activeMsg.id})" class="btn-tb-warning" style="padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; background: #fffbeb; border: 1px solid #fcd34d; color: #b45309; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;" title="Verify report details by call">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Verify by Call
+          </button>`;
       } else {
-        actionButtons += `<button onclick="setStatus(${activeMsg.id},'review')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer;">Mark as Reviewed</button>`;
+        leftActions += `
+          <button onclick="setStatus(${activeMsg.id},'review')" class="btn-tb-secondary" style="padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;" title="Mark report as reviewed">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Mark as Reviewed
+          </button>`;
       }
     }
 
     if (activeMsg.status === "review") {
-      if (!activeMsg.hasBlotter) {
-        actionButtons += `
-          <button onclick="closeDetail();openBlotter(${activeMsg.id})" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #2563eb; border: 1px solid #2563eb; color: white; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            Generate Blotter
-          </button>`;
-      } else {
-        actionButtons += `
-          <button onclick="closeDetail();openBlotter(${activeMsg.id})" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer;">View Blotter</button>
-          <button onclick="setStatus(${activeMsg.id},'archived')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: #10b981; border: 1px solid #10b981; color: white; cursor: pointer;">Resolve & Archive</button>`;
-      }
+      leftActions += `
+        <button onclick="setStatus(${activeMsg.id},'archived')" class="btn-tb-success" style="padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;" title="Resolve and move to archive">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Resolve &amp; Archive
+        </button>`;
     }
 
+    // Right Actions (Moderation & Safety)
     if (activeMsg.status === "resolved" || activeMsg.status === "archived") {
-      if (activeMsg.hasBlotter) {
-        actionButtons += `
-          <button onclick="closeDetail();openBlotter(${activeMsg.id})" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: white; border: 1px solid #cbd5e1; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            View/Print Blotter
-          </button>`;
-      }
-      // Add Restore button for archived reports
-      actionButtons += `
-        <button onclick="setStatus(${activeMsg.id}, 'new')" style="padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; background: white; border: 1px solid #10b981; color: #10b981; cursor: pointer; margin-left: auto;">Restore</button>
-      `;
+      rightActions += `
+        <button onclick="setStatus(${activeMsg.id}, 'new')" class="btn-tb-restore" style="padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; background: #ffffff; border: 1px solid #10b981; color: #059669; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;" title="Restore report to inbox">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Restore
+        </button>`;
+    } else {
+      rightActions += `
+        <button onclick="setStatus(${activeMsg.id},'archived')" class="btn-tb-archive" style="padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;" title="Move report to archive">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          Archive
+        </button>`;
     }
+
+    // Block Sender button
+    rightActions += `
+      <button onclick="promptBlockSender('${activeMsg.contact}')" class="btn-tb-danger" style="padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 13px; background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;" title="Block abusive contact">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        Block Sender
+      </button>`;
   }
 
   const regTag = activeMsg.isRegistered
@@ -531,8 +559,16 @@ function openDetail(id) {
     <div class="section-label">Full Message</div>
     <div class="msg-block">${activeMsg.msg}</div>
 
-    <div class="action-bar">
-      ${actionButtons}
+    <div class="action-bar-twozone" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+      <div class="action-bar-left" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+        ${leftActions}
+      </div>
+      ${rightActions ? `
+        <div class="action-bar-right" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-left: auto;">
+          <span class="action-bar-divider" style="display: inline-block; width: 1px; height: 26px; background-color: #e2e8f0; margin: 0 4px;"></span>
+          ${rightActions}
+        </div>
+      ` : ""}
     </div>`;
 
   // Fetch related reports
@@ -591,17 +627,273 @@ window.verifyReport = function (id) {
   }
 };
 
+window.activeSmsReportId = null;
+
 window.replyToReport = function (id) {
   const m = DATA.find((x) => x.id === id);
-  if (m) {
-    const msg = prompt(
-      `Send SMS Reply to ${m.contact}:`,
-      "Thank you for reporting to Bantay Dagat. We are looking into this.",
-    );
-    if (msg) {
-      showToast("SMS reply sent to " + m.contact);
+  if (!m) return;
+  window.activeSmsReportId = id;
+
+  const modal = document.getElementById("smsReplyHistoryModal");
+  if (!modal) return;
+
+  const subtitle = document.getElementById("smsModalSubtitle");
+  if (subtitle) {
+    subtitle.innerHTML = `Recipient: <strong>${m.contact}</strong> (${m.sender || "Report Sender"}) &bull; Incident: <strong>#${m.id} - ${m.flaggedPlace}</strong>`;
+  }
+
+  const txt = document.getElementById("smsReplyText");
+  if (txt) {
+    txt.value = "Bantay Dagat: We received your report and are verifying the details. Stay safe.";
+    updateSmsCharCount();
+  }
+
+  modal.classList.remove("hidden");
+  loadSmsReplies(id);
+  setTimeout(() => txt && txt.focus(), 150);
+};
+
+window.openSmsHistory = function (id) {
+  window.replyToReport(id);
+  const hist = document.getElementById("smsHistorySection");
+  if (hist) {
+    setTimeout(() => hist.scrollIntoView({ behavior: "smooth" }), 200);
+  }
+};
+
+window.closeSmsModal = function () {
+  const modal = document.getElementById("smsReplyHistoryModal");
+  if (modal) modal.classList.add("hidden");
+  window.activeSmsReportId = null;
+};
+
+window.insertSmsTemplate = function (key) {
+  const txt = document.getElementById("smsReplyText");
+  if (!txt) return;
+
+  if (key === "acknowledged") {
+    txt.value = "Bantay Dagat: Your report has been acknowledged. A maritime patrol team has been alerted.";
+  } else if (key === "investigating") {
+    txt.value = "Bantay Dagat: We are currently investigating your report in the area. Please stand by.";
+  } else if (key === "resolved") {
+    txt.value = "Bantay Dagat: Thank you for your vigilance. Action has been taken and the incident is resolved.";
+  }
+  updateSmsCharCount();
+  txt.focus();
+};
+
+function updateSmsCharCount() {
+  const txt = document.getElementById("smsReplyText");
+  const countEl = document.getElementById("smsCharCount");
+  if (txt && countEl) {
+    const len = txt.value.length;
+    countEl.innerText = `${len} / 160`;
+    countEl.style.color = len >= 150 ? "#ef4444" : "#64748b";
+  }
+}
+
+// Bind live counter once DOM is loaded or input events occur
+document.addEventListener("input", (e) => {
+  if (e.target && e.target.id === "smsReplyText") {
+    updateSmsCharCount();
+  }
+});
+
+window.loadSmsReplies = async function (id) {
+  const listEl = document.getElementById("smsHistoryList");
+  const badgeEl = document.getElementById("smsHistoryCountBadge");
+  if (!listEl) return;
+
+  listEl.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 15px;">Loading message history...</div>';
+
+  try {
+    const res = await fetch(`/api/feedback/${id}/replies`);
+    if (!res.ok) throw new Error("Failed to load replies");
+    const replies = await res.json();
+
+    if (badgeEl) {
+      badgeEl.innerText = `${replies.length} Sent`;
+    }
+
+    if (!replies || replies.length === 0) {
+      listEl.innerHTML = `
+        <div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 24px; background: #fff; border: 1px dashed #cbd5e1; border-radius: 8px;">
+          No SMS replies sent yet for this report.
+        </div>`;
+      return;
+    }
+
+    listEl.innerHTML = replies
+      .map(
+        (r) => `
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-weight: 700; font-size: 12px; color: #1e293b;">${r.sentBy || "Admin"}</span>
+              <span style="font-size: 10px; font-weight: 600; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 10px; padding: 1px 7px;">SENT</span>
+            </div>
+            <span style="font-size: 11px; color: #64748b;">${r.sentAt || ""}</span>
+          </div>
+          <div style="font-size: 13px; color: #334155; line-height: 1.5; background: #f8fafc; border-left: 3px solid #2563eb; padding: 8px 12px; border-radius: 4px;">
+            ${r.message}
+          </div>
+        </div>
+      `,
+      )
+      .join("");
+  } catch (e) {
+    console.error("Error loading replies:", e);
+    listEl.innerHTML = '<div style="text-align: center; color: #ef4444; font-size: 13px; padding: 15px;">Failed to load history.</div>';
+  }
+};
+
+window.submitSmsReply = async function () {
+  if (!window.activeSmsReportId) return;
+
+  const txt = document.getElementById("smsReplyText");
+  const msg = txt ? txt.value.trim() : "";
+  if (!msg) {
+    alert("Please enter a reply message.");
+    return;
+  }
+
+  const btn = document.getElementById("btnSendSmsReply");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "Sending...";
+  }
+
+  try {
+    const res = await fetch(`/api/feedback/${window.activeSmsReportId}/reply`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg }),
+    });
+
+    if (!res.ok) throw new Error("Failed to send reply");
+
+    showToast("SMS reply sent & logged to history.");
+    if (txt) {
+      txt.value = "";
+      updateSmsCharCount();
+    }
+    loadSmsReplies(window.activeSmsReportId);
+  } catch (err) {
+    console.error("Error sending SMS reply:", err);
+    alert("Error sending SMS reply. Please check connection.");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send SMS`;
     }
   }
+};
+
+window.allGlobalSmsReplies = [];
+
+window.openGlobalSmsHistoryModal = function () {
+  const modal = document.getElementById("globalSmsHistoryModal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    loadGlobalSmsHistory();
+    const search = document.getElementById("globalSmsSearchInput");
+    if (search) search.value = "";
+  }
+};
+
+window.closeGlobalSmsHistoryModal = function () {
+  const modal = document.getElementById("globalSmsHistoryModal");
+  if (modal) modal.classList.add("hidden");
+};
+
+window.loadGlobalSmsHistory = async function () {
+  const listEl = document.getElementById("globalSmsHistoryList");
+  const badgeEl = document.getElementById("globalSmsHistoryCountBadge");
+  if (!listEl) return;
+
+  listEl.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 25px;">Loading SMS reply history...</div>';
+
+  try {
+    const res = await fetch("/api/feedback/replies/all");
+    if (!res.ok) throw new Error("Failed to load replies");
+    window.allGlobalSmsReplies = await res.json();
+
+    if (badgeEl) {
+      badgeEl.innerText = `${window.allGlobalSmsReplies.length} Messages`;
+    }
+
+    renderGlobalSmsList(window.allGlobalSmsReplies);
+  } catch (err) {
+    console.error("Error loading global SMS history:", err);
+    listEl.innerHTML = '<div style="text-align: center; color: #ef4444; font-size: 13px; padding: 25px;">Failed to load history. Please try again.</div>';
+  }
+};
+
+window.filterGlobalSmsHistory = function () {
+  const input = document.getElementById("globalSmsSearchInput");
+  const query = input ? input.value.trim().toLowerCase() : "";
+
+  if (!query) {
+    renderGlobalSmsList(window.allGlobalSmsReplies);
+    return;
+  }
+
+  const filtered = window.allGlobalSmsReplies.filter((r) => {
+    return (
+      (r.recipient && r.recipient.toLowerCase().includes(query)) ||
+      (r.message && r.message.toLowerCase().includes(query)) ||
+      (r.sentBy && r.sentBy.toLowerCase().includes(query)) ||
+      (r.sentAt && r.sentAt.toLowerCase().includes(query)) ||
+      (r.feedbackId && ("#" + r.feedbackId).includes(query))
+    );
+  });
+
+  renderGlobalSmsList(filtered);
+};
+
+window.renderGlobalSmsList = function (list) {
+  const listEl = document.getElementById("globalSmsHistoryList");
+  const badgeEl = document.getElementById("globalSmsHistoryCountBadge");
+  if (!listEl) return;
+
+  if (badgeEl && list) {
+    badgeEl.innerText = `${list.length} Messages`;
+  }
+
+  if (!list || list.length === 0) {
+    listEl.innerHTML = `
+      <div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 30px; background: #fff; border: 1px dashed #cbd5e1; border-radius: 8px;">
+        No sent SMS replies found.
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = list
+    .map(
+      (r) => `
+      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-weight: 700; font-size: 13px; color: #0f172a; display: inline-flex; align-items: center; gap: 4px;">
+              <svg width="13" height="13" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              ${r.recipient}
+            </span>
+            <span style="font-size: 11px; font-weight: 600; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 10px; padding: 1px 8px;">Report #${r.feedbackId}</span>
+            <span style="font-size: 11px; font-weight: 600; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 10px; padding: 1px 8px;">SENT</span>
+          </div>
+          <div style="font-size: 12px; color: #64748b;">
+            <span>By <strong>${r.sentBy || "Admin"}</strong> &bull; ${r.sentAt || ""}</span>
+          </div>
+        </div>
+        <div style="font-size: 13px; color: #1e293b; line-height: 1.5; background: #f8fafc; border-left: 3px solid #2563eb; padding: 10px 14px; border-radius: 4px;">
+          ${r.message}
+        </div>
+      </div>
+    `,
+    )
+    .join("");
 };
 
 window.currentGroupIds = [];
@@ -702,37 +994,103 @@ async function setStatus(id, val) {
   }
 }
 
-function openBlotter(id) {
-  const m = DATA.find((x) => x.id === id);
-  if (!m) return;
-  m.hasBlotter = true; // Mark blotter as generated for the workflow sequence
-  const c = CAT[m.cat];
-  const bNoShort = String(m.id).padStart(2, "0");
-  const dateObj = new Date(m.time);
-  const timeStr = isNaN(dateObj.getTime())
-    ? "03:00 PM"
-    : dateObj.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-  const dateStr = isNaN(dateObj.getTime())
-    ? "April 08, 2026"
-    : dateObj.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
+async function openBlotter(id) {
+  let m = (typeof DATA !== "undefined" && Array.isArray(DATA)) ? DATA.find((x) => String(x.id) === String(id)) : null;
+  
+  if (!m) {
+    try {
+      const res = await fetch(`/api/feedback/${id}`);
+      if (res.ok) {
+        const item = await res.json();
+        m = {
+          id: item.id,
+          contact: item.contact,
+          msg: item.content,
+          time: item.dateSent,
+          status: item.status,
+          priority: item.priority,
+          flaggedPlace: item.flaggedPlace,
+          cat: "incident"
+        };
+      }
+    } catch (e) {
+      console.error("Error fetching report for blotter:", e);
+    }
+  }
 
+  if (!m) {
+    alert("Could not load report details for Blotter Form #" + id);
+    return;
+  }
+
+  m.hasBlotter = true; // Mark blotter as generated for the workflow sequence
   activeMsg = m;
   const draftKey = "blotter_draft_" + m.id;
+
+  const blotterBody = document.getElementById("blotterBody");
+  const btnReset = document.getElementById("btnResetBlotter");
+  const overlay = document.getElementById("blotterOverlay");
+  const msgEl = document.getElementById("feedbackBlotterSaveMsg");
+
+  if (!blotterBody || !overlay) {
+    console.error("Blotter modal DOM elements not found!");
+    return;
+  }
+
+  if (msgEl) {
+    msgEl.style.display = "none";
+    msgEl.textContent = "";
+  }
+
+  const btnDone = document.getElementById("btnSaveBlotterDoneFeedback");
+  if (btnDone) {
+    btnDone.disabled = false;
+    btnDone.innerHTML = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Save & Mark as Done`;
+    btnDone.style.background = "#16a34a";
+  }
+
+  // 1. Try to fetch existing blotter paper from server by feedbackId
+  let loadedFromServer = false;
+  try {
+    const res = await fetch(`/BlotterReport/GetPaperContent?feedbackId=${m.id}`);
+    const data = await res.json();
+    if (data && data.success && data.html) {
+      blotterBody.innerHTML = data.html;
+      if (data.incidentId) {
+        window.currentFeedbackBlotterId = data.incidentId;
+        window.currentFeedbackBlotterData = { id: data.incidentId, source: "SMS Report (" + (m.contact || "Unknown") + ")" };
+      }
+      loadedFromServer = true;
+    }
+  } catch (e) {
+    console.warn("Could not fetch server blotter paper for feedback message:", e);
+  }
+
   const savedDraft = localStorage.getItem(draftKey);
 
-  if (savedDraft) {
-    document.getElementById("blotterBody").innerHTML = savedDraft;
-    document.getElementById("btnResetBlotter").style.display = "inline-block";
-  } else {
-    document.getElementById("btnResetBlotter").style.display = "none";
-    document.getElementById("blotterBody").innerHTML = `
+  if (!loadedFromServer && savedDraft) {
+    blotterBody.innerHTML = savedDraft;
+    if (btnReset) btnReset.style.display = "inline-block";
+  } else if (!loadedFromServer) {
+    if (btnReset) btnReset.style.display = "none";
+    
+    const bNoShort = String(m.id).padStart(2, "0");
+    const dateObj = new Date(m.time);
+    const timeStr = isNaN(dateObj.getTime())
+      ? "03:00 PM"
+      : dateObj.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+    const dateStr = isNaN(dateObj.getTime())
+      ? "April 08, 2026"
+      : dateObj.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
+    blotterBody.innerHTML = `
     <div class="blotter-gov" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 20px;">
       <!-- Left Logo: Bayan ng Bantayan -->
       <div class="blotter-logo" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
@@ -740,12 +1098,12 @@ function openBlotter(id) {
       </div>
 
       <div style="text-align: center; flex: 1; font-family: 'Times New Roman', Times, serif; line-height: 1.3;">
-        <div style="font-size: 14px; font-weight: 500;">Republic of the Philippines</div>
-        <div style="font-size: 14px; font-weight: 500;">Province of Cebu</div>
-        <div style="font-size: 15px; font-weight: 700; text-transform: uppercase;">Municipality of Bantayan</div>
-        <div style="font-size: 14px; font-weight: 600; color: #1e293b;">Municipal Agriculturist Office</div>
-        <div style="font-size: 15px; font-weight: 700; color: #0f172a; text-transform: uppercase;">Bantay Dagat Headquarters</div>
-        <div style="font-size: 12px; color: #475569;">Brgy. Suba, Bantayan, Cebu</div>
+        <div contenteditable="true" style="font-size: 14px; font-weight: 500; outline: none;">Republic of the Philippines</div>
+        <div contenteditable="true" style="font-size: 14px; font-weight: 500; outline: none;">Province of Cebu</div>
+        <div contenteditable="true" style="font-size: 15px; font-weight: 700; text-transform: uppercase; outline: none;">Municipality of Bantayan</div>
+        <div contenteditable="true" style="font-size: 14px; font-weight: 600; color: #1e293b; outline: none;">Municipal Agriculturist Office</div>
+        <div contenteditable="true" style="font-size: 15px; font-weight: 700; color: #0f172a; text-transform: uppercase; outline: none;">Bantay Dagat Headquarters</div>
+        <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none;">Brgy. Suba, Bantayan, Cebu</div>
       </div>
 
       <!-- Right Logo: Bantay Dagat -->
@@ -761,9 +1119,9 @@ function openBlotter(id) {
 
     <!-- File details table block -->
     <div class="blotter-meta-grid" style="display: grid; grid-template-columns: 140px 20px 1fr; row-gap: 8px; margin-bottom: 15px; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.4;">
-      <div style="font-weight: 500;">File no.</div><div>:</div><div contenteditable="true" style="font-weight: bold; outline: none;">${bNoShort}</div>
-      <div style="font-weight: 500;">Subject</div><div>:</div><div contenteditable="true" style="outline: none;">Excerpt from the Municipal Bantay Dagat Blotter Report</div>
-      <div style="font-weight: 500;">Nature of Case</div><div>:</div><div contenteditable="true" style="outline: none;">Resolution #33 Ordinance #02 Series of 2020 Section 37 Article 8</div>
+      <div contenteditable="true" style="font-weight: 500; outline: none;">File no.</div><div contenteditable="true" style="outline: none;">:</div><div contenteditable="true" style="font-weight: bold; outline: none;">${bNoShort}</div>
+      <div contenteditable="true" style="font-weight: 500; outline: none;">Subject</div><div contenteditable="true" style="outline: none;">:</div><div contenteditable="true" style="outline: none;">Excerpt from the Municipal Bantay Dagat Blotter Report</div>
+      <div contenteditable="true" style="font-weight: 500; outline: none;">Nature of Case</div><div contenteditable="true" style="outline: none;">:</div><div contenteditable="true" style="outline: none;">Resolution #33 Ordinance #02 Series of 2020 Section 37 Article 8</div>
     </div>
 
     <!-- Black solid line divider -->
@@ -771,17 +1129,17 @@ function openBlotter(id) {
 
     <!-- Grid info (Occurrence and Suspect) -->
     <div class="occurrence-grid" style="display: grid; grid-template-columns: 180px 1fr; gap: 16px; margin-bottom: 20px; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.5; text-align: justify;">
-      <div style="font-weight: bold;">Time/Date/Place<br>Of Occurrence</div>
-      <div contenteditable="true" style="outline: none;">--At about ${timeStr} of ${dateStr} at the vicinity municipal waters off ${m.flaggedPlace}, Bantayan, Cebu.</div>
+      <div contenteditable="true" style="font-weight: bold; outline: none;">Time/Date/Place<br>Of Occurrence</div>
+      <div contenteditable="true" style="outline: none;">--At about ${timeStr} of ${dateStr} at the vicinity municipal waters off ${m.flaggedPlace || "Bantayan"}, Cebu.</div>
       
-      <div style="font-weight: bold;">Arrested Suspect</div>
-      <div contenteditable="true" style="outline: none;">--Unknown Suspect (Contact: ${m.contact || "N/A"}). [Add other suspects: Name, Age, DOB, address, and vessel role]</div>
+      <div contenteditable="true" style="font-weight: bold; outline: none;">Report Source / Apprehended By</div>
+      <div contenteditable="true" style="outline: none;">--Bantay Dagat Patrol (SMS Report from ${m.contact || "Unknown"})</div>
     </div>
 
     <!-- Facts section -->
-    <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; font-family: 'Times New Roman', Times, serif;">Facts -</div>
-    <div class="narrative" contenteditable="true" style="outline: none; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.6; min-height: 180px; margin-bottom: 40px; text-align: justify; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 4px; background: #f8fafc;">
-      ${m.msg}
+    <div contenteditable="true" style="font-weight: bold; font-size: 14px; margin-bottom: 8px; font-family: 'Times New Roman', Times, serif; outline: none;">Facts & Actions Taken -</div>
+    <div class="narrative" id="blotterNarrativeText" contenteditable="true" style="outline: none; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.6; min-height: 180px; margin-bottom: 40px; text-align: justify; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 4px; background: #f8fafc;">
+      ${m.msg || ""}
       <br><br>
       --[Case Facts & Apprehension Summary]--<br>
       (Explain the incident details here: State how the violator was apprehended, unauthorized gears/documents used, and any registered/unregistered violations from the municipality.)
@@ -789,19 +1147,19 @@ function openBlotter(id) {
       --[Confiscated Assets & Properties]--<br>
       A. (1) One [motorized banca / vessel type] named "[Vessel Name]" owned by [Owner Name], powered by [Engine Details, e.g. YAMA 16HP], using [Fishing Gear/Trap type] with [Catch details, e.g. 10kls assorted fish] estimated value of Php [Value].
       <br><br>
-      --[Apprehension Penalties & Fine Details]--<br>
-      State the penalties: [Number] arrested violators are penalized to pay [Amount in words] pesos each (P [Amount in numbers]) as payment for [First/Second] offense of violating Section [Section No.] of Municipal Ordinance [Ordinance No.], Series of [Year], with a combined total fine of [Total in words] pesos (P [Total in numbers]).
+      --[Outcome & Disposition]--<br>
+      Case logged under official municipal maritime enforcement records.
     </div>
 
     <!-- Signatures -->
     <div class="sig-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; font-size: 14px; font-family: 'Times New Roman', Times, serif; margin-top: 50px;">
       <div>
-        <div style="margin-bottom: 35px;">Blotter by:</div>
+        <div contenteditable="true" style="margin-bottom: 35px; outline: none;">Blotter by:</div>
         <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Julius L. Ejes</div>
         <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none; margin-top: 4px;">Deputy Officer</div>
       </div>
       <div>
-        <div style="margin-bottom: 35px;">Noted by:</div>
+        <div contenteditable="true" style="margin-bottom: 35px; outline: none;">Noted by:</div>
         <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Niven G. Pestaño</div>
         <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none; margin-top: 4px;">Bantay Dagat Officer</div>
       </div>
@@ -809,17 +1167,117 @@ function openBlotter(id) {
   }
 
   // Attach event listener to save draft on edit
-  document.getElementById("blotterBody").oninput = function () {
-    localStorage.setItem(draftKey, this.innerHTML);
-    document.getElementById("btnResetBlotter").style.display = "inline-block";
+  blotterBody.oninput = function () {
+    if (activeMsg) {
+      localStorage.setItem(draftKey, this.innerHTML);
+    }
+    if (btnReset) btnReset.style.display = "inline-block";
   };
 
-  document.getElementById("blotterOverlay").classList.add("open");
+  overlay.style.display = "flex";
+  overlay.classList.add("open");
 }
 
 function closeBlotter() {
-  document.getElementById("blotterOverlay").classList.remove("open");
+  window.currentFeedbackBlotterId = null;
+  window.currentFeedbackBlotterData = null;
+  const overlay = document.getElementById("blotterOverlay");
+  if (overlay) {
+    overlay.classList.remove("open");
+    overlay.style.display = "none";
+  }
 }
+
+window.saveBlotterAndMarkDone = async function () {
+  const btnDone = document.getElementById("btnSaveBlotterDoneFeedback");
+  const msgEl = document.getElementById("feedbackBlotterSaveMsg");
+
+  if (btnDone) {
+    btnDone.disabled = true;
+    btnDone.textContent = "Saving...";
+  }
+
+  const blotterBody = document.getElementById("blotterBody");
+  const fullPaperHtml = blotterBody ? blotterBody.innerHTML : "";
+  const narrativeEl = blotterBody ? (blotterBody.querySelector(".narrative") || blotterBody.querySelector("#blotterNarrativeText")) : null;
+  const actionsText = narrativeEl ? narrativeEl.innerText.trim() : "";
+
+  let payload = {
+    status: "Done",
+    outcome: "Resolved / Done",
+    actionsTaken: actionsText,
+    paperHtml: fullPaperHtml
+  };
+
+  if (window.currentFeedbackBlotterId) {
+    payload.incidentId = window.currentFeedbackBlotterId;
+    if (window.currentFeedbackBlotterData) {
+      payload.incidentType = window.currentFeedbackBlotterData.type;
+      payload.location = window.currentFeedbackBlotterData.location;
+      payload.reportSource = window.currentFeedbackBlotterData.source;
+      if (window.currentFeedbackBlotterData.relatedFeedbackId) {
+        payload.relatedReportSubmissionId = window.currentFeedbackBlotterData.relatedFeedbackId;
+      }
+    }
+  } else if (activeMsg) {
+    payload.relatedReportSubmissionId = activeMsg.id;
+    payload.incidentType = "Marine Incident";
+    payload.location = activeMsg.flaggedPlace || "Bantayan Municipal Waters";
+    payload.reportSource = "SMS Report (" + (activeMsg.contact || "Unknown") + ")";
+  }
+
+  try {
+    const res = await fetch("/BlotterReport/SavePaper", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.incidentId) {
+        window.currentFeedbackBlotterId = data.incidentId;
+      }
+      if (activeMsg) {
+        const draftKey = "blotter_draft_" + activeMsg.id;
+        localStorage.removeItem(draftKey);
+        activeMsg.status = "resolved";
+        if (typeof renderTable === "function") renderTable();
+        if (typeof renderCounts === "function") renderCounts();
+      }
+
+      if (msgEl) {
+        msgEl.textContent = "✓ Blotter saved and marked as Done!";
+        msgEl.style.display = "inline";
+      }
+      if (typeof showToast === "function") {
+        showToast("✓ Blotter saved and marked as Done!");
+      }
+
+      if (btnDone) {
+        btnDone.innerHTML = `✓ Done & Saved`;
+        btnDone.style.background = '#059669';
+      }
+
+      setTimeout(() => {
+        closeBlotter();
+        window.location.reload();
+      }, 700);
+    } else {
+      alert(data.message || "Error saving blotter.");
+      if (btnDone) {
+        btnDone.disabled = false;
+        btnDone.innerHTML = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Save & Mark as Done`;
+      }
+    }
+  } catch (e) {
+    console.error("Error saving blotter:", e);
+    alert("Failed to save blotter.");
+    if (btnDone) {
+      btnDone.disabled = false;
+      btnDone.innerHTML = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Save & Mark as Done`;
+    }
+  }
+};
 
 window.resetBlotter = function () {
   if (activeMsg) {
@@ -901,6 +1359,8 @@ async function loadFeedbackFromDb() {
     });
 
     DATA = dbData;
+    renderCounts();
+    renderTable();
 
     // Auto-archive logic
     let modified = false;
@@ -937,12 +1397,17 @@ async function loadFeedbackFromDb() {
         } catch (e) {}
       }
     }
+
+    if (modified) {
+      renderCounts();
+      renderTable();
+    }
   } catch (e) {
     // If API is unreachable, fall back to the built-in sample data
     console.warn("Feedback API unavailable, using local DATA:", e);
+    renderCounts();
+    renderTable();
   }
-  renderCounts();
-  renderTable();
 }
 
 window.openBlockedNumbersModal = function () {

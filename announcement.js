@@ -96,10 +96,12 @@
     function setHeaderDate() {
         var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         var today = new Date();
-        if (currentDateDisplay) {
-            currentDateDisplay.textContent = today.toLocaleDateString('en-US', options);
+        var el = currentDateDisplay || document.getElementById("currentDateDisplay");
+        if (el) {
+            el.textContent = today.toLocaleDateString('en-US', options);
         }
     }
+    setHeaderDate();
     // Read local database
     function readAnnouncements() {
         var stored = localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);

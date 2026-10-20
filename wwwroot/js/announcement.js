@@ -4,37 +4,44 @@
     var STORAGE_KEY = "bantay-dagat-authenticated";
 
     // SignalR Connection
-    var connection = new signalR.HubConnectionBuilder()
-        .withUrl("/smsprogress")
-        .build();
+    var connection = null;
+    if (typeof signalR !== "undefined") {
+        try {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/smsprogress")
+                .build();
 
-    connection.on("ReceiveProgress", function (data) {
-        var progressDiv = document.getElementById("liveProgress-" + data.announcementId);
-        if (progressDiv) {
-            progressDiv.innerHTML = `
-                <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:8px; margin-top:20px;">
-                    <h4 style="margin:0 0 8px 0; color:#1e40af;">Live Send Progress</h4>
-                    <p style="margin:0 0 4px 0; font-weight:bold;">Progress: ${data.delivered + data.failed}/${data.total} (${data.percent}%)</p>
-                    <p style="margin:0; font-size:0.9rem; color:#4b5563;">Delivered: <span style="color:#059669">${data.delivered}</span> | Sending: <span style="color:#2563eb">${data.sending}</span> | Pending: <span style="color:#d97706">${data.pending}</span> | Failed: <span style="color:#dc2626">${data.failed}</span></p>
-                </div>
-            `;
+            connection.on("ReceiveProgress", function (data) {
+                var progressDiv = document.getElementById("liveProgress-" + data.announcementId);
+                if (progressDiv) {
+                    progressDiv.innerHTML = `
+                        <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:8px; margin-top:20px;">
+                            <h4 style="margin:0 0 8px 0; color:#1e40af;">Live Send Progress</h4>
+                            <p style="margin:0 0 4px 0; font-weight:bold;">Progress: ${data.delivered + data.failed}/${data.total} (${data.percent}%)</p>
+                            <p style="margin:0; font-size:0.9rem; color:#4b5563;">Delivered: <span style="color:#059669">${data.delivered}</span> | Sending: <span style="color:#2563eb">${data.sending}</span> | Pending: <span style="color:#d97706">${data.pending}</span> | Failed: <span style="color:#dc2626">${data.failed}</span></p>
+                        </div>
+                    `;
+                }
+
+                // Fix: Update local browser memory so the table says DELIVERED!
+                if (data.percent === 100) {
+                    var items = readAnnouncements();
+                    var index = items.findIndex(i => i.id === "ann-" + data.announcementId);
+                    if (index !== -1 && items[index].status !== "Delivered") {
+                        items[index].status = "Delivered";
+                        saveAnnouncements(items);
+                        renderAnnouncements();
+                    }
+                }
+            });
+
+            connection.start().catch(function (err) {
+                console.error(err.toString());
+            });
+        } catch (err) {
+            console.warn("Could not start SignalR hub connection:", err);
         }
-
-        // Fix: Update local browser memory so the table says DELIVERED!
-        if (data.percent === 100) {
-            var items = readAnnouncements();
-            var index = items.findIndex(i => i.id === "ann-" + data.announcementId);
-            if (index !== -1 && items[index].status !== "Delivered") {
-                items[index].status = "Delivered";
-                saveAnnouncements(items);
-                renderAnnouncements();
-            }
-        }
-    });
-
-    connection.start().catch(function (err) {
-        console.error(err.toString());
-    });
+    }
 
     // Containers
     var loginScreen = document.getElementById("loginScreen");
@@ -142,10 +149,12 @@
     function setHeaderDate() {
         var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         var today = new Date();
-        if (currentDateDisplay) {
-            currentDateDisplay.textContent = today.toLocaleDateString('en-US', options);
+        var el = currentDateDisplay || document.getElementById("currentDateDisplay");
+        if (el) {
+            el.textContent = today.toLocaleDateString('en-US', options);
         }
     }
+    setHeaderDate();
     // Sync with real database on load
     fetch('/api/announcementapi/history')
         .then(r => r.json())

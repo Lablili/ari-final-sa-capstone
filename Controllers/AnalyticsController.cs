@@ -21,7 +21,7 @@ namespace ari_final_sa_capstone.Controllers
             var blotters = await _context.BlotterReports.ToListAsync();
             var totalIncidents = blotters.Count;
             var avgResponseTime = totalIncidents > 0 ? blotters.Average(b => b.ResponseTimeMinutes) : 0;
-            var closedCases = blotters.Count(b => b.Status == "Closed");
+            var closedCases = blotters.Count(b => b.Status == "Closed" || b.Status == "Done");
             
             var smsLogs = await _context.SMSLogs.ToListAsync();
             var totalSmsSent = smsLogs.Count;

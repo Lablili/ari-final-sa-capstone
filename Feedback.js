@@ -373,12 +373,20 @@ function openBlotter(id) {
     document.getElementById('blotterBody').innerHTML = draft;
     const btn = document.getElementById('btnResetBlotter');
     if (btn) btn.style.display = 'inline-block';
-    document.getElementById('blotterOverlay').classList.add('open');
+    const overlay = document.getElementById('blotterOverlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      overlay.classList.add('open');
+    }
     return;
   }
   
   generateDefaultBlotter(id);
-  document.getElementById('blotterOverlay').classList.add('open');
+  const overlay = document.getElementById('blotterOverlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    overlay.classList.add('open');
+  }
 }
 
 function generateDefaultBlotter(id) {
@@ -470,14 +478,16 @@ function generateDefaultBlotter(id) {
       </div>
     </div>`;
 
-    </div>`;
-
   const btn = document.getElementById('btnResetBlotter');
   if (btn) btn.style.display = 'none';
 }
 
 function closeBlotter() {
-  document.getElementById('blotterOverlay').classList.remove('open');
+  const overlay = document.getElementById('blotterOverlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.display = 'none';
+  }
 }
 
 // ════ INIT ════

@@ -9,6 +9,10 @@
         {
             activePage = "UserManagement";
         }
+        else if (controller.Equals("BlotterReport", StringComparison.OrdinalIgnoreCase))
+        {
+            activePage = "Feedback";
+        }
         else
         {
             activePage = action;
@@ -23,9 +27,32 @@
     var displayRole = !string.IsNullOrEmpty(sessionRole) ? sessionRole : (User != null && User.Identity.IsAuthenticated ? string.Join(", ", (User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value))) : "");
 }
 
-<aside class="sidebar" style="height: 100vh; overflow-y: auto; margin: 0; border-radius: 0;">
+<!-- Mobile Nav Header Bar (Visible ONLY on Mobile & Tablet <= 1024px) -->
+<div class="mobile-nav-header" id="mobileNavHeader">
+    <button type="button" class="btn-mobile-menu-toggle" id="btnMobileMenuToggle" onclick="toggleMobileSidebar()" aria-label="Toggle navigation menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+    <div class="mobile-brand-title">
+        <span class="mobile-brand-name">Bantay Dagat</span>
+    </div>
+    <div class="mobile-header-user">
+        <span class="mobile-user-avatar" title="@displayName">👤</span>
+    </div>
+</div>
+
+<!-- Backdrop Overlay for Mobile/Tablet Off-canvas Sidebar -->
+<div class="mobile-sidebar-backdrop" id="mobileSidebarBackdrop" onclick="closeMobileSidebar()"></div>
+
+<aside class="sidebar" id="appSidebar">
     <div class="brand">
-        <h1>Bantay Dagat</h1>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <h1>Bantay Dagat</h1>
+            <button type="button" class="sidebar-mobile-close" onclick="closeMobileSidebar()" aria-label="Close menu">&times;</button>
+        </div>
     </div>
 
     <div class="nav-group">
@@ -137,3 +164,42 @@
         </div>
     }
 </aside>
+
+<script>
+    function toggleMobileSidebar() {
+        var sidebar = document.getElementById('appSidebar');
+        var backdrop = document.getElementById('mobileSidebarBackdrop');
+        if (sidebar) {
+            sidebar.classList.toggle('mobile-open');
+        }
+        if (backdrop) {
+            backdrop.classList.toggle('active');
+        }
+    }
+
+    function closeMobileSidebar() {
+        var sidebar = document.getElementById('appSidebar');
+        var backdrop = document.getElementById('mobileSidebarBackdrop');
+        if (sidebar) {
+            sidebar.classList.remove('mobile-open');
+        }
+        if (backdrop) {
+            backdrop.classList.remove('active');
+        }
+    }
+
+    // Auto-close drawer when clicking any link if on mobile/tablet
+    document.addEventListener('DOMContentLoaded', function () {
+        var sidebar = document.getElementById('appSidebar');
+        if (sidebar) {
+            var navLinks = sidebar.querySelectorAll('.nav-item');
+            navLinks.forEach(function (link) {
+                link.addEventListener('click', function () {
+                    if (window.innerWidth <= 1024) {
+                        setTimeout(closeMobileSidebar, 150);
+                    }
+                });
+            });
+        }
+    });
+</script>

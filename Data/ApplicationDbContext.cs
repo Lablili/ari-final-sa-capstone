@@ -18,6 +18,7 @@ namespace ari_final_sa_capstone.Data
         public DbSet<ReportSubmission> ReportSubmissions { get; set; }
         public DbSet<SurveyResponse> SurveyResponses { get; set; }
         public DbSet<BlockedNumber> BlockedNumbers { get; set; }
+        public DbSet<FeedbackReply> FeedbackReplies { get; set; }
 
         public DbSet<AdminMessage> AdminMessages { get; set; }
         public DbSet<AdminMessageAttachment> AdminMessageAttachments { get; set; }

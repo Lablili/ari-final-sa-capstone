@@ -1,12 +1,42 @@
+@inject ari_final_sa_capstone.Data.ApplicationDbContext DbContext
 @{
     ViewData["Title"] = "Community Reports";
     var sessionRole = Context.Session.GetString("UserRole");
     var userRole = !string.IsNullOrEmpty(sessionRole) ? sessionRole : (User != null && User.Identity.IsAuthenticated ? string.Join(", ", (User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value))) : "");
+
+    var totalReports = DbContext.FeedbackMessages.Count(f => f.GroupId == null);
+    var newReports = DbContext.FeedbackMessages.Count(f => f.GroupId == null && f.Status == "new");
+    var reviewReports = DbContext.FeedbackMessages.Count(f => f.GroupId == null && f.Status == "review");
+    var resolvedReports = DbContext.FeedbackMessages.Count(f => f.GroupId == null && (f.Status == "resolved" || f.Status == "archived"));
 }
 
 <style>
     .dropdown-content.show {
         display: block !important;
+    }
+    .blotter [contenteditable="true"] {
+        transition: background-color 0.15s ease, outline 0.15s ease;
+    }
+    .blotter [contenteditable="true"]:hover {
+        background-color: rgba(37, 99, 235, 0.05);
+        border-radius: 3px;
+        cursor: text;
+    }
+    .blotter [contenteditable="true"]:focus {
+        background-color: rgba(37, 99, 235, 0.08);
+        border-radius: 3px;
+        outline: 1.5px dashed #2563eb !important;
+    }
+    @@media print {
+        .blotter [contenteditable="true"]:hover,
+        .blotter [contenteditable="true"]:focus {
+            background-color: transparent !important;
+            outline: none !important;
+        }
+        .blotter .narrative {
+            border: none !important;
+            background: transparent !important;
+        }
     }
 </style>
 
@@ -20,23 +50,23 @@
             </div>
             <div class="topbar-meta" style="display:flex; align-items:center; gap: 15px;">
 
-                <span class="stat-badge" id="newBadge">0 Bag-o</span>
+                <span class="stat-badge" id="newBadge">@newReports New</span>
                 <span class="date-indicator">
                     <svg class="date-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 2v4M8 2v4M3 10h18"></path>
                     </svg>
-                    <span id="currentDateDisplay">Wednesday, May 27, 2026</span>
+                    <span id="currentDateDisplay">@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</span>
                 </span>
 
             </div>
         </header>
 
         <div class="stat-row">
-            <div class="stat"><div><div class="stat-n" id="s-total" style="color: #1e293b;">0</div><div class="stat-l">Total Reports</div></div></div>
-            <div class="stat"><div><div class="stat-n" id="s-new" style="color: #1e293b;">0</div><div class="stat-l">New</div></div></div>
-            <div class="stat"><div><div class="stat-n" id="s-review" style="color: #1e293b;">0</div><div class="stat-l">In Review</div></div></div>
-            <div class="stat"><div><div class="stat-n" id="s-resolved" style="color: #1e293b;">0</div><div class="stat-l">Resolved</div></div></div>
+            <div class="stat" style="cursor: pointer;" onclick="filterByCard('all')" title="Click to view all reports"><div><div class="stat-n" id="s-total" style="color: #1e293b;">@totalReports</div><div class="stat-l">Total Reports</div></div></div>
+            <div class="stat" style="cursor: pointer;" onclick="filterByCard('new')" title="Click to view new reports"><div><div class="stat-n" id="s-new" style="color: #1e293b;">@newReports</div><div class="stat-l">New</div></div></div>
+            <div class="stat" style="cursor: pointer;" onclick="filterByCard('review')" title="Click to view in-review reports"><div><div class="stat-n" id="s-review" style="color: #1e293b;">@reviewReports</div><div class="stat-l">In Review</div></div></div>
+            <div class="stat" style="cursor: pointer;" onclick="filterByCard('archived')" title="Click to view resolved reports"><div><div class="stat-n" id="s-resolved" style="color: #1e293b;">@resolvedReports</div><div class="stat-l">Resolved</div></div></div>
         </div>
 
         <div class="filters-search-panel" style="display: flex; flex-direction: column; gap: 14px; align-items: stretch;">
@@ -81,7 +111,7 @@
                         <option value="all">All Statuses</option>
                         <option value="new">New</option>
                         <option value="review">In Review</option>
-                        <option value="archived">Archived (Resolved)</option>
+                        <option value="archived">Resolved / Archived</option>
                     </select>
                 </div>
                 <!-- Clear Filters — always visible -->
@@ -94,16 +124,24 @@
                     <select id="nativeActionSelect" 
                             onchange="handleNativeActionSelect(this)" 
                             style="padding: 6px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #1e293b; font-size: 13px; font-weight: 600; cursor: pointer; outline: none;">
-                        <option value="">⚙️ Actions</option>
-                        <option value="simulate">⚡ Simulate Report</option>
-                        <option value="manage_blocked">🚫 Manage Blocked Num</option>
-                        <option value="export">📥 Export CSV</option>
+                        <option value="">Actions</option>
+                        <option value="blotter_report">Blotter Report</option>
+                        <option value="sms_history">SMS History</option>
+                        <option value="simulate">Simulate Report</option>
+                        <option value="manage_blocked">Manage Blocked Num</option>
+                        <option value="export">Export CSV</option>
                     </select>
                 </div>
                 <script>
                     function handleNativeActionSelect(selectElement) {
                         var action = selectElement.value;
-                        if (action === 'simulate') {
+                        if (action === 'blotter_report') {
+                            openAllBlotterReportsModal();
+                        } else if (action === 'sms_history') {
+                            if (typeof openGlobalSmsHistoryModal === 'function') {
+                                openGlobalSmsHistoryModal();
+                            }
+                        } else if (action === 'simulate') {
                             simulateIncomingReport();
                         } else if (action === 'manage_blocked') {
                             document.getElementById('blockedNumbersModal').classList.remove('hidden');
@@ -162,17 +200,181 @@
             </div>
         </div>
 
-        <div class="overlay" id="blotterOverlay">
+        <!-- SMS Reply & History Modal -->
+        <div class="modal hidden" id="smsReplyHistoryModal" style="z-index: 100050;">
+            <div class="modal-overlay" onclick="closeSmsModal()"></div>
+            <div class="modal-content" style="max-width: 620px; width: 95%;">
+                <div class="modal-header" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 14px;">
+                    <div>
+                        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                            <svg width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            SMS Communications
+                        </h2>
+                        <p id="smsModalSubtitle" style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;"></p>
+                    </div>
+                    <button class="modal-close" onclick="closeSmsModal()" type="button" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 20px 24px; max-height: 75vh; overflow-y: auto;">
+                    <!-- Composer Section -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-size: 12px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.04em;">Send New SMS Reply</label>
+                            <span id="smsCharCount" style="font-size: 11px; font-weight: 600; color: #64748b;">0 / 160</span>
+                        </div>
+                        
+                        <!-- Quick Templates -->
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">
+                            <button type="button" onclick="insertSmsTemplate('acknowledged')" style="font-size: 11px; padding: 4px 10px; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; color: #475569; cursor: pointer; transition: all 0.15s;">+ Acknowledged</button>
+                            <button type="button" onclick="insertSmsTemplate('investigating')" style="font-size: 11px; padding: 4px 10px; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; color: #475569; cursor: pointer; transition: all 0.15s;">+ Under Investigation</button>
+                            <button type="button" onclick="insertSmsTemplate('resolved')" style="font-size: 11px; padding: 4px 10px; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; color: #475569; cursor: pointer; transition: all 0.15s;">+ Case Resolved</button>
+                        </div>
+
+                        <textarea id="smsReplyText" rows="3" maxlength="160" placeholder="Type your SMS reply here (will be sent via GSM Gateway to contact's phone)..." style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; box-sizing: border-box; outline: none;"></textarea>
+
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px;">
+                            <button type="button" id="btnSendSmsReply" onclick="submitSmsReply()" style="background: #2563eb; color: #ffffff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(37,99,235,0.2);">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                Send SMS
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- History Section -->
+                    <div id="smsHistorySection">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="font-size: 13px; font-weight: 700; color: #0f172a; margin: 0; text-transform: uppercase; letter-spacing: 0.04em;">
+                                Sent Message History
+                            </h3>
+                            <span id="smsHistoryCountBadge" style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; background: #e2e8f0; color: #475569;">0 Sent</span>
+                        </div>
+                        <div id="smsHistoryList" style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 20px;">Loading history...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global SMS History Modal (From Actions Dropdown) -->
+        <div class="modal hidden" id="globalSmsHistoryModal" style="z-index: 100050;">
+            <div class="modal-overlay" onclick="closeGlobalSmsHistoryModal()"></div>
+            <div class="modal-content" style="max-width: 800px; width: 95%;">
+                <div class="modal-header" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 14px;">
+                    <div>
+                        <h2 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                            <svg width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Sent SMS Reply History
+                        </h2>
+                        <p style="font-size: 12px; color: #64748b; margin: 4px 0 0 0;">Complete record of all SMS responses sent to community reports via the Bantay Dagat GSM Gateway</p>
+                    </div>
+                    <button class="modal-close" onclick="closeGlobalSmsHistoryModal()" type="button" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 20px 24px; max-height: 75vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <input type="text" id="globalSmsSearchInput" oninput="filterGlobalSmsHistory()" placeholder="Search by recipient phone, reply text, or admin name..." style="flex: 1; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none;" />
+                        <span id="globalSmsHistoryCountBadge" style="font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 12px; background: #e2e8f0; color: #334155; white-space: nowrap;">0 Messages</span>
+                    </div>
+                    <div id="globalSmsHistoryList" style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 30px;">Loading history...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="overlay" id="blotterOverlay" style="display: none;">
             <div class="blotter-modal-card">
                 <div class="modal-head">
                     <h3>Blotter Form</h3>
                     <button class="btn-close" onclick="closeBlotter()">&#10005;</button>
                 </div>
                 <div class="blotter" id="blotterBody"></div>
-                <div class="modal-foot">
+                <div class="modal-foot" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
+                    <span id="feedbackBlotterSaveMsg" style="font-size: 13px; font-weight: 600; color: #16a34a; margin-right: auto; display: none;"></span>
                     <button class="btn-secondary" onclick="closeBlotter()">Cancel</button>
                     <button class="btn-secondary" id="btnResetBlotter" onclick="resetBlotter()" style="display:none;">Reset to Default</button>
                     <button class="btn-primary" onclick="window.print()">Print Blotter</button>
+                    <button type="button" id="btnSaveBlotterDoneFeedback" onclick="saveBlotterAndMarkDone()" style="background: #16a34a; color: #ffffff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(22, 163, 74, 0.25);" title="Save blotter and mark as Done">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Save &amp; Mark as Done
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Blotter Reports Modal -->
+        <div class="modal hidden" id="allBlotterReportsModal">
+            <div class="modal-overlay" onclick="closeAllBlotterReportsModal()"></div>
+            <div class="modal-content" style="max-width: 960px; width: 95%; padding: 24px; border-radius: 14px;">
+                <div class="modal-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px;">
+                    <div>
+                        <h2 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e293b;">Blotter Reports</h2>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <a href="@Url.Action("Create", "BlotterReport")" style="font-weight: 600; text-decoration: none; padding: 7px 14px; border-radius: 6px; background: #007a70; color: #ffffff; font-size: 13px; display: inline-flex; align-items: center; gap: 4px;">+ New Blotter</a>
+                        <a href="@Url.Action("Index", "BlotterReport")" style="font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: #ffffff; border: 1px solid #cbd5e1; color: #475569; font-size: 13px;">Full Page ↗</a>
+                        <button class="modal-close" onclick="closeAllBlotterReportsModal()" type="button" aria-label="Close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; line-height: 1;">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                    @{
+                        var blotterList = DbContext.BlotterReports.OrderByDescending(b => b.IncidentDate).ToList();
+                    }
+                    @if (!blotterList.Any())
+                    {
+                        <div style="text-align: center; padding: 40px; color: #64748b;">
+                            <div style="font-size: 2.2rem; margin-bottom: 8px;">📋</div>
+                            <div style="font-weight: 600; font-size: 1rem; color: #1e293b;">No Blotter Reports Found</div>
+                            <div style="font-size: 0.85rem; margin-top: 4px;">Click "+ New Blotter" to log an incident or generate one from reviewed reports.</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid #e2e8f0; background: #f8fafc; text-align: left;">
+                                    <th style="padding: 10px 12px; color: #475569; font-weight: 600;">File No.</th>
+                                    <th style="padding: 10px 12px; color: #475569; font-weight: 600;">Date &amp; Time</th>
+                                    <th style="padding: 10px 12px; color: #475569; font-weight: 600;">Type of Incident</th>
+                                    <th style="padding: 10px 12px; color: #475569; font-weight: 600;">Location</th>
+                                    <th style="padding: 10px 12px; color: #475569; font-weight: 600;">Status</th>
+                                    <th style="padding: 10px 12px; color: #475569; font-weight: 600; text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in blotterList)
+                                {
+                                    var bNo = item.IncidentId.ToString("D2");
+                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 12px; font-weight: 700; color: #1e293b;">#@bNo</td>
+                                        <td style="padding: 12px; color: #334155;">@item.IncidentDate.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                        <td style="padding: 12px;"><span style="background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 0.78rem;">@item.IncidentType</span></td>
+                                        <td style="padding: 12px; color: #334155;">@item.Location</td>
+                                        <td style="padding: 12px;">
+                                            <span style="padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; background: @(item.Status == "Done" || item.Status == "Closed" ? "#dcfce7" : "#fef3c7"); color: @(item.Status == "Done" || item.Status == "Closed" ? "#166534" : "#92400e");">
+                                                @(item.Status == "Done" || item.Status == "Closed" ? "✓ Done" : item.Status)
+                                            </span>
+                                        </td>
+                                        <td style="padding: 12px; text-align: right; white-space: nowrap;">
+                                            <button type="button" onclick="closeAllBlotterReportsModal(); openBlotterFromRecord(@item.IncidentId, '@item.IncidentDate.ToString("yyyy-MM-dd HH:mm")', '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(item.IncidentType ?? ""))', '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(item.Location ?? ""))', '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(item.ActionsTaken ?? ""))', '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(item.Outcome ?? ""))', '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(item.ReportSource ?? ""))', @(item.RelatedReportSubmissionId.HasValue ? item.RelatedReportSubmissionId.Value.ToString() : "null"))" style="padding: 5px 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; margin-right: 4px;">
+                                                View Blotter Paper
+                                            </button>
+                                            @if (item.Status == "Done" || item.Status == "Closed")
+                                            {
+                                                <button type="button" onclick="toggleBlotterStatusFromFeedback(@item.IncidentId, 'Open')" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 500; font-size: 12px; color: #64748b; background: #ffffff; cursor: pointer; margin-right: 4px;" title="Reopen this blotter">Reopen</button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" onclick="toggleBlotterStatusFromFeedback(@item.IncidentId, 'Done')" style="padding: 4px 10px; background: #16a34a; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; color: #ffffff; cursor: pointer; margin-right: 4px;" title="Mark this blotter as Done">✓ Mark Done</button>
+                                            }
+                                            <a href="@Url.Action("Edit", "BlotterReport", new { id = item.IncidentId })" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 500; font-size: 12px; color: #475569; text-decoration: none;">
+                                                Edit
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
                 </div>
             </div>
         </div>
@@ -229,6 +431,150 @@
 @section Scripts {
     <script>
         window.UserRole = '@userRole';
+
+        function openAllBlotterReportsModal() {
+            var modal = document.getElementById('allBlotterReportsModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeAllBlotterReportsModal() {
+            var modal = document.getElementById('allBlotterReportsModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function openBlotterFromRecord(id, dateStr, type, location, actions, outcome, source, relatedFeedbackId) {
+            window.currentFeedbackBlotterId = id;
+            window.currentFeedbackBlotterData = { id, type, location, source, relatedFeedbackId };
+
+            const blotterBody = document.getElementById("blotterBody");
+            const btnReset = document.getElementById("btnResetBlotter");
+            if (btnReset) btnReset.style.display = "none";
+
+            const msgEl = document.getElementById("feedbackBlotterSaveMsg");
+            if (msgEl) {
+                msgEl.style.display = "none";
+                msgEl.textContent = "";
+            }
+
+            const btnDone = document.getElementById("btnSaveBlotterDoneFeedback");
+            if (btnDone) {
+                btnDone.disabled = false;
+                btnDone.innerHTML = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> Save & Mark as Done`;
+                btnDone.style.background = "#16a34a";
+            }
+
+            // 1. Try to load synchronized paper from server first so edits from Blotter Reports are preserved!
+            let loadedFromServer = false;
+            try {
+                const res = await fetch(`/BlotterReport/GetPaperContent?id=${id}`);
+                const data = await res.json();
+                if (data && data.success && data.html) {
+                    blotterBody.innerHTML = data.html;
+                    loadedFromServer = true;
+                }
+            } catch (e) {
+                console.warn("Could not fetch server blotter paper:", e);
+            }
+
+            // 2. Fallback to full contenteditable template if not yet saved on server
+            if (!loadedFromServer) {
+                const bNoShort = String(id).padStart(2, '0');
+                const d = new Date(dateStr);
+                const formattedDate = isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                const formattedTime = isNaN(d.getTime()) ? '03:00 PM' : d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+                const html = `
+                <div class="blotter-gov" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 20px;">
+                  <div class="blotter-logo" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                    <img src="/logo-bantayan.jpg" alt="Bayan ng Bantayan Logo" style="width: 65px; height: 65px; object-fit: contain;">
+                  </div>
+
+                  <div style="text-align: center; flex: 1; font-family: 'Times New Roman', Times, serif; line-height: 1.3;">
+                    <div contenteditable="true" style="font-size: 14px; font-weight: 500; outline: none;">Republic of the Philippines</div>
+                    <div contenteditable="true" style="font-size: 14px; font-weight: 500; outline: none;">Province of Cebu</div>
+                    <div contenteditable="true" style="font-size: 15px; font-weight: 700; text-transform: uppercase; outline: none;">Municipality of Bantayan</div>
+                    <div contenteditable="true" style="font-size: 14px; font-weight: 600; color: #1e293b; outline: none;">Municipal Agriculturist Office</div>
+                    <div contenteditable="true" style="font-size: 15px; font-weight: 700; color: #0f172a; text-transform: uppercase; outline: none;">Bantay Dagat Headquarters</div>
+                    <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none;">Brgy. Suba, Bantayan, Cebu</div>
+                  </div>
+
+                  <div class="blotter-logo" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                    <img src="/logo-bantaydagat.jpg" alt="Bantay Dagat Logo" style="width: 65px; height: 65px; object-fit: contain;">
+                  </div>
+                </div>
+
+                <div style="text-align: right; font-weight: bold; margin-bottom: 20px; font-size: 14px; font-family: 'Times New Roman', Times, serif; outline: none;" contenteditable="true">
+                  ${formattedDate}
+                </div>
+
+                <div class="blotter-meta-grid" style="display: grid; grid-template-columns: 140px 20px 1fr; row-gap: 8px; margin-bottom: 15px; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.4;">
+                  <div contenteditable="true" style="font-weight: 500; outline: none;">File no.</div><div contenteditable="true" style="outline: none;">:</div><div contenteditable="true" style="font-weight: bold; outline: none;">${bNoShort}</div>
+                  <div contenteditable="true" style="font-weight: 500; outline: none;">Subject</div><div contenteditable="true" style="outline: none;">:</div><div contenteditable="true" style="outline: none;">Excerpt from the Municipal Bantay Dagat Blotter Report</div>
+                  <div contenteditable="true" style="font-weight: 500; outline: none;">Nature of Case</div><div contenteditable="true" style="outline: none;">:</div><div contenteditable="true" style="outline: none;">Resolution #33 Ordinance #02 Series of 2020 Section 37 Article 8 (${type || 'Maritime Incident'})</div>
+                </div>
+
+                <div style="border-top: 2px solid #000; margin-bottom: 20px;"></div>
+
+                <div class="occurrence-grid" style="display: grid; grid-template-columns: 180px 1fr; gap: 16px; margin-bottom: 20px; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.5; text-align: justify;">
+                  <div contenteditable="true" style="font-weight: bold; outline: none;">Time/Date/Place<br>Of Occurrence</div>
+                  <div contenteditable="true" style="outline: none;">--At about ${formattedTime} of ${formattedDate} at the vicinity municipal waters off ${location || "Bantayan"}, Cebu.</div>
+                  
+                  <div contenteditable="true" style="font-weight: bold; outline: none;">Report Source / Apprehended By</div>
+                  <div contenteditable="true" style="outline: none;">--${source || "Bantay Dagat Sea Patrol Team"}</div>
+                </div>
+
+                <div contenteditable="true" style="font-weight: bold; font-size: 14px; margin-bottom: 8px; font-family: 'Times New Roman', Times, serif; outline: none;">Facts & Actions Taken -</div>
+                <div class="narrative" id="blotterNarrativeText" contenteditable="true" style="outline: none; font-size: 14px; font-family: 'Times New Roman', Times, serif; line-height: 1.6; min-height: 160px; margin-bottom: 40px; text-align: justify; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 4px; background: #f8fafc;">
+                  ${actions || "Apprehended unauthorized vessel violating municipal fishing regulations."}
+                  <br><br>
+                  --[Outcome &amp; Disposition]--<br>
+                  ${outcome || "Case resolved and logged under official maritime enforcement records."}
+                </div>
+
+                <div class="sig-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; font-size: 14px; font-family: 'Times New Roman', Times, serif; margin-top: 50px;">
+                  <div>
+                    <div contenteditable="true" style="margin-bottom: 35px; outline: none;">Blotter by:</div>
+                    <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Julius L. Ejes</div>
+                    <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none; margin-top: 4px;">Deputy Officer</div>
+                  </div>
+                  <div>
+                    <div contenteditable="true" style="margin-bottom: 35px; outline: none;">Noted by:</div>
+                    <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Niven G. Pestaño</div>
+                    <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none; margin-top: 4px;">Bantay Dagat Officer</div>
+                  </div>
+                </div>`;
+
+                blotterBody.innerHTML = html;
+            }
+
+            const overlay = document.getElementById("blotterOverlay");
+            if (overlay) {
+                overlay.style.display = "flex";
+                overlay.classList.add("open");
+            }
+        }
+
+        async function toggleBlotterStatusFromFeedback(id, newStatus) {
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('status', newStatus);
+
+            try {
+                const res = await fetch('/BlotterReport/UpdateStatus', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to update blotter status.');
+                }
+            } catch (err) {
+                console.error('Error updating blotter status:', err);
+                alert('Failed to update blotter status.');
+            }
+        }
         
         function simulateIncomingReport() {
             fetch('/api/feedback/simulate', { method: 'POST' })

@@ -307,6 +307,109 @@ namespace ari_final_sa_capstone.Controllers
                 .ToListAsync();
             return Ok(blocked);
         }
+
+        [HttpGet("replies/all")]
+        public async Task<IActionResult> GetAllReplies()
+        {
+            var replies = await _db.FeedbackReplies
+                .OrderByDescending(r => r.SentAt)
+                .Take(300)
+                .Select(r => new
+                {
+                    id = r.Id,
+                    feedbackId = r.FeedbackId,
+                    recipient = r.RecipientContact,
+                    message = r.ReplyMessage,
+                    sentBy = r.SentByAdmin ?? "Admin",
+                    sentAt = r.SentAt.ToString("yyyy-MM-dd HH:mm"),
+                    status = r.Status
+                })
+                .ToListAsync();
+
+            return Ok(replies);
+        }
+
+        [HttpGet("{id}/replies")]
+        public async Task<IActionResult> GetReplies(int id)
+        {
+            var replies = await _db.FeedbackReplies
+                .Where(r => r.FeedbackId == id)
+                .OrderByDescending(r => r.SentAt)
+                .Select(r => new
+                {
+                    id = r.Id,
+                    feedbackId = r.FeedbackId,
+                    recipient = r.RecipientContact,
+                    message = r.ReplyMessage,
+                    sentBy = r.SentByAdmin ?? "Admin",
+                    sentAt = r.SentAt.ToString("yyyy-MM-dd HH:mm"),
+                    status = r.Status
+                })
+                .ToListAsync();
+
+            return Ok(replies);
+        }
+
+        [HttpPost("{id}/reply")]
+        public async Task<IActionResult> SendReply(int id, [FromBody] FeedbackReplyDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Message))
+            {
+                return BadRequest("Reply message cannot be empty.");
+            }
+
+            var report = await _db.FeedbackMessages.FindAsync(id);
+            if (report == null)
+            {
+                return NotFound("Report not found.");
+            }
+
+            var adminName = User.Identity?.Name ?? "Admin";
+
+            var reply = new FeedbackReply
+            {
+                FeedbackId = id,
+                RecipientContact = report.ContactNumber,
+                ReplyMessage = dto.Message.Trim(),
+                SentByAdmin = adminName,
+                SentAt = DateTime.Now,
+                Status = "DELIVERED"
+            };
+
+            _db.FeedbackReplies.Add(reply);
+
+            // Also log to SMSLogs for global SMS stats
+            var smsLog = new SMSLog
+            {
+                PhoneNumber = report.ContactNumber,
+                MessageType = "Reply",
+                Status = "DELIVERED",
+                TimestampSent = DateTime.Now
+            };
+            _db.SMSLogs.Add(smsLog);
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                reply = new
+                {
+                    id = reply.Id,
+                    feedbackId = reply.FeedbackId,
+                    recipient = reply.RecipientContact,
+                    message = reply.ReplyMessage,
+                    sentBy = reply.SentByAdmin,
+                    sentAt = reply.SentAt.ToString("yyyy-MM-dd HH:mm"),
+                    status = reply.Status
+                }
+            });
+        }
+    }
+
+    public class FeedbackReplyDto
+    {
+        public string Message { get; set; } = string.Empty;
     }
 
     public class FeedbackCreateDto
