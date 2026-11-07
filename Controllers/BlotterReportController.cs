@@ -44,6 +44,16 @@ namespace ari_final_sa_capstone.Controllers
             return View(blotterReport);
         }
 
+        // GET: BlotterReport/Details/5
+        public IActionResult Details(int? id)
+        {
+            if (id == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            return RedirectToAction(nameof(Index), new { open_id = id });
+        }
+
         // GET: BlotterReport/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {

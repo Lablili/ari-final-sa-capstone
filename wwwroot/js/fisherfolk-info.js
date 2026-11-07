@@ -249,7 +249,7 @@
 
             row.innerHTML =
                 '<td class="owner-name">' + record.completeName + '</td>' +
-                '<td>Barangay ' + record.barangay + '</td>' +
+                '<td class="barangay-cell">Barangay ' + record.barangay + '</td>' +
                 '<td>' +
                     '<div class="vessel-cell">' +
                         '<svg class="vessel-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">' +
@@ -435,7 +435,7 @@
             var row = document.createElement("tr");
             row.innerHTML =
                 '<td class="owner-name">' + record.completeName + '</td>' +
-                '<td>Barangay ' + record.barangay + '</td>' +
+                '<td class="barangay-cell">Barangay ' + record.barangay + '</td>' +
                 '<td>' +
                     '<div class="vessel-cell">' +
                         '<svg class="vessel-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18">' +

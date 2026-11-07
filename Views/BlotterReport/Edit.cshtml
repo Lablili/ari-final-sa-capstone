@@ -3,105 +3,455 @@
     ViewData["Title"] = "Edit Blotter Report";
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["ActivePage"] = "BlotterReports";
+
+    var incidentNo = Model.IncidentId.ToString("D2");
+    var statusClass = Model.Status == "Done" || Model.Status == "Closed" ? "status-done" : "status-open";
 }
 
 <div class="dashboard-shell">
     @await Html.PartialAsync("_DashboardSidebar")
-    <main class="main-content" style="padding: 20px;">
 
-<div class="content-header" style="margin-bottom: 24px; display: flex; align-items: center; gap: 14px; padding: 6px 0 16px 0;">
-    <a asp-action="Index" 
-       title="Back to Blotter Reports" 
-       aria-label="Back to Blotter Reports"
-       style="display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 8px; background: #ffffff; border: 1.5px solid #cbd5e1; color: #475569; text-decoration: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05);"
-       onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='#94a3b8'; this.style.color='#1e293b';"
-       onmouseout="this.style.background='#ffffff'; this.style.borderColor='#cbd5e1'; this.style.color='#475569';">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-    </a>
-    <div>
-        <h2 style="font-weight: 700; margin: 0; font-size: 1.65rem; color: #1e293b;">Edit Blotter Report</h2>
-        <p style="margin: 3px 0 0; font-size: 0.9rem; color: #64748b;">Update details or apprehension records for Incident #@Model.IncidentId.ToString("D2")</p>
-    </div>
-</div>
+    <main class="main-content" style="padding: 24px; max-width: 1100px; margin: 0 auto; width: 100%;">
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form asp-action="Edit">
-            <input type="hidden" asp-for="IncidentId" />
-            <input type="hidden" asp-for="RelatedReportSubmissionId" />
-            
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="IncidentType" class="form-label">Type of Incident</label>
-                    <select asp-for="IncidentType" class="form-select" required>
-                        <option value="">Select...</option>
-                        <option value="Illegal Fishing">Illegal Fishing (Dynamite, Cyanide, etc.)</option>
-                        <option value="Encroachment">Encroaching Vessel</option>
-                        <option value="Distress">Vessel in Distress / SOS</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="IncidentDate" class="form-label">Date & Time</label>
-                    <input asp-for="IncidentDate" class="form-control" required />
+        <!-- Header -->
+        <div class="blotter-edit-header">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <a asp-action="Index" 
+                   title="Back to Blotter Reports" 
+                   class="btn-back-circle">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                </a>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <h2 style="font-weight: 700; margin: 0; font-size: 1.5rem; color: #0f172a;">Edit Blotter Report #@incidentNo</h2>
+                        <span class="blotter-status-pill @statusClass">@Model.Status</span>
+                    </div>
+                    <p style="margin: 4px 0 0; font-size: 0.88rem; color: #64748b;">
+                        Update official incident data, maritime response metrics, and enforcement records.
+                    </p>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Location" class="form-label">Location (Barangay/Coordinates)</label>
-                    <input asp-for="Location" class="form-control" required />
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="ReportSource" class="form-label">Report Source</label>
-                    <select asp-for="ReportSource" class="form-select" required>
-                        <option value="">Select...</option>
-                        <option value="SMS Report">SMS Report</option>
-                        <option value="Direct Observation">Direct Observation / Patrol</option>
-                        <option value="Walk-in">Walk-in</option>
-                    </select>
-                </div>
+            <!-- Quick Action: View Blotter Paper -->
+            <div>
+                <a href="/BlotterReport?open_id=@Model.IncidentId" 
+                   target="_blank" 
+                   class="btn-view-paper" 
+                   title="Open printable official blotter certificate">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span>View Blotter Paper &nearr;</span>
+                </a>
             </div>
+        </div>
 
-            <div class="mb-3">
-                <label asp-for="ActionsTaken" class="form-label">Actions Taken (Response)</label>
-                <textarea asp-for="ActionsTaken" class="form-control" rows="3" required></textarea>
-            </div>
+        <!-- Form Card Container -->
+        <div class="blotter-form-card">
+            <form asp-action="Edit" method="post">
+                <input type="hidden" asp-for="IncidentId" />
+                <input type="hidden" asp-for="RelatedReportSubmissionId" />
 
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label asp-for="ResponseTimeMinutes" class="form-label">Response Time (Minutes)</label>
-                    <input asp-for="ResponseTimeMinutes" type="number" step="0.1" class="form-control" value="@Model.ResponseTimeMinutes" />
-                    <small class="text-muted">Time from report received to dispatch/action.</small>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label asp-for="Outcome" class="form-label">Outcome</label>
-                    <input asp-for="Outcome" class="form-control" value="@Model.Outcome" />
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label asp-for="Status" class="form-label">Case Status</label>
-                    <select asp-for="Status" class="form-select">
-                        <option value="Open">Open</option>
-                        <option value="Done">Done</option>
-                        <option value="Closed">Closed</option>
-                        <option value="Dismissed">Dismissed</option>
-                    </select>
-                </div>
-            </div>
+                <!-- SECTION 1: Incident Classification -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span class="section-num">1</span>
+                        <span>Incident Classification &amp; Source</span>
+                    </div>
 
-            <div class="mt-4" style="display: flex; align-items: center; gap: 8px;">
-                <button type="submit" class="btn btn-primary px-4">Save Changes</button>
-                <button type="submit" name="markAsDone" value="true" class="btn px-4" style="background: #16a34a; border-color: #16a34a; color: #ffffff; font-weight: 600;">
-                    ✓ Save &amp; Mark as Done
-                </button>
-                <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
-            </div>
-        </form>
-    </div>
-</div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label asp-for="IncidentType" class="field-label">Type of Incident <span class="req">*</span></label>
+                            <select asp-for="IncidentType" class="field-select" required>
+                                <option value="">Select Incident Type...</option>
+                                <option value="Illegal Fishing">Illegal Fishing (Dynamite, Cyanide, Fine Mesh)</option>
+                                <option value="Encroachment">Encroaching Commercial Vessel</option>
+                                <option value="Distress">Vessel in Distress / SOS / Search &amp; Rescue</option>
+                                <option value="Marine Sanctuary Violation">Marine Protected Area (MPA) Violation</option>
+                                <option value="General Concern">General Maritime Concern</option>
+                                <option value="Other">Other Violation / Incident</option>
+                            </select>
+                            <span class="field-hint">Used for municipal radar charts and incident categorization.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ReportSource" class="field-label">Report Source / Apprehended By <span class="req">*</span></label>
+                            <input asp-for="ReportSource" class="field-input" list="sourceSuggestions" placeholder="e.g. Bantay Dagat Patrol, SMS Report from 09..." required />
+                            <datalist id="sourceSuggestions">
+                                <option value="Bantay Dagat Sea Patrol Team" />
+                                <option value="SMS Report" />
+                                <option value="Direct Observation / Apprehension" />
+                                <option value="Walk-in Citizen Report" />
+                                <option value="Barangay Official Hotline" />
+                            </datalist>
+                            <span class="field-hint">Who observed or submitted this incident report.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: Time & Place of Occurrence -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span class="section-num">2</span>
+                        <span>Time &amp; Location of Occurrence</span>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="IncidentDateFormatted" class="field-label">Date &amp; Time of Occurrence <span class="req">*</span></label>
+                            <input type="datetime-local" 
+                                   id="IncidentDateFormatted" 
+                                   name="IncidentDate" 
+                                   class="field-input" 
+                                   value="@Model.IncidentDate.ToString("yyyy-MM-ddTHH:mm")" 
+                                   required />
+                            <span class="field-hint">Date and time when the incident took place.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Location" class="field-label">Location (Barangay / Coastal Coordinates) <span class="req">*</span></label>
+                            <input asp-for="Location" class="field-input" list="barangaySuggestions" placeholder="e.g. Patao, Sulangan, Guiwanon" required />
+                            <datalist id="barangaySuggestions">
+                                <option value="Sulangan" />
+                                <option value="Patao" />
+                                <option value="Guiwanon" />
+                                <option value="Suba" />
+                                <option value="Pooc" />
+                                <option value="Kabac" />
+                                <option value="Binaobao" />
+                                <option value="Kampingganon" />
+                                <option value="Bantayan Municipal Waters" />
+                            </datalist>
+                            <span class="field-hint">Select or type the municipal coastal location.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: Response, Actions Taken & Enforcement -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span class="section-num">3</span>
+                        <span>Actions Taken &amp; Narrative</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="ActionsTaken" class="field-label">Facts &amp; Actions Taken (Response) <span class="req">*</span></label>
+                        <textarea asp-for="ActionsTaken" 
+                                  class="field-textarea" 
+                                  rows="4" 
+                                  placeholder="Describe facts of the occurrence, response conducted by sea patrol team, apprehension details, vessels inspected, or evidence collected..." 
+                                  required></textarea>
+                        <span class="field-hint">Details of enforcement actions taken by Bantay Dagat operatives.</span>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: Outcome, Metrics & Case Status -->
+                <div class="form-section" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                    <div class="section-title">
+                        <span class="section-num">4</span>
+                        <span>Case Disposition &amp; Performance Metrics</span>
+                    </div>
+
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label asp-for="ResponseTimeMinutes" class="field-label">Response Time (Minutes)</label>
+                            <input asp-for="ResponseTimeMinutes" 
+                                   type="number" 
+                                   step="0.1" 
+                                   min="0" 
+                                   class="field-input" 
+                                   value="@Model.ResponseTimeMinutes" />
+                            <span class="field-hint">Time from report receipt to response (powers municipal KPI).</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Outcome" class="field-label">Outcome / Legal Disposition</label>
+                            <input asp-for="Outcome" 
+                                   class="field-input" 
+                                   list="outcomeSuggestions" 
+                                   placeholder="e.g. Case resolved, Warning issued, Impounded" 
+                                   value="@Model.Outcome" />
+                            <datalist id="outcomeSuggestions">
+                                <option value="Case resolved and logged under maritime enforcement records" />
+                                <option value="Apprehended unauthorized vessel violating municipal regulations" />
+                                <option value="Verbal warning issued and recorded" />
+                                <option value="Referred to PNP Maritime Group" />
+                                <option value="Under continuous surveillance / Investigation" />
+                                <option value="Resolved / Rescued without casualty" />
+                            </datalist>
+                            <span class="field-hint">Final resolution or disposition of the case.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Status" class="field-label">Case Status <span class="req">*</span></label>
+                            <select asp-for="Status" class="field-select">
+                                <option value="Open">Open (Pending / Active Investigation)</option>
+                                <option value="Done">Done (Resolved / Apprehended)</option>
+                                <option value="Closed">Closed (Archived)</option>
+                                <option value="Dismissed">Dismissed (Unsubstantiated)</option>
+                            </select>
+                            <span class="field-hint">Determines if case is active or completed.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Action Buttons -->
+                <div class="form-actions-bar">
+                    <button type="submit" class="btn-save-primary">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>Save Changes</span>
+                    </button>
+
+                    <button type="submit" name="markAsDone" value="true" class="btn-save-done" title="Save all changes and mark this incident status as Done">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Save &amp; Mark as Done</span>
+                    </button>
+
+                    <a asp-action="Index" class="btn-cancel">Cancel</a>
+                </div>
+
+            </form>
+        </div>
 
     </main>
 </div>
+
+<!-- Modern Form Styles -->
+<style>
+    .blotter-edit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .btn-back-circle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        color: #475569;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .btn-back-circle:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+        color: #0f172a;
+    }
+    .blotter-status-pill {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .blotter-status-pill.status-done {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+    .blotter-status-pill.status-open {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    .btn-view-paper {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 8px;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #1e3a8a;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        transition: all 0.15s ease;
+    }
+    .btn-view-paper:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+        color: #1d4ed8;
+    }
+
+    /* Card */
+    .blotter-form-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        padding: 24px 28px;
+    }
+
+    /* Section */
+    .form-section {
+        margin-bottom: 24px;
+        padding-bottom: 22px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 16px;
+        letter-spacing: -0.01em;
+    }
+    .section-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #2563eb;
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    /* Grids */
+    .form-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+    .form-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+    @@media (max-width: 768px) {
+        .form-grid-2, .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Form Controls */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .field-label {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #334155;
+    }
+    .req {
+        color: #dc2626;
+        font-weight: 700;
+    }
+    .field-input, .field-select, .field-textarea {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 13.5px;
+        color: #1e293b;
+        background: #ffffff;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+    .field-input:focus, .field-select:focus, .field-textarea:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    .field-textarea {
+        resize: vertical;
+        line-height: 1.5;
+        min-height: 90px;
+    }
+    .field-hint {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    /* Action Buttons */
+    .form-actions-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+    .btn-save-primary {
+        background: #2563eb;
+        color: #ffffff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.15s ease;
+        box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+    }
+    .btn-save-primary:hover {
+        background: #1d4ed8;
+    }
+    .btn-save-done {
+        background: #16a34a;
+        color: #ffffff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.15s ease;
+        box-shadow: 0 1px 3px rgba(22, 163, 74, 0.2);
+    }
+    .btn-save-done:hover {
+        background: #15803d;
+    }
+    .btn-cancel {
+        padding: 9px 18px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        background: #f8fafc;
+        color: #475569;
+        font-size: 13.5px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.15s ease;
+    }
+    .btn-cancel:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+        border-color: #94a3b8;
+    }
+</style>

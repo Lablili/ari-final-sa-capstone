@@ -1,4 +1,4 @@
-// ════ DATA ════
+﻿// â•â•â•â• DATA â•â•â•â•
 let DATA = [
   {
     id: 1,
@@ -8,7 +8,7 @@ let DATA = [
     flaggedPlace: "Patao",
     time: "2026-05-25 06:14",
     status: "new",
-    subject: "Kalit nga pagka-dehado sa makina – Mayday",
+    subject: "Kalit nga pagka-dehado sa makina â€“ Mayday",
     msg: "Mayday! Nabuslot ang makina. Duol mi mga 3 nautical miles sa amihan-sidlakan sa Patao. 4 ka crew, walay kadaut. Palihug padala dayon og tabang. Ang barko naglutaw paingon sa amihanan-kasadpan.",
   },
   {
@@ -19,7 +19,7 @@ let DATA = [
     flaggedPlace: "Guiwanon",
     time: "2026-05-24 21:45",
     status: "review",
-    subject: "Hangyo og Reskyu – Nag-umol ang Bangka",
+    subject: "Hangyo og Reskyu â€“ Nag-umol ang Bangka",
     msg: "Natumba ang among bangka duol sa baybayon sa Guiwanon. 2 ka mangingisda nagkapilit sa hull. Kinahanglan og dali nga reskyu. Duol sa pulang buoy ang lokasyon.",
   },
   {
@@ -30,7 +30,7 @@ let DATA = [
     flaggedPlace: "Sulangan",
     time: "2026-05-25 08:30",
     status: "new",
-    subject: "Iligal nga pagpangisda – Paggamit sa dinamita",
+    subject: "Iligal nga pagpangisda â€“ Paggamit sa dinamita",
     msg: "Nakit-an namo ang usa ka dako nga motorized banca nga naggamit og dinamita sa daplin sa coral reef duol sa Sulangan sa alas 8:00 sa buntag. Wala kiniy marka ug nidagan paingon sa kasadpan.",
   },
   {
@@ -90,10 +90,10 @@ let DATA = [
   },
 ];
 
-// ════ SELECTORS ════
+// â•â•â•â• SELECTORS â•â•â•â•
 const dashboardShell = document.getElementById("dashboardShell");
 
-// ════ METADATA ════
+// â•â•â•â• METADATA â•â•â•â•
 const CAT = {
   sos: {
     label: "SOS / Rescue",
@@ -131,7 +131,7 @@ const STAT = {
   archived: { cls: "dot-archived", label: "Archived" },
 };
 
-// ════ STATE ════
+// â•â•â•â• STATE â•â•â•â•
 let activeFilter = "all";
 let activePriorityFilter = "all";
 let activeStatusFilter = "all";
@@ -139,7 +139,16 @@ let page = 1;
 const PER = 6;
 let activeMsg = null;
 
-// ════ UTILITIES ════
+// â•â•â•â• UTILITIES â•â•â•â•
+function getPriorityClass(prio) {
+  const p = (prio || "").toLowerCase().trim();
+  if (p === "critical") return "prio-critical";
+  if (p === "high") return "prio-high";
+  if (p === "medium") return "prio-medium";
+  if (p === "low") return "prio-low";
+  return "prio-default";
+}
+
 function showToast(message) {
   let toast = document.getElementById("feedbackToast");
   if (!toast) {
@@ -212,7 +221,7 @@ function filtered() {
   return res;
 }
 
-// ════ RENDER FUNCTIONS ════
+// â•â•â•â• RENDER FUNCTIONS â•â•â•â•
 function renderCounts() {
   document.getElementById("s-total").textContent = DATA.length;
   const nw = DATA.filter((m) => m.status === "new").length;
@@ -259,7 +268,7 @@ function renderTable() {
 
   document.getElementById("recCount").textContent = total + " records";
   document.getElementById("pgInfo").textContent = total
-    ? `Showing ${start + 1}–${Math.min(start + PER, total)} of ${total}`
+    ? `Showing ${start + 1}â€“${Math.min(start + PER, total)} of ${total}`
     : "0 records";
   document.getElementById("pgNum").textContent = `Page ${page} / ${totalPages}`;
   document.getElementById("btnPrev").disabled = page === 1;
@@ -298,8 +307,8 @@ function renderTable() {
       const rowStyle = isActuallyNew ? 'background: #f8fafc;' : 'background: #ffffff;';
 
       return `<tr class="${c.rowCls}" style="animation-delay:${i * 40}ms; ${rowStyle}" onclick="openDetail(${m.id})">
-      <td><span class="cat-badge" style="background:#e2e8f0;color:#0f172a;">${m.priority}</span></td>
-      <td><span class="cat-badge ${c.cls}">${c.icon}&nbsp;${c.label}</span></td>
+      <td><span class="prio-badge ${getPriorityClass(m.priority)}">${m.priority}</span></td>
+      <td><span class="cat-badge">${c.icon}&nbsp;${c.label}</span></td>
       <td><div class="sender-name" style="${fw}">${m.contact}<br>${regTag}</div><div class="sender-sub" style="margin-top: 6px; ${fw}">${m.flaggedPlace}</div></td>
       <td><div style="${fw} font-size: 15px;">${m.subject}</div><div class="msg-preview" style="${fw}">${m.msg}</div></td>
       <td><span class="status-dot" style="${fw}"><span class="dot ${s.cls}"></span>${s.label}</span></td>
@@ -312,17 +321,17 @@ function renderTable() {
     .join("");
 }
 
-// 🔄 Auto-Refresh every 5 seconds
+// ðŸ”„ Auto-Refresh every 5 seconds
 setInterval(loadFeedbackFromDb, 5000);
 
-// ════ PAGINATION ════
+// â•â•â•â• PAGINATION â•â•â•â•
 function goPage(d) {
   const t = Math.ceil(filtered().length / PER) || 1;
   page = Math.max(1, Math.min(page + d, t));
   renderTable();
 }
 
-// ════ FILTER & SEARCH ════
+// â•â•â•â• FILTER & SEARCH â•â•â•â•
 function clearFilters() {
   activeFilter = "all";
   activePriorityFilter = "all";
@@ -387,7 +396,7 @@ window.filterByCard = function (statusVal) {
   renderCounts();
 };
 
-// ════ EXPORT CSV ════
+// â•â•â•â• EXPORT CSV â•â•â•â•
 function csvCell(val) {
   return '"' + String(val == null ? "" : val).replace(/"/g, '""') + '"';
 }
@@ -452,7 +461,7 @@ function exportFeedbackCSV() {
   document.body.removeChild(link);
 }
 
-// ════ DETAIL VIEW ════
+// â•â•â•â• DETAIL VIEW â•â•â•â•
 function openDetail(id) {
   activeMsg = DATA.find((m) => m.id === id);
   if (!activeMsg) return;
@@ -548,7 +557,7 @@ function openDetail(id) {
   document.getElementById("detailBody").innerHTML = `
     <div class="info-grid">
       <div class="info-card"><div class="info-l">Contact</div><div class="info-v">${activeMsg.contact}${regTag}</div></div>
-      <div class="info-card"><div class="info-l">Priority Level</div><div class="info-v">${activeMsg.priority}</div></div>
+      <div class="info-card"><div class="info-l">Priority Level</div><div class="info-v"><span class="prio-badge ${getPriorityClass(activeMsg.priority)}">${activeMsg.priority}</span></div></div>
       <div class="info-card"><div class="info-l">Flagged Place</div><div class="info-v">${activeMsg.flaggedPlace}</div></div>
       <div class="info-card"><div class="info-l">Date &amp; Time</div><div class="info-v">${fmtDate(activeMsg.time, false)}</div></div>
       <div class="info-card"><div class="info-l">Status</div><div class="info-v"><span class="status-dot"><span class="dot ${s.cls}"></span>${s.label}</span></div></div>
@@ -581,7 +590,7 @@ function openDetail(id) {
         if (related && related.length > 0) {
           alertContainer.innerHTML = `
             <div style="margin: 15px 32px 0 32px; padding: 12px 16px; background-color: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; color: #92400e; font-size: 13px;">
-              <strong>⚠️ Potential Related Incident:</strong> There are ${related.length} other report(s) for <strong>${activeMsg.flaggedPlace}</strong> near this time.
+              <strong>âš ï¸ Potential Related Incident:</strong> There are ${related.length} other report(s) for <strong>${activeMsg.flaggedPlace}</strong> near this time.
               <div style="margin-top: 8px;">
                 <button onclick="openGroupReview(${activeMsg.id})" style="padding: 6px 14px; background: #f59e0b; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 600; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">Review as a Group</button>
               </div>
@@ -1093,8 +1102,8 @@ async function openBlotter(id) {
     blotterBody.innerHTML = `
     <div class="blotter-gov" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 20px;">
       <!-- Left Logo: Bayan ng Bantayan -->
-      <div class="blotter-logo" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
-        <img src="/logo-bantayan.jpg" alt="Bayan ng Bantayan Logo" style="width: 65px; height: 65px; object-fit: contain;">
+      <div class="blotter-logo" style="width: 95px; height: 95px; display: flex; align-items: center; justify-content: center;">
+        <img src="/logo-bantayan.jpg" alt="Bayan ng Bantayan Logo" style="width: 90px; height: 90px; object-fit: contain;">
       </div>
 
       <div style="text-align: center; flex: 1; font-family: 'Times New Roman', Times, serif; line-height: 1.3;">
@@ -1107,8 +1116,8 @@ async function openBlotter(id) {
       </div>
 
       <!-- Right Logo: Bantay Dagat -->
-      <div class="blotter-logo" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
-        <img src="/logo-bantaydagat.jpg" alt="Bantay Dagat Logo" style="width: 65px; height: 65px; object-fit: contain;">
+      <div class="blotter-logo" style="width: 95px; height: 95px; display: flex; align-items: center; justify-content: center;">
+        <img src="/logo-bantaydagat.jpg" alt="Bantay Dagat Logo" style="width: 90px; height: 90px; object-fit: contain;">
       </div>
     </div>
 
@@ -1160,7 +1169,7 @@ async function openBlotter(id) {
       </div>
       <div>
         <div contenteditable="true" style="margin-bottom: 35px; outline: none;">Noted by:</div>
-        <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Niven G. Pestaño</div>
+        <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Niven G. PestaÃ±o</div>
         <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none; margin-top: 4px;">Bantay Dagat Officer</div>
       </div>
     </div>`;
@@ -1246,15 +1255,15 @@ window.saveBlotterAndMarkDone = async function () {
       }
 
       if (msgEl) {
-        msgEl.textContent = "✓ Blotter saved and marked as Done!";
+        msgEl.textContent = "âœ“ Blotter saved and marked as Done!";
         msgEl.style.display = "inline";
       }
       if (typeof showToast === "function") {
-        showToast("✓ Blotter saved and marked as Done!");
+        showToast("âœ“ Blotter saved and marked as Done!");
       }
 
       if (btnDone) {
-        btnDone.innerHTML = `✓ Done & Saved`;
+        btnDone.innerHTML = `âœ“ Done & Saved`;
         btnDone.style.background = '#059669';
       }
 
@@ -1293,7 +1302,7 @@ window.resetBlotter = function () {
   }
 };
 
-// ════ INIT ════
+// â•â•â•â• INIT â•â•â•â•
 function displayCurrentDate() {
   const today = new Date();
   const options = {
@@ -1336,7 +1345,7 @@ document.addEventListener("DOMContentLoaded", function () {
   loadFeedbackFromDb();
 });
 
-// ════ DB SYNC ════
+// â•â•â•â• DB SYNC â•â•â•â•
 async function loadFeedbackFromDb() {
   try {
     const res = await fetch("/api/feedback");

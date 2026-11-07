@@ -1,4 +1,4 @@
-@inject ari_final_sa_capstone.Data.ApplicationDbContext DbContext
+﻿@inject ari_final_sa_capstone.Data.ApplicationDbContext DbContext
 @{
     ViewData["Title"] = "Community Reports";
     var sessionRole = Context.Session.GetString("UserRole");
@@ -76,7 +76,7 @@
                     <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
                         <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input class="search-input" id="searchInput" type="text" placeholder="Search sender, subject, message…">
+                    <input class="search-input" id="searchInput" type="text" placeholder="Search sender, subject, messageâ€¦">
                 </div>
             </div>
 
@@ -114,7 +114,7 @@
                         <option value="archived">Resolved / Archived</option>
                     </select>
                 </div>
-                <!-- Clear Filters — always visible -->
+                <!-- Clear Filters â€” always visible -->
                 <button id="btnClear" type="button" onclick="clearFilters()" style="display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
                     <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     Clear
@@ -179,7 +179,7 @@
                 <p>No messages found for your selection.</p>
             </div>
             <div class="pagination">
-                <span id="pgInfo">—</span>
+                <span id="pgInfo">â€”</span>
                 <div class="pg-btns">
                     <button class="pg-btn" id="btnPrev" onclick="goPage(-1)">&#8592; previous</button>
                     <span id="pgNum" style="font-size:.75rem;font-weight:600;color:#0f172a;padding:0 6px"></span>
@@ -311,7 +311,7 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <a href="@Url.Action("Create", "BlotterReport")" style="font-weight: 600; text-decoration: none; padding: 7px 14px; border-radius: 6px; background: #007a70; color: #ffffff; font-size: 13px; display: inline-flex; align-items: center; gap: 4px;">+ New Blotter</a>
-                        <a href="@Url.Action("Index", "BlotterReport")" style="font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: #ffffff; border: 1px solid #cbd5e1; color: #475569; font-size: 13px;">Full Page ↗</a>
+                        <a href="@Url.Action("Index", "BlotterReport")" style="font-weight: 600; text-decoration: none; padding: 6px 12px; border-radius: 6px; background: #ffffff; border: 1px solid #cbd5e1; color: #475569; font-size: 13px;">Full Page â†—</a>
                         <button class="modal-close" onclick="closeAllBlotterReportsModal()" type="button" aria-label="Close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; line-height: 1;">&times;</button>
                     </div>
                 </div>
@@ -322,7 +322,7 @@
                     @if (!blotterList.Any())
                     {
                         <div style="text-align: center; padding: 40px; color: #64748b;">
-                            <div style="font-size: 2.2rem; margin-bottom: 8px;">📋</div>
+                            <div style="font-size: 2.2rem; margin-bottom: 8px;">ðŸ“‹</div>
                             <div style="font-weight: 600; font-size: 1rem; color: #1e293b;">No Blotter Reports Found</div>
                             <div style="font-size: 0.85rem; margin-top: 4px;">Click "+ New Blotter" to log an incident or generate one from reviewed reports.</div>
                         </div>
@@ -351,7 +351,7 @@
                                         <td style="padding: 12px; color: #334155;">@item.Location</td>
                                         <td style="padding: 12px;">
                                             <span style="padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; background: @(item.Status == "Done" || item.Status == "Closed" ? "#dcfce7" : "#fef3c7"); color: @(item.Status == "Done" || item.Status == "Closed" ? "#166534" : "#92400e");">
-                                                @(item.Status == "Done" || item.Status == "Closed" ? "✓ Done" : item.Status)
+                                                @(item.Status == "Done" || item.Status == "Closed" ? "âœ“ Done" : item.Status)
                                             </span>
                                         </td>
                                         <td style="padding: 12px; text-align: right; white-space: nowrap;">
@@ -364,7 +364,7 @@
                                             }
                                             else
                                             {
-                                                <button type="button" onclick="toggleBlotterStatusFromFeedback(@item.IncidentId, 'Done')" style="padding: 4px 10px; background: #16a34a; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; color: #ffffff; cursor: pointer; margin-right: 4px;" title="Mark this blotter as Done">✓ Mark Done</button>
+                                                <button type="button" onclick="toggleBlotterStatusFromFeedback(@item.IncidentId, 'Done')" style="padding: 4px 10px; background: #16a34a; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; color: #ffffff; cursor: pointer; margin-right: 4px;" title="Mark this blotter as Done">âœ“ Mark Done</button>
                                             }
                                             <a href="@Url.Action("Edit", "BlotterReport", new { id = item.IncidentId })" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 500; font-size: 12px; color: #475569; text-decoration: none;">
                                                 Edit
@@ -485,8 +485,8 @@
 
                 const html = `
                 <div class="blotter-gov" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 20px;">
-                  <div class="blotter-logo" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
-                    <img src="/logo-bantayan.jpg" alt="Bayan ng Bantayan Logo" style="width: 65px; height: 65px; object-fit: contain;">
+                  <div class="blotter-logo" style="width: 95px; height: 95px; display: flex; align-items: center; justify-content: center;">
+                    <img src="/logo-bantayan.jpg" alt="Bayan ng Bantayan Logo" style="width: 90px; height: 90px; object-fit: contain;">
                   </div>
 
                   <div style="text-align: center; flex: 1; font-family: 'Times New Roman', Times, serif; line-height: 1.3;">
@@ -498,8 +498,8 @@
                     <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none;">Brgy. Suba, Bantayan, Cebu</div>
                   </div>
 
-                  <div class="blotter-logo" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
-                    <img src="/logo-bantaydagat.jpg" alt="Bantay Dagat Logo" style="width: 65px; height: 65px; object-fit: contain;">
+                  <div class="blotter-logo" style="width: 95px; height: 95px; display: flex; align-items: center; justify-content: center;">
+                    <img src="/logo-bantaydagat.jpg" alt="Bantay Dagat Logo" style="width: 90px; height: 90px; object-fit: contain;">
                   </div>
                 </div>
 
@@ -539,7 +539,7 @@
                   </div>
                   <div>
                     <div contenteditable="true" style="margin-bottom: 35px; outline: none;">Noted by:</div>
-                    <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Niven G. Pestaño</div>
+                    <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Niven G. PestaÃ±o</div>
                     <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none; margin-top: 4px;">Bantay Dagat Officer</div>
                   </div>
                 </div>`;

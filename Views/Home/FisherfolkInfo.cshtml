@@ -87,7 +87,8 @@
         </div>
 
         <div class="database-container">
-            <table class="fisherfolk-table">
+            <div class="table-scroll-container">
+                <table class="fisherfolk-table">
                 <thead>
                     <tr>
                         <th>Owner Name</th>
@@ -100,14 +101,15 @@
                     </tr>
                 </thead>
                 <tbody id="fisherfolkTableBody"></tbody>
-            </table>
+                </table>
+            </div>
             
-            <div class="table-footer" style="padding: 15px 0 5px 0; margin-top: 5px; display: flex; flex-direction: column; gap: 6px;">
-                <span id="activeRecordCount" style="font-size: 14.5px; color: #0f172a; font-weight: 500;">Showing 0 of 0 records</span>
+            <div class="table-footer" style="padding: 10px 16px; margin-top: 0; display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #f1f5f9; background: #fff;">
+                <span id="activeRecordCount" style="font-size: 13px; color: #475569; font-weight: 500;">Showing 0 of 0 records</span>
                 @if (userRole == "FisheriesAdmin" || userRole == "SuperAdmin")
                 {
                     <div>
-                        <a href="#" id="btnToggleArchiveFooter" style="font-size: 14.5px; color: #3b82f6; text-decoration: none; font-weight: 500;">
+                        <a href="#" id="btnToggleArchiveFooter" style="font-size: 13px; color: #3b82f6; text-decoration: none; font-weight: 500;">
                             <span id="archiveFooterText">View archived</span> (<span id="archiveCountBadge">0</span>) <span id="archiveFooterArrow">&rarr;</span>
                         </a>
                     </div>
@@ -119,6 +121,7 @@
             <h3>Archived Records</h3>
             <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">View and permanently delete archived fisherfolk records.</p>
             <div class="database-container">
+                <div class="table-scroll-container">
                 <table class="fisherfolk-table">
                     <thead>
                         <tr>
@@ -132,7 +135,8 @@
                         </tr>
                     </thead>
                     <tbody id="archiveTableBody"></tbody>
-                </table>
+                    </table>
+            </div>
                 <div class="empty-state" id="emptyArchiveState">
                     <p>No archived records</p>
                 </div>

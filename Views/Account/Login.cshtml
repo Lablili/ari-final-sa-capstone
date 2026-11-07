@@ -1,167 +1,587 @@
 @model ari_final_sa_capstone.Models.LoginViewModel
 @{
-    Layout = null; // login page shouldn't use the normal site layout/nav
+    Layout = null;
+    var returnUrl = ViewData["ReturnUrl"] as string;
 }
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Login - Fisheries Monitoring System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login &middot; Bantay Dagat Maritime Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
+        :root {
+            /* Authentic Municipal & Maritime Palette (No AI-neon/glow effects) */
+            --primary-navy: #153966;
+            --primary-navy-dark: #0f2747;
+            --primary-blue: #1c5496;
+            --primary-blue-hover: #133e70;
+            --text-main: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --input-border: #cbd5e1;
+            --input-focus-border: #1c5496;
+            --input-bg: #ffffff;
+            --card-border: #e2e8f0;
+            --page-bg: #f1f5f9;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            font-family: 'Segoe UI', sans-serif;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--page-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
+
         .split-container {
             display: flex;
             min-height: 100vh;
+            width: 100%;
         }
+
+        /* ─── LEFT BRANDING PANEL (Solid, Grounded, Official) ─── */
         .left-panel {
-            flex: 1;
-            background: linear-gradient(135deg, #1e3a8a, #2563eb);
-            color: white;
-            padding: 60px 50px;
+            flex: 1.1;
+            background-color: var(--primary-navy);
+            color: #ffffff;
+            padding: 56px 64px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            position: relative;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .left-panel .logo-icon {
-            font-size: 40px;
-            margin-bottom: 40px;
+
+        .left-panel-content {
+            position: relative;
+            z-index: 2;
         }
+
+        .brand-badges {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .brand-seal-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ffffff;
+            padding: 2px;
+            border: 2px solid #ffffff;
+        }
+
+        .brand-meta-tag {
+            font-size: 0.75rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #dbeafe;
+            background-color: rgba(255, 255, 255, 0.12);
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
         .left-panel h1 {
-            font-size: 42px;
-            font-weight: 800;
+            font-size: 2.35rem;
+            font-weight: 700;
             line-height: 1.2;
+            letter-spacing: -0.01em;
+            margin: 16px 0 12px 0;
+            color: #ffffff;
         }
-        .left-panel p {
-            font-size: 15px;
-            opacity: 0.9;
-            margin-top: 20px;
-            max-width: 380px;
+
+        .left-panel .lead-text {
+            font-size: 0.98rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            max-width: 440px;
+            margin-bottom: 36px;
         }
-        .left-panel .footer-text {
-            font-size: 13px;
-            opacity: 0.7;
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 32px 0;
+            max-width: 460px;
         }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            color: #f1f5f9;
+            line-height: 1.45;
+        }
+
+        .feature-icon-bullet {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #60a5fa;
+            flex-shrink: 0;
+            margin-top: 8px;
+        }
+
+        .left-footer {
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 0.8rem;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* ─── RIGHT LOGIN PANEL (Clean, High-Readability Form) ─── */
         .right-panel {
             flex: 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 40px;
+            padding: 48px 36px;
+            background-color: #ffffff;
         }
-        .login-box {
+
+        .login-card {
             width: 100%;
-            max-width: 380px;
+            max-width: 390px;
         }
-        .login-box h2 {
-            font-weight: 800;
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-        .login-box .subtitle {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 30px;
-        }
-        .form-control {
-            border: none;
-            border-bottom: 1px solid #d1d5db;
-            border-radius: 0;
-            padding-left: 0;
-        }
-        .form-control:focus {
-            box-shadow: none;
-            border-bottom: 1px solid #2563eb;
-        }
-        .btn-login {
-            background: #111827;
-            color: white;
-            border-radius: 8px;
-            padding: 12px;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 20px;
-        }
-        .btn-login:hover {
-            background: #1f2937;
-            color: white;
-        }
-        .forgot-link {
+
+        .mobile-brand-banner {
+            display: none;
             text-align: center;
-            font-size: 13px;
-            color: #6b7280;
-            margin-top: 15px;
+            margin-bottom: 24px;
         }
+
+        .mobile-brand-banner img {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            margin: 0 4px;
+            border: 1px solid var(--card-border);
+        }
+
+        .login-header {
+            margin-bottom: 28px;
+        }
+
+        .login-header h2 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0 0 8px 0;
+            letter-spacing: -0.01em;
+        }
+
+        .login-header .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: #64748b;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-input {
+            width: 100%;
+            height: 46px;
+            padding: 10px 14px 10px 42px;
+            font-size: 0.94rem;
+            font-family: inherit;
+            color: var(--text-main);
+            background-color: var(--input-bg);
+            border: 1.5px solid var(--input-border);
+            border-radius: 8px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .custom-input:focus {
+            border-color: var(--input-focus-border);
+            box-shadow: 0 0 0 3px rgba(28, 84, 150, 0.12);
+            outline: none;
+        }
+
+        .custom-input::placeholder {
+            color: #94a3b8;
+            font-size: 0.88rem;
+        }
+
+        /* Password toggle button */
+        .btn-toggle-password {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .btn-toggle-password:hover {
+            color: #1e293b;
+        }
+
+        .caps-lock-warning {
+            display: none;
+            font-size: 0.78rem;
+            color: #b45309;
+            margin-top: 5px;
+            font-weight: 500;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Alert */
+        .login-alert {
+            background-color: #fef2f2;
+            border: 1px solid #fee2e2;
+            color: #991b1b;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.86rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .login-alert ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        /* Solid, Official Submit Button */
+        .btn-submit {
+            width: 100%;
+            height: 46px;
+            background-color: var(--primary-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-blue-hover);
+            color: #ffffff;
+        }
+
+        .btn-submit:active {
+            background-color: var(--primary-navy);
+        }
+
+        /* Aux Row / Forgot Password */
+        .form-aux-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 0.84rem;
+        }
+
+        .forgot-link {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            color: var(--primary-navy-dark);
+            text-decoration: underline;
+        }
+
+        /* Disclaimer footer */
+        .legal-notice {
+            margin-top: 32px;
+            padding-top: 18px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #475569;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        /* Responsive Breakpoints */
+        @@media (max-width: 900px) {
+            .left-panel {
+                padding: 40px 36px;
+            }
+            .left-panel h1 {
+                font-size: 2rem;
+            }
+        }
+
         @@media (max-width: 768px) {
-            .left-panel { display: none; }
+            .left-panel {
+                display: none;
+            }
+            .right-panel {
+                padding: 40px 20px;
+                min-height: 100vh;
+                justify-content: center;
+                background-color: var(--page-bg);
+            }
+            .login-card {
+                background-color: #ffffff;
+                padding: 32px 24px;
+                border-radius: 12px;
+                border: 1px solid var(--card-border);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            }
+            .mobile-brand-banner {
+                display: block;
+            }
+            .login-header {
+                text-align: center;
+            }
+            .login-header h2 {
+                font-size: 1.55rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="split-container">
-        <!-- Left branding panel -->
-        <div class="left-panel">
-            <div>
-                <div class="logo-icon">🐟</div>
-                <h1>Hello,<br />BantayDagat!</h1>
-                <p>Broadcast fishing announcements, receive incident reports, coordinate enforcement, and protect marine resources — all via SMS, accessible to everyone.</p>
-            </div>
-            <div class="footer-text">© 2026 Fisheries Monitoring System. All rights reserved.</div>
-        </div>
+        <!-- ─── LEFT BRANDING PANEL ─────────────────────────────────── -->
+        <aside class="left-panel">
+            <div class="left-panel-content">
+                <div class="brand-badges">
+                    <img src="~/logo-bantayan.jpg" alt="Municipality of Bantayan Seal" class="brand-seal-img" />
+                    <img src="~/logo-bantaydagat.jpg" alt="Bantay Dagat Emblem" class="brand-seal-img" />
+                    <span class="brand-meta-tag">LGU Bantayan &middot; MAO</span>
+                </div>
 
-        <!-- Right login panel -->
-        <div class="right-panel">
-            <div class="login-box">
-                <h2>Welcome Back!</h2>
-                <p class="subtitle">Log in with your admin account to continue.</p>
+                <h1>Bantay Dagat<br />Operations Portal</h1>
+                <p class="lead-text">
+                    Official maritime surveillance, incident blotter documentation, and coastal resource monitoring system for the Municipality of Bantayan.
+                </p>
+
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon-bullet"></span>
+                        <span><strong>Maritime Enforcement:</strong> Digital blotter recording, case progression, and patrol reports.</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon-bullet"></span>
+                        <span><strong>Community Incident Blotter:</strong> Real-time SMS and web incident intake for illegal fishing and sea distress.</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon-bullet"></span>
+                        <span><strong>Fisherfolk Registry:</strong> Verification and records of registered motorized and non-motorized vessels.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="left-footer">
+                <span>&copy; @DateTime.Now.Year Municipality of Bantayan, Cebu</span>
+                <span>Authorized Staff Access</span>
+            </div>
+        </aside>
+
+        <!-- ─── RIGHT LOGIN PANEL ──────────────────────────────────── -->
+        <main class="right-panel">
+            <div class="login-card">
+                <!-- Mobile-only logo display -->
+                <div class="mobile-brand-banner">
+                    <img src="~/logo-bantayan.jpg" alt="Municipality of Bantayan Seal" />
+                    <img src="~/logo-bantaydagat.jpg" alt="Bantay Dagat Emblem" />
+                </div>
+
+                <div class="login-header">
+                    <h2>Welcome to Bantay Dagat</h2>
+                    <p class="subtitle">Please enter your authorized credentials to access the administrative portal.</p>
+                </div>
 
                 @if (!ViewData.ModelState.IsValid)
                 {
-                    <div class="alert alert-danger py-2">
-                        <div asp-validation-summary="All"></div>
+                    <div class="login-alert" role="alert">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <div>
+                            <div asp-validation-summary="All"></div>
+                        </div>
                     </div>
                 }
 
-                <form asp-controller="Account" asp-action="Login" method="post">
-                    <div class="mb-4">
-                        <input asp-for="Email" class="form-control" placeholder="Email address" />
-                        <span asp-validation-for="Email" class="text-danger small"></span>
+                <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl" method="post" autocomplete="on">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-group">
+                        <label asp-for="Email" class="form-label">Email Address</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                            </span>
+                            <input asp-for="Email" class="custom-input" placeholder="e.g. officer@bantayan.gov.ph" autofocus required />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
                     </div>
 
-                    <div class="mb-2 position-relative">
-                        <input asp-for="Password" type="password" id="loginPassword" class="form-control" placeholder="Password" style="padding-right: 40px;" />
-                        <span id="togglePassword" style="position: absolute; right: 10px; top: 5px; cursor: pointer; color: #6b7280;">
-                            👁️
-                        </span>
-                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    <div class="form-group">
+                        <label asp-for="Password" class="form-label">Password</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                            <input asp-for="Password" type="password" id="loginPassword" class="custom-input" placeholder="Enter your password" required style="padding-right: 44px;" />
+                            <button type="button" class="btn-toggle-password" id="btnTogglePassword" aria-label="Toggle password visibility">
+                                <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="capsLockAlert" class="caps-lock-warning">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m18 15-6-6-6 6"/>
+                            </svg>
+                            <span>Caps Lock is ON</span>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
                     </div>
-                    
-                    <script>
-                        document.addEventListener("DOMContentLoaded", function() {
-                            const togglePassword = document.querySelector('#togglePassword');
-                            const password = document.querySelector('#loginPassword');
-                    
-                            togglePassword.addEventListener('click', function (e) {
-                                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                                password.setAttribute('type', type);
-                            });
-                        });
-                    </script>
 
-                    <!-- Removed Remember Me to force login every time -->
+                    <div class="form-aux-row" style="justify-content: flex-end;">
+                        <a href="@Url.Action("ForgotPassword", "Account")" class="forgot-link">Forgot password?</a>
+                    </div>
 
-                    <button type="submit" class="btn btn-login">Login Now</button>
+                    <button type="submit" class="btn-submit">
+                        <span>Sign In</span>
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
                 </form>
 
-                <div class="forgot-link">
-                    Forgot password? <a href="@Url.Action("ForgotPassword", "Account")" class="fw-bold text-dark">Click here</a>
+                <div class="legal-notice">
+                    <div class="security-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <span>Official Government Information System</span>
+                    </div>
+                    <div>Unauthorized access is strictly prohibited and subject to legal action under Philippine Cybercrime Laws (RA 10175).</div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const passwordInput = document.getElementById("loginPassword");
+            const toggleBtn = document.getElementById("btnTogglePassword");
+            const eyeIcon = document.getElementById("eyeIcon");
+            const capsLockAlert = document.getElementById("capsLockAlert");
+
+            if (toggleBtn && passwordInput) {
+                toggleBtn.addEventListener("click", function () {
+                    const isPassword = passwordInput.getAttribute("type") === "password";
+                    passwordInput.setAttribute("type", isPassword ? "text" : "password");
+                    
+                    if (isPassword) {
+                        eyeIcon.innerHTML = `
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        `;
+                    } else {
+                        eyeIcon.innerHTML = `
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        `;
+                    }
+                });
+            }
+
+            if (passwordInput && capsLockAlert) {
+                passwordInput.addEventListener("keyup", function (event) {
+                    if (event.getModifierState && event.getModifierState("CapsLock")) {
+                        capsLockAlert.style.display = "inline-flex";
+                    } else {
+                        capsLockAlert.style.display = "none";
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

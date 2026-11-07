@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ari_final_sa_capstone.Data;
 using ari_final_sa_capstone.Models;
+using ari_final_sa_capstone.Hubs;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -24,8 +25,30 @@ namespace ari_final_sa_capstone.Controllers
             _userManager = userManager;
         }
 
+        [HttpGet("currentUser")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(new
+            {
+                userId = user.Id,
+                userName = !string.IsNullOrWhiteSpace(user.FullName) ? user.FullName : (user.UserName ?? "Admin"),
+                role = roles.FirstOrDefault() ?? "Admin"
+            });
+        }
+
+        [HttpGet("onlineUsers")]
+        public IActionResult GetOnlineUsers()
+        {
+            var online = AdminChatHub.GetActiveAdminsList();
+            return Ok(online);
+        }
+
         [HttpGet("history")]
-        public async Task<IActionResult> GetChatHistory([FromQuery] string query = "", [FromQuery] int take = 50)
+        public async Task<IActionResult> GetChatHistory([FromQuery] string query = "", [FromQuery] int take = 60)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
@@ -35,9 +58,13 @@ namespace ari_final_sa_capstone.Controllers
                 .Include(m => m.Attachments)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(query))
+            if (!string.IsNullOrWhiteSpace(query))
             {
-                messagesQuery = messagesQuery.Where(m => m.MessageContent.Contains(query));
+                var q = query.Trim();
+                messagesQuery = messagesQuery.Where(m => 
+                    m.MessageContent.Contains(q) ||
+                    (m.Sender != null && (m.Sender.FullName.Contains(q) || (m.Sender.UserName != null && m.Sender.UserName.Contains(q)))) ||
+                    m.Attachments.Any(a => a.ResourceTitle.Contains(q)));
             }
 
             var messages = await messagesQuery
@@ -47,7 +74,7 @@ namespace ari_final_sa_capstone.Controllers
                 {
                     id = m.MessageID,
                     senderId = m.SenderAdminID,
-                    senderName = m.Sender != null ? m.Sender.FullName : "Unknown",
+                    senderName = m.Sender != null && !string.IsNullOrEmpty(m.Sender.FullName) ? m.Sender.FullName : (m.Sender != null && m.Sender.UserName != null ? m.Sender.UserName : "Admin"),
                     senderRole = m.SenderRole,
                     content = m.MessageContent,
                     type = m.MessageType,
@@ -57,7 +84,7 @@ namespace ari_final_sa_capstone.Controllers
                 })
                 .ToListAsync();
 
-            // Return in chronological order
+            // Return in chronological order (oldest first)
             messages.Reverse();
             
             return Ok(messages);
@@ -82,7 +109,6 @@ namespace ari_final_sa_capstone.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
-            // Mark all messages not sent by this user as read
             var unreadMessages = await _db.AdminMessages
                 .Where(m => !m.IsRead && m.SenderAdminID != user.Id)
                 .ToListAsync();
@@ -100,18 +126,27 @@ namespace ari_final_sa_capstone.Controllers
 
             return Ok(new { success = true });
         }
+
         [HttpGet("resources")]
-        public async Task<IActionResult> GetResources([FromQuery] string type = "ALL")
+        public async Task<IActionResult> GetResources([FromQuery] string type = "ALL", [FromQuery] string search = "")
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
             var resources = new List<object>();
+            var s = (search ?? "").Trim().ToLower();
 
             if (type == "ALL" || type == "INCIDENT")
             {
-                var incidents = await _db.BlotterReports
+                var incidentsQuery = _db.BlotterReports.AsQueryable();
+                if (!string.IsNullOrEmpty(s))
+                {
+                    incidentsQuery = incidentsQuery.Where(b => b.IncidentType.Contains(s) || b.Location.Contains(s) || (b.ReportSource != null && b.ReportSource.Contains(s)));
+                }
+
+                var incidents = await incidentsQuery
                     .OrderByDescending(b => b.IncidentDate)
+                    .Take(25)
                     .Select(b => new {
                         id = b.IncidentId.ToString(),
                         type = "INCIDENT",
@@ -125,8 +160,15 @@ namespace ari_final_sa_capstone.Controllers
 
             if (type == "ALL" || type == "ANNOUNCEMENT")
             {
-                var announcements = await _db.Announcements
+                var announcementsQuery = _db.Announcements.AsQueryable();
+                if (!string.IsNullOrEmpty(s))
+                {
+                    announcementsQuery = announcementsQuery.Where(a => (a.Title != null && a.Title.Contains(s)) || a.Message.Contains(s) || a.Category.Contains(s));
+                }
+
+                var announcements = await announcementsQuery
                     .OrderByDescending(a => a.Date)
+                    .Take(25)
                     .Select(a => new {
                         id = a.Id.ToString(),
                         type = "ANNOUNCEMENT",
@@ -140,8 +182,15 @@ namespace ari_final_sa_capstone.Controllers
 
             if (type == "ALL" || type == "FISHERFOLK")
             {
-                var fisherfolks = await _db.FisherfolkRegistries
+                var fisherfolksQuery = _db.FisherfolkRegistries.AsQueryable();
+                if (!string.IsNullOrEmpty(s))
+                {
+                    fisherfolksQuery = fisherfolksQuery.Where(f => f.Fname.Contains(s) || f.Lname.Contains(s) || (f.Address != null && f.Address.Contains(s)) || (f.ContactNumber != null && f.ContactNumber.Contains(s)));
+                }
+
+                var fisherfolks = await fisherfolksQuery
                     .OrderByDescending(f => f.Id)
+                    .Take(25)
                     .Select(f => new {
                         id = f.Id.ToString(),
                         type = "FISHERFOLK",
@@ -157,4 +206,3 @@ namespace ari_final_sa_capstone.Controllers
         }
     }
 }
-

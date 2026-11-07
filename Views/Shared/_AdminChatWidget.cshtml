@@ -6,34 +6,77 @@
     var sessionRole = Context.Session.GetString("UserRole") ?? "";
     bool isAdmin = sessionRole.Contains("SuperAdmin") || sessionRole.Contains("BantayDagatAdmin") || sessionRole.Contains("FisheriesAdmin") ||
                    (User.Identity != null && User.Identity.IsAuthenticated && (User.IsInRole("SuperAdmin") || User.IsInRole("BantayDagatAdmin") || User.IsInRole("FisheriesAdmin")));
+
+    var currentUserId = UserManager.GetUserId(User) ?? "";
+    var currentAppUser = (User.Identity != null && User.Identity.IsAuthenticated) ? await UserManager.GetUserAsync(User) : null;
+    var currentUserName = !string.IsNullOrWhiteSpace(currentAppUser?.FullName) ? currentAppUser.FullName : (User.Identity?.Name ?? "Admin");
+    var currentUserRole = !string.IsNullOrEmpty(sessionRole) ? sessionRole : (currentAppUser != null ? string.Join(", ", await UserManager.GetRolesAsync(currentAppUser)) : "Admin");
 }
 
 @if (isAdmin)
 {
     <!-- Admin Communication Chat Widget -->
-    <div id="admin-chat-widget" class="admin-chat-widget collapsed">
+    <div id="admin-chat-widget" 
+         class="admin-chat-widget collapsed"
+         data-current-user-id="@currentUserId"
+         data-current-user-name="@currentUserName"
+         data-current-user-role="@currentUserRole">
+        
+        <!-- Header -->
         <div class="chat-header" id="chat-header">
             <div class="header-title">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                Admin Messaging
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                </svg>
+                <span>Admin Messaging</span>
                 <span id="chat-unread-badge" class="unread-badge" style="display:none;">0</span>
             </div>
+
             <div class="header-controls">
-                <button type="button" id="chat-toggle-btn">
-                    <svg id="chat-toggle-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 15l7-7-7-7"></path></svg>
+                <span id="chat-online-indicator" class="header-online-indicator" title="Active Administrators">
+                    <span class="online-dot"></span>
+                    <span id="chat-online-count-text">1 Online</span>
+                </span>
+                <button type="button" id="chat-toggle-btn" class="header-toggle-btn" aria-label="Toggle chat">
+                    <svg id="chat-toggle-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+                    </svg>
                 </button>
             </div>
         </div>
+
+        <!-- Chat Body -->
         <div class="chat-body" style="display: none;">
-            <div class="chat-search-area" style="padding: 5px 10px; border-bottom: 1px solid #e5e7eb;">
-                <input type="text" id="chat-search-input" placeholder="Search messages..." autocomplete="off" style="width: 100%; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px;" />
+            
+            <!-- Search Bar -->
+            <div class="chat-search-bar">
+                <svg width="14" height="14" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="chat-search-input" placeholder="Search messages or reports..." autocomplete="off" />
+                <button type="button" id="chat-search-clear" class="search-clear-btn" style="display:none;" title="Clear search">&times;</button>
             </div>
-            <div class="chat-online-users">
-                <strong>WHO'S ONLINE</strong>
-                <ul id="online-users-list">
-                    <!-- Populated by JS -->
-                </ul>
+
+            <!-- Online Users Section (Clean, Consistent, No clipping) -->
+            <div class="chat-online-section" id="chat-online-section">
+                <div class="online-section-header" id="online-section-toggle">
+                    <div style="display:flex; align-items:center; gap: 6px;">
+                        <span class="online-dot"></span>
+                        <span style="font-size: 11px; font-weight: 700; color: #475569; letter-spacing: 0.04em;">WHO'S ONLINE</span>
+                        <span id="online-users-count-tag" class="count-tag">1</span>
+                    </div>
+                    <svg id="online-list-chevron" width="14" height="14" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                <div class="online-users-wrapper" id="online-users-wrapper">
+                    <div class="online-users-list" id="online-users-list">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
             </div>
+
+            <!-- Messages Thread -->
             <div class="chat-messages-container" id="chat-messages-container">
                 <div id="chat-messages" class="chat-messages">
                     <!-- Messages populated here -->
@@ -42,140 +85,293 @@
                     <em>Someone is typing...</em>
                 </div>
             </div>
-            <div class="chat-input-area" style="display:flex; flex-direction:column; gap:5px;">
-                <div class="chat-input-options" style="padding: 0 10px;">
-                    <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer; color: #64748b; font-weight: 600;">
-                        <input type="checkbox" id="chat-alert-toggle" /> Send as Alert (High Priority)
-                    </label>
-                </div>
-                <div style="display: flex; gap: 5px; padding: 0 10px 10px 10px;">
-                    <input type="text" id="chat-message-input" placeholder="Type a message... (👍 allowed)" autocomplete="off" style="flex:1; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px;" />
-                    <div class="chat-actions" style="display: flex; gap: 4px;">
-                        <button type="button" class="btn-attach" id="chat-attach-btn" title="Attach Incident/Announcement" style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 4px; cursor: pointer;">📎</button>
-                        <button type="button" id="chat-send-btn" class="btn-send" style="padding: 6px 12px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Send</button>
+
+            <!-- Attachment Selection Preview (if item selected) -->
+            <div id="chat-attachment-preview" class="attachment-preview-box" style="display:none;">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; flex: 1;">
+                    <span style="font-size: 14px;">📎</span>
+                    <div style="overflow: hidden;">
+                        <span id="chat-attachment-type-badge" class="badge-tag">RESOURCE</span>
+                        <span id="chat-attachment-name" style="font-size: 12px; font-weight: 600; color: #1e293b; margin-left: 4px;">Attachment</span>
                     </div>
                 </div>
-                <div id="chat-attachment-preview" style="display:none; font-size: 11px; margin: 0 10px 10px 10px; padding: 6px 8px; background: #e2e8f0; border-radius: 4px; color: #1e293b; align-items: center; justify-content: space-between;">
-                    <span id="chat-attachment-name" style="font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"></span>
-                    <button type="button" id="chat-attachment-clear" style="border:none; background:none; cursor:pointer; color:#ef4444; font-weight:bold; font-size:14px; line-height:1;">×</button>
+                <button type="button" id="chat-attachment-clear" class="att-clear-btn" title="Remove attachment">&times;</button>
+            </div>
+
+            <!-- Footer / Input -->
+            <div class="chat-footer">
+                <div class="chat-options-row">
+                    <label class="alert-toggle-label">
+                        <input type="checkbox" id="chat-alert-toggle" />
+                        <span>Send as Alert (High Priority)</span>
+                    </label>
+                </div>
+
+                <div class="chat-input-row">
+                    <input type="text" 
+                           id="chat-message-input" 
+                           placeholder="Type a message..." 
+                           autocomplete="off" />
+
+                    <button type="button" 
+                            class="btn-attach" 
+                            id="chat-attach-btn" 
+                            title="Attach Incident, Announcement, or Fisherfolk record">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                        </svg>
+                    </button>
+
+                    <button type="button" id="chat-send-btn" class="btn-send">Send</button>
                 </div>
             </div>
         </div>
         
-        <!-- Attachment Modal Overlay -->
-        <div id="chat-attachment-modal" style="display:none; position:absolute; bottom: 80px; left: 10px; right: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1060; flex-direction: column;">
-            <div style="display:flex; justify-content:space-between; align-items: center; padding: 8px 12px; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; border-radius: 6px 6px 0 0;">
-                <strong style="font-size: 12px; color: #0f172a;">Select Resource to Attach</strong>
-                <button type="button" id="chat-attachment-close" style="border:none;background:none;cursor:pointer;font-weight:bold;font-size:16px;color:#64748b;">&times;</button>
-            </div>
-            <div style="padding: 8px; border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
-                <select id="chat-attachment-type" style="width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px;">
-                    <option value="ALL">All Resources</option>
-                    <option value="ANNOUNCEMENT">Announcements</option>
-                    <option value="INCIDENT">Incident Reports</option>
-                    <option value="FISHERFOLK">Fisherfolk Registry</option>
-                </select>
-            </div>
-            <div id="chat-attachment-list" style="max-height: 180px; overflow-y: auto; padding: 5px; font-size: 12px;">
-                <div style="padding: 10px; text-align: center; color: #64748b;">Loading resources...</div>
+        <!-- Attachment Picker Modal Overlay -->
+        <div id="chat-attachment-modal" class="chat-modal-overlay" style="display:none;">
+            <div class="chat-modal-card">
+                <div class="chat-modal-head">
+                    <strong>Select Resource to Attach</strong>
+                    <button type="button" id="chat-attachment-close" class="chat-modal-close">&times;</button>
+                </div>
+                
+                <div class="chat-modal-filters">
+                    <select id="chat-attachment-type" class="chat-select">
+                        <option value="ALL">All Categories</option>
+                        <option value="INCIDENT">Incident Reports (Blotters)</option>
+                        <option value="ANNOUNCEMENT">Announcements</option>
+                        <option value="FISHERFOLK">Fisherfolk Registry</option>
+                    </select>
+                    <input type="text" id="chat-attachment-search" placeholder="Search title, place, or contact..." class="chat-modal-search" />
+                </div>
+
+                <div id="chat-attachment-list" class="chat-modal-list">
+                    <div style="padding: 16px; text-align: center; color: #64748b; font-size: 12px;">Loading resources...</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Styles for Chat Widget -->
+    <!-- Styles for Chat Widget - Consistent with Overall System Design -->
     <style>
         .admin-chat-widget {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 350px;
-            background: #fff;
+            width: 360px;
+            max-width: calc(100vw - 30px);
+            background: #ffffff;
             border-radius: 8px 8px 0 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             z-index: 1050;
             display: flex;
             flex-direction: column;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #cbd5e1;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
         }
         .admin-chat-widget.collapsed {
-            width: 250px;
+            width: auto;
+            min-width: 200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
         }
         .admin-chat-widget.collapsed .chat-body {
             display: none !important;
         }
+        .admin-chat-widget.collapsed .chat-header {
+            border-radius: 8px;
+            padding: 10px 16px;
+        }
+        .admin-chat-widget.collapsed .header-online-indicator {
+            display: none;
+        }
+
+        /* Header */
         .chat-header {
             background: #1e3a8a;
-            color: white;
-            padding: 10px 15px;
+            color: #ffffff;
+            padding: 11px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-radius: 8px 8px 0 0;
             cursor: pointer;
+            user-select: none;
+            border-radius: 8px 8px 0 0;
         }
         .header-title {
             display: flex;
             align-items: center;
             gap: 8px;
             font-weight: 600;
+            font-size: 14px;
         }
         .unread-badge {
             background: #ef4444;
             color: white;
-            font-size: 0.75rem;
+            font-size: 11px;
             padding: 2px 6px;
-            border-radius: 999px;
-            font-weight: bold;
+            border-radius: 10px;
+            font-weight: 700;
+            margin-left: 4px;
         }
-        .header-controls button {
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header-online-indicator {
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+        .online-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .header-toggle-btn {
             background: none;
             border: none;
             color: white;
             cursor: pointer;
+            padding: 2px;
+            display: flex;
+            align-items: center;
         }
+
+        /* Chat Body */
         .chat-body {
-            height: 400px;
+            height: 440px;
             display: flex;
             flex-direction: column;
+            background: #ffffff;
         }
-        .chat-online-users {
-            background: #f3f4f6;
-            padding: 8px 15px;
-            font-size: 0.8rem;
-            border-bottom: 1px solid #e5e7eb;
-            max-height: 80px;
-            overflow-y: auto;
+
+        /* Search Bar */
+        .chat-search-bar {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            background: #f8fafc;
+            gap: 8px;
         }
-        .chat-online-users ul {
-            list-style: none;
+        .chat-search-bar input {
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            width: 100%;
+            outline: none;
+            color: #1e293b;
+            font-family: inherit;
+        }
+        .search-clear-btn {
+            border: none;
+            background: #e2e8f0;
+            color: #64748b;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
             padding: 0;
-            margin: 4px 0 0 0;
+            line-height: 1;
         }
-        .chat-online-users li {
+
+        /* Online Users Section */
+        .chat-online-section {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .online-section-header {
+            padding: 7px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .online-section-header:hover {
+            background: #f1f5f9;
+        }
+        .count-tag {
+            font-size: 10px;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: #475569;
+            padding: 1px 6px;
+            border-radius: 8px;
+        }
+        .online-users-wrapper {
+            max-height: 100px;
+            overflow-y: auto;
+            padding: 0 12px 8px 12px;
+        }
+        .online-users-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .online-user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 8px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .online-user-name {
+            font-weight: 500;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             display: flex;
             align-items: center;
             gap: 6px;
-            margin-bottom: 2px;
         }
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
+        .role-tag {
+            font-size: 10px;
+            font-weight: 500;
+            color: #64748b;
         }
-        .status-dot.online { background: #2563eb; }
+        .you-tag {
+            font-size: 9px;
+            font-weight: 700;
+            color: #166534;
+            background: #dcfce7;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        /* Messages Thread */
         .chat-messages-container {
-            flex-grow: 1;
-            padding: 15px;
+            flex: 1;
+            padding: 14px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            background: #fafafa;
+            background: #fcfcfd;
         }
         .chat-messages {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         .message-row {
             display: flex;
@@ -190,73 +386,281 @@
             align-self: flex-start;
             align-items: flex-start;
         }
+
         .message-sender {
-            font-size: 0.75rem;
-            color: #6b7280;
+            font-size: 11px;
+            font-weight: 600;
+            color: #1e3a8a;
             margin-bottom: 2px;
         }
         .message-bubble {
             padding: 8px 12px;
-            border-radius: 12px;
-            font-size: 0.9rem;
+            border-radius: 8px;
+            font-size: 13px;
             line-height: 1.4;
+            word-break: break-word;
         }
         .sent .message-bubble {
             background: #2563eb;
-            color: white;
+            color: #ffffff;
             border-bottom-right-radius: 2px;
         }
+        .sent .message-bubble a {
+            color: #ffffff !important;
+            text-decoration: underline;
+        }
         .received .message-bubble {
-            background: #e5e7eb;
-            color: #1f2937;
+            background: #f1f5f9;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
             border-bottom-left-radius: 2px;
         }
+
+        /* High Priority Alert */
+        .message-bubble.alert-bubble {
+            border: 1.5px solid #dc2626 !important;
+            background: #fef2f2 !important;
+            color: #991b1b !important;
+        }
+        .alert-heading {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #dc2626;
+            margin-bottom: 3px;
+        }
+
         .message-time {
-            font-size: 0.7rem;
-            color: #9ca3af;
+            font-size: 10px;
+            color: #94a3b8;
             margin-top: 2px;
         }
-        .chat-input-area {
-            padding: 10px 15px;
-            border-top: 1px solid #e5e7eb;
-            background: white;
+
+        /* Document / Incident Card inside Bubble - Slim, clean blue border frame */
+        .message-bubble.attachment-only-bubble {
+            padding: 3px !important;
+            border-radius: 11px !important;
+            background: #2563eb !important;
+        }
+        .chat-resource-card {
+            background: #ffffff !important;
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            align-items: flex-start;
+            text-align: left;
+            user-select: none;
+        }
+        .chat-resource-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+        .chat-badge-pill {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0284c7;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 0.03em;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+        .chat-card-headline {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a !important;
+            margin-top: 8px;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        /* Attachment Preview in Composer */
+        .attachment-preview-box {
+            margin: 0 10px 6px 10px;
+            padding: 6px 10px;
+            background: #f8fafc;
+            border: 1px dashed #94a3b8;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .att-clear-btn {
+            background: none;
+            border: none;
+            color: #dc2626;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        /* Footer & Inputs */
+        .chat-footer {
+            padding: 8px 12px 10px 12px;
+            border-top: 1px solid #e2e8f0;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .chat-options-row {
+            display: flex;
+            align-items: center;
+        }
+        .alert-toggle-label {
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .alert-toggle-label input:checked + span {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .chat-input-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         #chat-message-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
+            flex: 1;
+            padding: 7px 10px;
+            border: 1px solid #cbd5e1;
             border-radius: 6px;
             outline: none;
-            font-size: 0.9rem;
+            font-size: 13px;
+            font-family: inherit;
         }
-        .chat-actions {
+        #chat-message-input:focus {
+            border-color: #2563eb;
+        }
+        .btn-attach {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: center;
+        }
+        .btn-attach:hover {
+            background: #f1f5f9;
+            color: #1e293b;
         }
         .btn-send {
             background: #2563eb;
-            color: white;
+            color: #ffffff;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
+            padding: 7px 14px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
         }
-        .btn-attach {
+        .btn-send:hover {
+            background: #1d4ed8;
+        }
+
+        /* Attachment Modal Overlay */
+        .chat-modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            z-index: 1060;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .chat-modal-card {
+            background: #ffffff;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.12);
+            max-height: 80%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+            font-size: 13px;
+            color: #1e293b;
+        }
+        .chat-modal-close {
             background: none;
             border: none;
-            color: #6b7280;
+            font-size: 18px;
             cursor: pointer;
-            font-size: 1.2rem;
+            color: #64748b;
+            line-height: 1;
         }
+        .chat-modal-filters {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .chat-select {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+            font-family: inherit;
+        }
+        .chat-modal-search {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .chat-modal-list {
+            overflow-y: auto;
+            max-height: 220px;
+            padding: 6px 8px;
+        }
+        .chat-res-item {
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 5px;
+            cursor: pointer;
+            background: #ffffff;
+        }
+        .chat-res-item:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
         .typing-indicator {
-            font-size: 0.8rem;
-            color: #6b7280;
-            margin-top: 8px;
+            font-size: 11px;
+            color: #64748b;
+            padding: 2px 4px;
         }
     </style>
 
