@@ -1255,15 +1255,15 @@ window.saveBlotterAndMarkDone = async function () {
       }
 
       if (msgEl) {
-        msgEl.textContent = "âœ“ Blotter saved and marked as Done!";
+        msgEl.textContent = "&#10003; Blotter saved and marked as Done!";
         msgEl.style.display = "inline";
       }
       if (typeof showToast === "function") {
-        showToast("âœ“ Blotter saved and marked as Done!");
+        showToast("&#10003; Blotter saved and marked as Done!");
       }
 
       if (btnDone) {
-        btnDone.innerHTML = `âœ“ Done & Saved`;
+        btnDone.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="vertical-align:-2px; margin-right:3px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Done &amp; Saved`;
         btnDone.style.background = '#059669';
       }
 

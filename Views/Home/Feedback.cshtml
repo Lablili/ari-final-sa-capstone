@@ -351,7 +351,7 @@
                                         <td style="padding: 12px; color: #334155;">@item.Location</td>
                                         <td style="padding: 12px;">
                                             <span style="padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; background: @(item.Status == "Done" || item.Status == "Closed" ? "#dcfce7" : "#fef3c7"); color: @(item.Status == "Done" || item.Status == "Closed" ? "#166534" : "#92400e");">
-                                                @(item.Status == "Done" || item.Status == "Closed" ? "âœ“ Done" : item.Status)
+                                                @(item.Status == "Done" || item.Status == "Closed" ? "Done" : item.Status)
                                             </span>
                                         </td>
                                         <td style="padding: 12px; text-align: right; white-space: nowrap;">
@@ -364,7 +364,7 @@
                                             }
                                             else
                                             {
-                                                <button type="button" onclick="toggleBlotterStatusFromFeedback(@item.IncidentId, 'Done')" style="padding: 4px 10px; background: #16a34a; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; color: #ffffff; cursor: pointer; margin-right: 4px;" title="Mark this blotter as Done">âœ“ Mark Done</button>
+                                                <button type="button" onclick="toggleBlotterStatusFromFeedback(@item.IncidentId, 'Done')" style="padding: 4px 10px; background: #16a34a; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; color: #ffffff; cursor: pointer; margin-right: 4px;" title="Mark this blotter as Done" style="padding: 4px 10px; background: #16a34a; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; color: #ffffff; cursor: pointer; margin-right: 4px; display: inline-flex; align-items: center; gap: 3px;"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>Mark Done</button>
                                             }
                                             <a href="@Url.Action("Edit", "BlotterReport", new { id = item.IncidentId })" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 500; font-size: 12px; color: #475569; text-decoration: none;">
                                                 Edit

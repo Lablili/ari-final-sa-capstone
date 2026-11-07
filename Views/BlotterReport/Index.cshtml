@@ -99,7 +99,7 @@
                         {
                             <tr>
                                 <td colspan="6" class="text-center py-5 text-muted">
-                                    <div style="font-size: 2rem; margin-bottom: 8px;">📋</div>
+                                    <div style="font-size: 2rem; margin-bottom: 8px;">ðŸ“‹</div>
                                     <div style="font-weight: 600;">No Blotter Reports Found</div>
                                     <div style="font-size: 0.85rem;">Create a new report or generate one from Community Reports.</div>
                                 </td>
@@ -115,13 +115,14 @@
                                 <td style="padding: 14px 16px;">
                                     @if (item.Status == "Done" || item.Status == "Closed")
                                     {
-                                        <span class="badge bg-success" style="font-weight: 600; font-size: 0.78rem; padding: 5px 10px; border-radius: 6px;">
-                                            ✓ Done
+                                        <span class="badge bg-success" style="font-weight: 600; font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+                                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            Done
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-warning text-dark" style="font-weight: 600; font-size: 0.78rem; padding: 5px 10px; border-radius: 6px;">
+                                        <span class="badge bg-warning text-dark" style="font-weight: 600; font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; white-space: nowrap;">
                                             @item.Status
                                         </span>
                                     }
@@ -138,8 +139,9 @@
                                     }
                                     else
                                     {
-                                        <button type="button" onclick="toggleBlotterStatus(@item.IncidentId, 'Done')" style="padding: 5px 12px; background: #16a34a; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; color: #ffffff; cursor: pointer; margin-right: 6px; box-shadow: 0 1px 3px rgba(22, 163, 74, 0.2);" title="Mark this blotter as Done">
-                                            ✓ Mark Done
+                                        <button type="button" onclick="toggleBlotterStatus(@item.IncidentId, 'Done')" style="padding: 5px 12px; background: #16a34a; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; color: #ffffff; cursor: pointer; margin-right: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 3px rgba(22, 163, 74, 0.2);" title="Mark this blotter as Done">
+                                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            Mark Done
                                         </button>
                                     }
                                     <a asp-action="Edit" asp-route-id="@item.IncidentId" style="padding: 5px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 500; font-size: 13px; color: #475569; text-decoration: none; background: #ffffff;">Edit</a>
@@ -278,7 +280,7 @@
               </div>
               <div>
                 <div contenteditable="true" style="margin-bottom: 35px; outline: none;">Noted by:</div>
-                <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Niven G. Pestaño</div>
+                <div contenteditable="true" style="font-weight: bold; text-decoration: underline; outline: none; display: inline-block; min-width: 150px;">Niven G. PestaÃ±o</div>
                 <div contenteditable="true" style="font-size: 12px; color: #475569; outline: none; margin-top: 4px;">Bantay Dagat Officer</div>
               </div>
             </div>`;
@@ -331,11 +333,11 @@
             const data = await response.json();
             if (data.success) {
                 if (msgEl) {
-                    msgEl.textContent = '✓ Blotter saved & marked as Done!';
+                    msgEl.innerHTML = '<span style="color:#16a34a;">&#10003; Blotter saved &amp; marked as Done!</span>';
                     msgEl.style.display = 'inline';
                 }
                 if (btnDone) {
-                    btnDone.innerHTML = `✓ Done & Saved`;
+                    btnDone.innerHTML = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="vertical-align:-2px; margin-right:3px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Done &amp; Saved`;
                     btnDone.style.background = '#059669';
                 }
                 setTimeout(() => {
