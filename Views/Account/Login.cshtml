@@ -53,10 +53,10 @@
 
         /* ─── LEFT BRANDING PANEL (Town Hall Background with Navy Overlay) ─── */
         .left-panel {
-            flex: 1.1;
-            background: linear-gradient(180deg, rgba(15, 39, 71, 0.82) 0%, rgba(10, 25, 47, 0.90) 100%), url('/bantayan-townhall.jpg') center/cover no-repeat;
+            flex: 1.5;
+            background: linear-gradient(180deg, rgba(15, 39, 71, 0.78) 0%, rgba(10, 25, 47, 0.88) 100%), url('/bantayan-townhall.jpg?v=2') center/cover no-repeat;
             color: #ffffff;
-            padding: 56px 64px;
+            padding: 60px 64px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -67,6 +67,7 @@
         .left-panel-content {
             position: relative;
             z-index: 2;
+            max-width: 580px;
         }
 
         .brand-badges {
@@ -111,8 +112,8 @@
             font-size: 0.98rem;
             line-height: 1.6;
             color: #cbd5e1;
-            max-width: 440px;
-            margin-bottom: 36px;
+            max-width: 500px;
+            margin: 14px 0 0 0;
         }
 
         .feature-list {
@@ -155,7 +156,8 @@
 
         /* ─── RIGHT LOGIN PANEL (Clean, High-Readability Form) ─── */
         .right-panel {
-            flex: 1;
+            flex: 0 0 38%;
+            min-width: 360px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -166,7 +168,7 @@
 
         .login-card {
             width: 100%;
-            max-width: 390px;
+            max-width: 360px;
         }
 
         .mobile-brand-banner {
@@ -372,12 +374,18 @@
         }
 
         /* Responsive Breakpoints */
-        @@media (max-width: 900px) {
+        @@media (max-width: 960px) {
             .left-panel {
-                padding: 40px 36px;
+                flex: 1;
+                padding: 40px 32px;
             }
             .left-panel h1 {
                 font-size: 2rem;
+            }
+            .right-panel {
+                flex: 1;
+                min-width: 320px;
+                padding: 40px 24px;
             }
         }
 
@@ -423,23 +431,8 @@
 
                 <h1>Bantay Dagat<br />Operations Portal</h1>
                 <p class="lead-text">
-                    Official maritime surveillance, incident blotter documentation, and coastal resource monitoring system for the Municipality of Bantayan.
+                    Centralized operations portal for SMS fishery advisories, emergency SOS reporting, and automated maritime blotter records.
                 </p>
-
-                <ul class="feature-list">
-                    <li class="feature-item">
-                        <span class="feature-icon-bullet"></span>
-                        <span><strong>Maritime Enforcement:</strong> Digital blotter recording, case progression, and patrol reports.</span>
-                    </li>
-                    <li class="feature-item">
-                        <span class="feature-icon-bullet"></span>
-                        <span><strong>Community Incident Blotter:</strong> Real-time SMS and web incident intake for illegal fishing and sea distress.</span>
-                    </li>
-                    <li class="feature-item">
-                        <span class="feature-icon-bullet"></span>
-                        <span><strong>Fisherfolk Registry:</strong> Verification and records of registered motorized and non-motorized vessels.</span>
-                    </li>
-                </ul>
             </div>
 
             <div class="left-footer">
