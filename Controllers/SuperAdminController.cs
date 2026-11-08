@@ -58,20 +58,32 @@ namespace ari_final_sa_capstone.Controllers
         [HttpGet]
         public async Task<IActionResult> ExportBlottersCsv()
         {
+            // Only export reports that were marked as Done or Closed
             var records = await _context.BlotterReports
+                .Where(b => b.Status == "Done" || b.Status == "Closed")
                 .OrderByDescending(b => b.IncidentDate)
                 .ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("\uFEFFIncident ID,Date,Type,Location,Source,Response Time (Mins),Status,Outcome");
+            sb.AppendLine("\uFEFFFile No.,Date,Subject,Nature of Case,Time of Occurrence,Place of Occurrence,Report Source / Apprehended By,Facts & Actions Taken,Outcome & Disposition,Status");
 
             foreach (var b in records)
             {
-                var dateStr = b.IncidentDate.ToString("yyyy-MM-dd HH:mm");
-                sb.AppendLine($"{b.IncidentId},{CsvCell(dateStr)},{CsvCell(b.IncidentType)},{CsvCell(b.Location)},{CsvCell(b.ReportSource)},{b.ResponseTimeMinutes},{CsvCell(b.Status)},{CsvCell(b.Outcome)}");
+                var fileNo = b.IncidentId.ToString("D2");
+                var dateStr = b.IncidentDate.ToString("MMMM d, yyyy");
+                var timeStr = b.IncidentDate.ToString("hh:mm tt");
+                var subject = "Excerpt from the Municipal Bantay Dagat Blotter Report";
+                var natureOfCase = $"Resolution #33 Ordinance #02 Series of 2020 Section 37 Article 8 ({b.IncidentType})";
+                var place = b.Location;
+                var source = b.ReportSource;
+                var actions = b.ActionsTaken;
+                var outcome = string.IsNullOrWhiteSpace(b.Outcome) ? "Resolved / Done" : b.Outcome;
+                var status = b.Status;
+
+                sb.AppendLine($"{CsvCell(fileNo)},{CsvCell(dateStr)},{CsvCell(subject)},{CsvCell(natureOfCase)},{CsvCell(timeStr)},{CsvCell(place)},{CsvCell(source)},{CsvCell(actions)},{CsvCell(outcome)},{CsvCell(status)}");
             }
 
-            var fileName = $"BantayDagat_Blotters_{DateTime.Now:yyyy-MM-dd}.csv";
+            var fileName = $"BantayDagat_Blotter_Reports_Done_{DateTime.Now:yyyy-MM-dd}.csv";
             return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv; charset=utf-8", fileName);
         }
 

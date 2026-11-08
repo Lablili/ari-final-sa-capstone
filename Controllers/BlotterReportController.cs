@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -331,6 +333,45 @@ namespace ari_final_sa_capstone.Controllers
                 status = blotter.Status,
                 message = $"Blotter #{blotter.IncidentId:D2} successfully saved and synchronized!"
             });
+        }
+
+        // GET: BlotterReport/ExportDoneBlottersCsv
+        [HttpGet]
+        public async Task<IActionResult> ExportDoneBlottersCsv()
+        {
+            // Only export reports that were marked as Done or Closed
+            var records = await _context.BlotterReports
+                .Where(b => b.Status == "Done" || b.Status == "Closed")
+                .OrderByDescending(b => b.IncidentDate)
+                .ToListAsync();
+
+            var sb = new StringBuilder();
+            sb.AppendLine("\uFEFFFile No.,Date,Subject,Nature of Case,Time of Occurrence,Place of Occurrence,Report Source / Apprehended By,Facts & Actions Taken,Outcome & Disposition,Status");
+
+            foreach (var b in records)
+            {
+                var fileNo = b.IncidentId.ToString("D2");
+                var dateStr = b.IncidentDate.ToString("MMMM d, yyyy");
+                var timeStr = b.IncidentDate.ToString("hh:mm tt");
+                var subject = "Excerpt from the Municipal Bantay Dagat Blotter Report";
+                var natureOfCase = $"Resolution #33 Ordinance #02 Series of 2020 Section 37 Article 8 ({b.IncidentType})";
+                var place = b.Location;
+                var source = b.ReportSource;
+                var actions = b.ActionsTaken;
+                var outcome = string.IsNullOrWhiteSpace(b.Outcome) ? "Resolved / Done" : b.Outcome;
+                var status = b.Status;
+
+                sb.AppendLine($"{CsvCell(fileNo)},{CsvCell(dateStr)},{CsvCell(subject)},{CsvCell(natureOfCase)},{CsvCell(timeStr)},{CsvCell(place)},{CsvCell(source)},{CsvCell(actions)},{CsvCell(outcome)},{CsvCell(status)}");
+            }
+
+            var fileName = $"BantayDagat_Blotter_Reports_Done_{DateTime.Now:yyyy-MM-dd}.csv";
+            return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv; charset=utf-8", fileName);
+        }
+
+        private static string CsvCell(string? value)
+        {
+            var safe = (value ?? "").Replace("\"", "\"\"");
+            return $"\"{safe}\"";
         }
 
         private bool BlotterReportExists(int id)
